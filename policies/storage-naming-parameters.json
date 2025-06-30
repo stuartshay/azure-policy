@@ -1,0 +1,23 @@
+{
+  "namePattern": {
+    "type": "String",
+    "metadata": {
+      "displayName": "Storage Account Name Pattern",
+      "description": "Pattern that storage account names must follow. Use * as wildcards."
+    },
+    "defaultValue": "st*"
+  },
+  "effect": {
+    "type": "String",
+    "metadata": {
+      "displayName": "Effect",
+      "description": "The effect determines what happens when the policy rule is evaluated to match"
+    },
+    "defaultValue": "Audit",
+    "allowedValues": [
+      "Audit",
+      "Deny",
+      "Disabled"
+    ]
+  }
+}

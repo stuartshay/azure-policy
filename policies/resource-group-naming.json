@@ -1,0 +1,53 @@
+{
+  "mode": "All",
+  "policyRule": {
+    "if": {
+      "allOf": [
+        {
+          "field": "type",
+          "equals": "Microsoft.Resources/resourceGroups"
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "field": "name",
+                "like": "rg-*-*"
+              },
+              {
+                "field": "name",
+                "like": "dev-*"
+              },
+              {
+                "field": "name",
+                "like": "prod-*"
+              },
+              {
+                "field": "name",
+                "like": "test-*"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "then": {
+      "effect": "[parameters('effect')]"
+    }
+  },
+  "parameters": {
+    "effect": {
+      "type": "String",
+      "metadata": {
+        "displayName": "Effect",
+        "description": "The effect determines what happens when the policy rule is evaluated to match"
+      },
+      "defaultValue": "Audit",
+      "allowedValues": [
+        "Audit",
+        "Deny",
+        "Disabled"
+      ]
+    }
+  }
+}
