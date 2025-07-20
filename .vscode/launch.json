@@ -1,0 +1,63 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach to Python Functions",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "port": 9091,
+        "host": "localhost"
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/functions/basic",
+          "remoteRoot": "/azure-functions-host/workers/python"
+        }
+      ]
+    },
+    {
+      "name": "Azure Functions: Debug",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "azure_functions_worker.main",
+      "args": [
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "9091",
+        "--worker-id",
+        "1"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/functions/basic",
+      "env": {
+        "AzureWebJobsScriptRoot": "${workspaceFolder}/functions/basic",
+        "AzureFunctionsJobHost__Logging__Console__IsEnabled": "true"
+      },
+      "python": "${workspaceFolder}/functions/basic/.venv/bin/python"
+    },
+    {
+      "name": "Python: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/functions/basic",
+      "python": "${workspaceFolder}/functions/basic/.venv/bin/python"
+    },
+    {
+      "name": "Python: Test Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "${file}",
+        "-v"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/functions/basic",
+      "python": "${workspaceFolder}/functions/basic/.venv/bin/python"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.pylint",
+    "ms-python.black-formatter",
+    "ms-python.isort",
+    "ms-azuretools.vscode-azurefunctions",
+    "ms-vscode.azurecli",
+    "Azurite.azurite",
+    "ms-python.debugpy",
+    "ms-python.flake8",
+    "ms-vscode.vscode-json",
+    "redhat.vscode-yaml",
+    "ms-vscode.powershell",
+    "ms-python.mypy-type-checker",
+    "ms-python.pytest"
+  ],
+  "unwantedRecommendations": []
+}
