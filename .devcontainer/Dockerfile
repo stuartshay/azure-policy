@@ -17,22 +17,12 @@ RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > mic
     && apt-get install -y azure-functions-core-tools-4 \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy global Python requirements
+COPY requirements.txt /tmp/dev-requirements.txt
+
 # Install additional Python tools globally
 RUN pip install --upgrade pip \
-    && pip install \
-    azure-functions>=1.18.0 \
-    azure-functions-worker>=1.0.0 \
-    azure-storage-blob>=12.19.0 \
-    azure-identity>=1.15.0 \
-    black>=23.0.0 \
-    pylint>=2.17.0 \
-    flake8>=6.0.0 \
-    pytest>=7.4.0 \
-    pytest-asyncio>=0.21.0 \
-    pytest-cov>=4.1.0 \
-    isort>=5.12.0 \
-    mypy>=1.0.0 \
-    requests>=2.31.0
+    && pip install -r /tmp/dev-requirements.txt
 
 # Set up workspace
 WORKDIR /workspace

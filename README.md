@@ -39,8 +39,9 @@ This repository contains tools and examples for Azure Policy management and Azur
 1. **Prerequisites**: Docker and VS Code with Dev Containers extension
 2. Open this repository in VS Code
 3. When prompted, click "Reopen in Container" or use Command Palette: `Dev Containers: Reopen in Container`
-4. Wait for the container to build and setup to complete (this may take 5-10 minutes on first run)
-5. **Verify setup**: Run `./start-functions.sh` to verify everything is working
+4. Global Python tools are listed in `.devcontainer/requirements.txt`. Update this file before building if you need additional packages.
+5. Wait for the container to build and setup to complete (this may take 5-10 minutes on first run)
+6. **Verify setup**: Run `./start-functions.sh` to verify everything is working
 
 ### Azure Policy Management
 
