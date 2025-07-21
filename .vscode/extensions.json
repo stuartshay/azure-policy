@@ -1,10 +1,10 @@
 {
   "recommendations": [
+    "ms-azuretools.vscode-azurefunctions",
     "ms-python.python",
     "ms-python.pylint",
     "ms-python.black-formatter",
     "ms-python.isort",
-    "ms-azuretools.vscode-azurefunctions",
     "ms-vscode.azurecli",
     "Azurite.azurite",
     "ms-python.debugpy",

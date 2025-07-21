@@ -2,21 +2,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Attach to Python Functions",
-      "type": "debugpy",
-      "request": "attach",
-      "connect": {
-        "port": 9091,
-        "host": "localhost"
-      },
-      "pathMappings": [
-        {
-          "localRoot": "${workspaceFolder}/functions/basic",
-          "remoteRoot": "/azure-functions-host/workers/python"
-        }
-      ]
-    },
-    {
       "name": "Azure Functions: Debug",
       "type": "debugpy",
       "request": "launch",
@@ -58,6 +43,16 @@
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}/functions/basic",
       "python": "${workspaceFolder}/functions/basic/.venv/bin/python"
+    },
+    {
+      "name": "Attach to Python Functions",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 9091
+      },
+      "preLaunchTask": "func: host start"
     }
   ]
 }

@@ -1,8 +1,8 @@
 """
 Unit tests for Azure Functions HTTP triggers.
 
-This module contains unit tests for the Azure Functions defined in function_app.py.
-Tests cover the hello_world, health_check, and info functions.
+This module contains unit tests for the Azure Functions defined in
+function_app.py. Tests cover the hello_world, health_check, and info functions.
 """
 
 import json

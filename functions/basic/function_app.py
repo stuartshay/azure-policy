@@ -23,8 +23,8 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
     """
     HTTP-triggered Azure Function that returns a Hello World message.
     
-    This function accepts both GET and POST requests and returns a JSON response
-    with a greeting message, timestamp, and request information.
+    This function accepts both GET and POST requests and returns a JSON
+    response with a greeting message, timestamp, and request information.
     
     Args:
         req (func.HttpRequest): The HTTP request object
@@ -62,7 +62,7 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
         }
         
         # Log successful execution
-        logging.info(f"Successfully processed request for name: {name}")
+        logging.info("Successfully processed request for name: %s", name)
         
         # Return JSON response
         return func.HttpResponse(
@@ -75,9 +75,9 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
             }
         )
         
-    except Exception as e:
+    except (ValueError, TypeError, KeyError) as e:
         # Log error
-        logging.error(f"Error processing request: {str(e)}")
+        logging.error("Error processing request: %s", str(e))
         
         # Return error response
         error_response = {
@@ -96,12 +96,12 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.function_name(name="HealthCheck")
 @app.route(route="health", methods=["GET"])
-def health_check(req: func.HttpRequest) -> func.HttpResponse:
+def health_check(_req: func.HttpRequest) -> func.HttpResponse:
     """
     Health check endpoint for monitoring and diagnostics.
     
     Args:
-        req (func.HttpRequest): The HTTP request object
+        _req (func.HttpRequest): The HTTP request object (unused)
         
     Returns:
         func.HttpResponse: JSON response with health status
@@ -125,12 +125,12 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.function_name(name="Info")
 @app.route(route="info", methods=["GET"])
-def info(req: func.HttpRequest) -> func.HttpResponse:
+def info(_req: func.HttpRequest) -> func.HttpResponse:
     """
     Information endpoint that returns details about the function app.
     
     Args:
-        req (func.HttpRequest): The HTTP request object
+        _req (func.HttpRequest): The HTTP request object (unused)
         
     Returns:
         func.HttpResponse: JSON response with function app information

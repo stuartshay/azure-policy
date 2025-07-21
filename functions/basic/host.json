@@ -6,26 +6,17 @@
         "isEnabled": true,
         "excludedTypes": "Request"
       }
-    }
-  },
-  "extensionBundle": {
-    "id": "Microsoft.Azure.Functions.ExtensionBundle",
-    "version": "[4.*, 5.0.0)"
-  },
-  "functionTimeout": "00:05:00",
-  "httpWorkerOptions": {
-    "description": {
-      "defaultExecutablePath": "python",
-      "defaultWorkerPath": "azure_functions_worker/main.py",
-      "arguments": []
-    }
-  },
-  "logging": {
+    },
     "logLevel": {
       "default": "Information",
       "Host.Results": "Error",
       "Function": "Information",
       "Host.Aggregator": "Trace"
     }
-  }
+  },
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  },
+  "functionTimeout": "00:05:00"
 }
