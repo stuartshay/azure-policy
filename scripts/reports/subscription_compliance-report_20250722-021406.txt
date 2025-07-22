@@ -1,0 +1,490 @@
+=== Azure Policy Learning Script ===
+Script: Compliance Report
+Date: 07/22/2025 02:14:06
+Scope: Current Subscription
+
+📊 Policy Compliance Report
+============================
+🔍 Gathering compliance data...
+
+📈 Overall Compliance Summary:
+==============================
+Compliant: 23
+NonCompliant: 70
+
+Overall Compliance Rate: 24.73% (23/93)
+
+📋 Compliance by Policy Assignment:
+====================================
+
+Assignment: resouce-tagging-policy
+  Compliant: 1
+  Non-Compliant: 3
+  Total Resources: 4
+  Compliance Rate: 25%
+
+Assignment: SecurityCenterBuiltIn
+  Compliant: 22
+  Non-Compliant: 63
+  Total Resources: 85
+  Compliance Rate: 25%
+
+Assignment: storage-naming-assignment
+  Compliant: 0
+  Non-Compliant: 4
+  Total Resources: 4
+  Compliance Rate: 0%
+
+❌ Non-Compliant Resources:
+===========================
+
+Resource: testpolicyfail1751304910
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: nycphoto
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: azureconnectedservices
+Type: Microsoft.ServiceBus/namespaces
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: azurekatsimages01
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: cs209e01a7d07d4x43eex80c
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: 
+
+Resource: badnaming1751306910
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: 
+
+Resource: coredatastorecdn
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: 
+
+Resource: nycphoto
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: nycphoto
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: nycphoto
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: testpolicypass1751305066
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: coredatastorecdn
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: coredatastorecdn
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: coredatastorecdn
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: coredatastorecdn
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: 
+
+Resource: cs209e01a7d07d4x43eex80c
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: cs209e01a7d07d4x43eex80c
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: cs209e01a7d07d4x43eex80c
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: cs209e01a7d07d4x43eex80c
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: 
+
+Resource: testpolicypass1751305066
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: testpolicypass1751305066
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: testpolicypass1751305066
+Type: Microsoft.Storage/storageAccounts
+Policy: storage-naming-assignment
+Reason: N/A
+Location: westus
+
+Resource: stcompliant1751306948
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: testpolicyfail1751304910
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: testpolicyfail1751304910
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: testpolicyfail1751304910
+Type: Microsoft.Storage/storageAccounts
+Policy: storage-naming-assignment
+Reason: N/A
+Location: westus
+
+Resource: testpolicyfail1751304910
+Type: Microsoft.Storage/storageAccounts
+Policy: resouce-tagging-policy
+Reason: N/A
+Location: westus
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: 
+
+Resource: stcompliant1751306948
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: stcompliant1751306948
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: stcompliant1751306948
+Type: Microsoft.Storage/storageAccounts
+Policy: storage-naming-assignment
+Reason: N/A
+Location: westus
+
+Resource: stcompliant1751306948
+Type: Microsoft.Storage/storageAccounts
+Policy: resouce-tagging-policy
+Reason: N/A
+Location: westus
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: 
+
+Resource: badnaming1751306910
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: badnaming1751306910
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: westus
+
+Resource: badnaming1751306910
+Type: Microsoft.Storage/storageAccounts
+Policy: storage-naming-assignment
+Reason: N/A
+Location: westus
+
+Resource: badnaming1751306910
+Type: Microsoft.Storage/storageAccounts
+Policy: resouce-tagging-policy
+Reason: N/A
+Location: westus
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: 
+
+Resource: azurekatsimages01
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: azurekatsimages01
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: azurekatsimages01
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: 
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: 
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: 
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: 
+
+Resource: azureconnectedservices01
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: 
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: 
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: NotFound
+Location: 
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: NotFound
+Location: 
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: NotFound
+Location: 
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: NotFound
+Location: 
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: NotFound
+Location: 
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: NotFound
+Location: 
+
+Resource: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Type: Microsoft.Resources/subscriptions
+Policy: SecurityCenterBuiltIn
+Reason: NotFound
+Location: 
+
+Resource: azureconnectedservices01
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: azureconnectedservices01
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: azureconnectedservices01
+Type: Microsoft.Storage/storageAccounts
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: navigatorglassvm-vnet
+Type: Microsoft.Network/virtualNetworks
+Policy: SecurityCenterBuiltIn
+Reason: NotFound
+Location: eastus
+
+Resource: navigatorglassvm-vnet
+Type: Microsoft.Network/virtualNetworks
+Policy: SecurityCenterBuiltIn
+Reason: ResourceGroupNotFound
+Location: eastus
+
+Resource: azureconnectedservices
+Type: Microsoft.KeyVault/vaults
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: azureconnectedservices
+Type: Microsoft.KeyVault/vaults
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: azureconnectedservices
+Type: Microsoft.KeyVault/vaults
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: azureconnectedservices
+Type: Microsoft.KeyVault/vaults
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+Resource: azureconnectedservices
+Type: Microsoft.AppConfiguration/configurationStores
+Policy: SecurityCenterBuiltIn
+Reason: N/A
+Location: eastus
+
+⚖️  Policy Effects in Use:
+==========================
+
+Assignment: ASC Default (subscription: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f)
+Effect: Custom/Initiative
+
+📊 Compliance by Resource Type:
+===============================
+Microsoft.AppConfiguration/configurationStores: 0/1 (0%)
+Microsoft.KeyVault/vaults: 2/6 (33.3%)
+Microsoft.Network/virtualNetworks: 0/2 (0%)
+Microsoft.Resources/subscriptions: 0/21 (0%)
+Microsoft.ServiceBus/namespaces: 0/1 (0%)
+Microsoft.Storage/storageAccounts: 21/62 (33.9%)
+
+💡 Understanding Compliance States:
+====================================
+✅ Compliant: Resource follows the policy rule
+❌ NonCompliant: Resource violates the policy rule
+⚠️  Conflict: Multiple policies with conflicting requirements
+❓ Unknown: Policy evaluation hasn't completed or failed
+
+💡 Next steps:
+- Run ./06-list-initiatives.ps1 to explore policy initiatives
+- Run ./07-create-custom-policy.ps1 to create your own policy
+- Use ./08-remediation.ps1 to fix non-compliant resources
+- Use -ResourceGroup parameter to focus on specific resource group
+
+✅ Compliance report has been saved to: ./reports/subscription_compliance-report_20250722-021406.txt
+📁 File size: 11446 bytes

@@ -1,0 +1,38 @@
+=== Azure Policy Learning Script ===
+Script: List Policy Assignments
+Date: 07/22/2025 02:08:04
+
+🎯 Current Subscription:
+========================
+Name: BizSpark
+ID: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Tenant: c725ad9b-4d37-4c38-b78d-3859e706283d
+
+📋 Policy Assignments:
+======================
+
+Name: ASC Default (subscription: 09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f)
+Policy: 1f3afdf9-d0c9-4c3d-847f-89da613e70a8
+Scope: /subscriptions/09e01a7d-07d4-43ee-80c7-8b2c0d7ec41f
+Enforcement: Default
+Created: 07/10/2019 08:27:02
+---
+
+📊 Assignment Summary:
+=====================
+Total assignments: 1
+
+🔍 Assignments by Enforcement Mode:
+Default: 1
+
+📈 Additional Statistics:
+Assignments by Scope:
+- Other: 1
+
+💡 Next steps:
+- Run ./04-create-assignment.ps1 to create a new policy assignment
+- Run ./05-compliance-report.ps1 to check compliance status
+- Run ./06-list-initiatives.ps1 to see policy initiatives
+
+✅ Policy assignments have been saved to: ./reports/policy-assignments_20250722-020804.txt
+📁 File size: 1005 bytes

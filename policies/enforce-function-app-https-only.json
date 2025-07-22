@@ -1,0 +1,38 @@
+{
+  "mode": "Indexed",
+  "policyRule": {
+    "if": {
+      "allOf": [
+        {
+          "field": "type",
+          "equals": "Microsoft.Web/sites"
+        },
+        {
+          "field": "kind",
+          "like": "functionapp*"
+        },
+        {
+          "anyOf": [
+            {
+              "field": "Microsoft.Web/sites/httpsOnly",
+              "exists": false
+            },
+            {
+              "field": "Microsoft.Web/sites/httpsOnly",
+              "equals": false
+            }
+          ]
+        }
+      ]
+    },
+    "then": {
+      "effect": "Deny"
+    }
+  },
+  "parameters": {},
+  "metadata": {
+    "category": "App Service",
+    "version": "1.0.1",
+    "preview": false
+  }
+}

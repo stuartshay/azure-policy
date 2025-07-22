@@ -22,9 +22,10 @@ echo "1) Require specific tags on resource groups"
 echo "2) Enforce naming convention for storage accounts"
 echo "3) Audit resources without backup enabled"
 echo "4) Deny creation of expensive VM sizes"
-echo "5) Custom policy (manual definition)"
+echo "5) Enforce HTTPS-only for Azure Function Apps"
+echo "6) Custom policy (manual definition)"
 echo ""
-read -p "Choose a template (1-5): " TEMPLATE_CHOICE
+read -p "Choose a template (1-6): " TEMPLATE_CHOICE
 
 case $TEMPLATE_CHOICE in
     1)
@@ -227,6 +228,47 @@ EOF
 EOF
         ;;
     5)
+        POLICY_NAME="enforce-function-app-https-only"
+        DISPLAY_NAME="Function Apps should only be accessible over HTTPS"
+        DESCRIPTION="This policy ensures that Azure Function Apps are only accessible over HTTPS, not HTTP"
+        
+        cat > "$POLICIES_DIR/${POLICY_NAME}.json" << 'EOF'
+{
+  "mode": "Indexed",
+  "policyRule": {
+    "if": {
+      "allOf": [
+        {
+          "field": "type",
+          "equals": "Microsoft.Web/sites"
+        },
+        {
+          "field": "kind",
+          "like": "functionapp*"
+        },
+        {
+          "anyOf": [
+            {
+              "field": "Microsoft.Web/sites/httpsOnly",
+              "exists": false
+            },
+            {
+              "field": "Microsoft.Web/sites/httpsOnly",
+              "equals": false
+            }
+          ]
+        }
+      ]
+    },
+    "then": {
+      "effect": "Deny"
+    }
+  },
+  "parameters": {}
+}
+EOF
+        ;;
+    6)
         echo ""
         read -p "Enter policy name (lowercase, no spaces): " POLICY_NAME
         read -p "Enter display name: " DISPLAY_NAME
