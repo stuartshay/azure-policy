@@ -15,6 +15,11 @@
     "ghcr.io/devcontainers/features/node:1": {
       "version": "lts",
       "nodeGypDependencies": true
+    },
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true
     }
   },
   "customizations": {
@@ -34,6 +39,17 @@
         "ms-vscode.powershell"
       ],
       "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          },
+          "zsh": {
+            "path": "zsh",
+            "icon": "terminal"
+          }
+        },
         "python.defaultInterpreterPath": "/usr/local/bin/python3",
         "python.formatting.provider": "black",
         "python.formatting.blackArgs": [

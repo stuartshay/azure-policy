@@ -4,6 +4,11 @@
 
 echo "Setting up Azure Functions development environment..."
 
+# Configure zsh as default shell for user
+echo "Configuring zsh as default shell..."
+sudo chsh -s $(which zsh) vscode
+echo 'export SHELL=$(which zsh)' >> ~/.bashrc
+
 # Navigate to workspace
 cd /workspace
 
@@ -83,5 +88,5 @@ echo "3. func start"
 echo ""
 echo "Your functions will be available at:"
 echo "- Hello World: http://localhost:7071/api/hello"
-echo "- Health Check: http://localhost:7071/api/health"  
+echo "- Health Check: http://localhost:7071/api/health"
 echo "- Info: http://localhost:7071/api/info"
