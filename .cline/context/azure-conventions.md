@@ -3,9 +3,11 @@
 ## Naming Convention Framework
 
 ### Pattern Structure
+
 `{resource-type}-{workload}-{environment}-{region}-{instance}`
 
 ### Components
+
 - **resource-type**: Azure resource abbreviation (rg, vnet, nsg, etc.)
 - **workload**: Application or service name (azurepolicy)
 - **environment**: Environment identifier (dev, staging, prod)
@@ -15,6 +17,7 @@
 ## Resource Type Abbreviations
 
 ### Core Infrastructure
+
 | Resource Type | Abbreviation | Example |
 |---------------|--------------|---------|
 | Resource Group | rg | rg-azurepolicy-dev-eastus |
@@ -25,6 +28,7 @@
 | Public IP | pip | pip-azurepolicy-dev-eastus-001 |
 
 ### Compute Resources
+
 | Resource Type | Abbreviation | Example |
 |---------------|--------------|---------|
 | Virtual Machine | vm | vm-azurepolicy-dev-eastus-001 |
@@ -33,6 +37,7 @@
 | Container Instance | ci | ci-azurepolicy-dev-eastus-001 |
 
 ### Storage and Data
+
 | Resource Type | Abbreviation | Example |
 |---------------|--------------|---------|
 | Storage Account | st | stazurepolicydev001 |
@@ -41,6 +46,7 @@
 | Cosmos DB | cosmos | cosmos-azurepolicy-dev-eastus-001 |
 
 ### Monitoring and Security
+
 | Resource Type | Abbreviation | Example |
 |---------------|--------------|---------|
 | Application Insights | appi | appi-azurepolicy-dev-eastus-001 |
@@ -50,6 +56,7 @@
 ## Environment Naming
 
 ### Standard Environments
+
 | Environment | Abbreviation | Purpose |
 |-------------|--------------|---------|
 | Development | dev | Development and testing |
@@ -58,6 +65,7 @@
 | Sandbox | sandbox | Experimental/learning |
 
 ### Environment-Specific Considerations
+
 - **Development**: Use cost-effective SKUs, allow resource deletion
 - **Staging**: Mirror production configuration, limited access
 - **Production**: High availability, backup policies, strict access controls
@@ -65,6 +73,7 @@
 ## Region Abbreviations
 
 ### Primary Regions
+
 | Azure Region | Abbreviation | Use Case |
 |--------------|--------------|----------|
 | East US | eastus | Primary region |
@@ -75,6 +84,7 @@
 ## Tagging Strategy
 
 ### Required Tags
+
 All resources must include these tags:
 
 ```hcl
@@ -91,6 +101,7 @@ locals {
 ```
 
 ### Optional Tags
+
 Additional tags for enhanced management:
 
 ```hcl
@@ -109,18 +120,21 @@ locals {
 ### Tag Values Standards
 
 #### Environment Values
+
 - `dev` - Development environment
 - `staging` - Staging environment
 - `prod` - Production environment
 - `sandbox` - Sandbox/experimental
 
 #### Cost Center Values
+
 - `development` - Development team costs
 - `operations` - Operations team costs
 - `production` - Production workload costs
 - `shared` - Shared infrastructure costs
 
 #### Criticality Levels
+
 - `low` - Non-critical, can tolerate downtime
 - `medium` - Important but not mission-critical
 - `high` - Mission-critical, minimal downtime tolerance
@@ -129,9 +143,11 @@ locals {
 ## Subnet Design Standards
 
 ### Subnet Naming
+
 `snet-{purpose}-{workload}-{environment}-{region}-{instance}`
 
 ### Standard Subnet Purposes
+
 | Purpose | CIDR | Description |
 |---------|------|-------------|
 | default | 10.0.1.0/24 | General purpose subnet |
@@ -142,6 +158,7 @@ locals {
 | bastion | 10.0.6.0/27 | Azure Bastion |
 
 ### IP Address Planning
+
 - **VNet**: 10.0.0.0/16 (65,536 addresses)
 - **Subnets**: /24 networks (254 usable addresses each)
 - **Reserved**: First 4 and last 1 IP in each subnet
@@ -150,17 +167,20 @@ locals {
 ## Security Group Standards
 
 ### NSG Naming
+
 `nsg-{workload}-{subnet-purpose}-{environment}-{region}-{instance}`
 
 ### Standard Security Rules
 
 #### Inbound Rules Priority Range
+
 - **100-199**: Allow rules for specific services
 - **200-299**: Allow rules for management
 - **300-399**: Deny rules for specific threats
 - **4000-4096**: Default deny rules
 
 #### Common Inbound Rules
+
 ```hcl
 # HTTPS from Internet
 priority = 100
@@ -184,6 +204,7 @@ destination_address_prefix = "*"
 ```
 
 #### Outbound Rules
+
 ```hcl
 # HTTPS to Internet
 priority = 100
@@ -209,14 +230,17 @@ destination_address_prefix = "Internet"
 ## Storage Account Naming
 
 ### Special Considerations
+
 - Must be globally unique
 - 3-24 characters, lowercase letters and numbers only
 - No hyphens or special characters
 
 ### Naming Pattern
+
 `st{workload}{environment}{instance}`
 
 Examples:
+
 - `stazurepolicydev001` - Development storage
 - `stazurepolicyprod001` - Production storage
 - `stazurepolicylog001` - Log storage
@@ -224,9 +248,11 @@ Examples:
 ## Function App Naming
 
 ### Pattern
+
 `func-{workload}-{function-purpose}-{environment}-{region}-{instance}`
 
 ### Examples
+
 - `func-azurepolicy-processor-dev-eastus-001`
 - `func-azurepolicy-validator-dev-eastus-001`
 - `func-azurepolicy-reporter-dev-eastus-001`
@@ -234,15 +260,18 @@ Examples:
 ## Key Vault Naming
 
 ### Pattern
+
 `kv-{workload}-{environment}-{region}-{random-suffix}`
 
 ### Considerations
+
 - Must be globally unique
 - 3-24 characters
 - Include random suffix for uniqueness
 - Use for storing secrets, certificates, keys
 
 ### Example
+
 ```hcl
 resource "random_string" "kv_suffix" {
   length  = 4
@@ -258,20 +287,25 @@ locals {
 ## Application Insights Naming
 
 ### Pattern
+
 `appi-{workload}-{environment}-{region}-{instance}`
 
 ### Example
+
 `appi-azurepolicy-dev-eastus-001`
 
 ## Resource Group Organization
 
 ### Single Resource Group Strategy
+
 For this project, use a single resource group per environment:
+
 - `rg-azurepolicy-dev-eastus`
 - `rg-azurepolicy-staging-eastus`
 - `rg-azurepolicy-prod-eastus`
 
 ### Benefits
+
 - Simplified management
 - Easier cost tracking
 - Consistent lifecycle management
@@ -280,6 +314,7 @@ For this project, use a single resource group per environment:
 ## Validation Rules
 
 ### Terraform Validation Examples
+
 ```hcl
 variable "resource_group_name" {
   description = "Name of the resource group"
@@ -305,6 +340,7 @@ variable "storage_account_name" {
 ## Azure Policy for Naming Enforcement
 
 ### Policy Definition Example
+
 ```json
 {
   "mode": "All",

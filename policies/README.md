@@ -9,15 +9,18 @@ This directory contains custom Azure Policy definitions for organizational gover
 **Purpose**: Enforces naming standards for storage accounts
 
 **Rule**: Storage accounts must follow the pattern `st*[a-z0-9]*`
+
 - Must start with "st"
 - Followed by any characters
 - Must be lowercase alphanumeric
 
 **Examples**:
+
 - ✅ Compliant: `stdevapp001`, `stproddata123`
 - ❌ Non-compliant: `mystorageaccount`, `StorageAccount1`
 
 **Parameters**:
+
 - `namePattern`: Customizable naming pattern (default: `st*[a-z0-9]*`)
 - `effect`: Audit, Deny, or Disabled (default: Audit)
 
@@ -26,21 +29,25 @@ This directory contains custom Azure Policy definitions for organizational gover
 **Purpose**: Enforces naming standards for resource groups
 
 **Rule**: Resource groups must follow one of these patterns:
+
 - `rg-*-*` (standard format: rg-purpose-environment)
 - `dev-*` (development resources)
-- `prod-*` (production resources) 
+- `prod-*` (production resources)
 - `test-*` (testing resources)
 
 **Examples**:
+
 - ✅ Compliant: `rg-webapp-dev`, `dev-testing`, `prod-database`
 - ❌ Non-compliant: `MyResourceGroup`, `AzurePolicy`
 
 **Parameters**:
+
 - `effect`: Audit, Deny, or Disabled (default: Audit)
 
 ## Usage
 
 1. **Create Policy Definition**:
+
    ```bash
    az policy definition create \
      --name "custom-storage-naming" \
@@ -51,6 +58,7 @@ This directory contains custom Azure Policy definitions for organizational gover
    ```
 
 2. **Create Policy Assignment**:
+
    ```bash
    az policy assignment create \
      --name "storage-naming-assignment" \
@@ -71,6 +79,7 @@ This directory contains custom Azure Policy definitions for organizational gover
 ## Customization
 
 You can modify these policies by:
+
 - Changing the `namePattern` parameter
 - Adding new allowed naming patterns
 - Adjusting the policy effects

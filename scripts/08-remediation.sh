@@ -34,7 +34,7 @@ if [ "$(echo $REMEDIATION_ASSIGNMENTS | jq length)" -eq 0 ]; then
     echo "   • Appropriate permissions assigned to the identity"
     echo ""
     echo "🚀 Let's create a remediation-capable assignment..."
-    
+
     # Show example policies that support remediation
     echo ""
     echo "📋 Built-in policies that support remediation:"
@@ -44,16 +44,16 @@ if [ "$(echo $REMEDIATION_ASSIGNMENTS | jq length)" -eq 0 ]; then
     echo "3) Add a tag to resource groups"
     echo "4) Configure Azure Security Center contact email"
     echo ""
-    
+
     read -p "Would you like to create a remediation example? (y/n): " CREATE_EXAMPLE
-    
+
     if [[ $CREATE_EXAMPLE =~ ^[Yy]$ ]]; then
         create_remediation_example
     fi
 else
     echo "✅ Found $(echo $REMEDIATION_ASSIGNMENTS | jq length) assignment(s) with managed identity"
     echo ""
-    
+
     # Show remediation-capable assignments
     echo $REMEDIATION_ASSIGNMENTS | jq -r '.[] | "
 Assignment: \(.displayName // .name)
@@ -62,22 +62,22 @@ Identity: \(.identity.type)
 Principal ID: \(.identity.principalId)
 Scope: \(.scope)
 ---"'
-    
+
     # Check for existing remediation tasks
     echo ""
     echo "📋 Existing Remediation Tasks:"
     echo "=============================="
-    
+
     for assignment in $(echo $REMEDIATION_ASSIGNMENTS | jq -r '.[].name'); do
         echo "Checking remediation tasks for assignment: $assignment"
         az policy remediation list --policy-assignment "$assignment" --output table 2>/dev/null || echo "No remediation tasks found for $assignment"
         echo ""
     done
-    
+
     # Offer to create new remediation task
     echo ""
     read -p "Would you like to create a new remediation task? (y/n): " CREATE_REMEDIATION
-    
+
     if [[ $CREATE_REMEDIATION =~ ^[Yy]$ ]]; then
         create_remediation_task
     fi
@@ -88,12 +88,12 @@ create_remediation_example() {
     echo ""
     echo "🏗️  Creating Remediation Example"
     echo "==============================="
-    
+
     # Use a simple tag policy for demonstration
     POLICY_NAME="add-environment-tag-to-rg"
-    
+
     echo "Creating example policy: Add Environment tag to resource groups"
-    
+
     # Create a simple modify policy
     cat > /tmp/modify-policy.json << 'EOF'
 {
@@ -139,7 +139,7 @@ create_remediation_example() {
   }
 }
 EOF
-    
+
     # Create the policy
     if az policy definition create \
         --name "$POLICY_NAME" \
@@ -147,35 +147,36 @@ EOF
         --description "Adds Environment tag to resource groups that don't have it" \
         --rules /tmp/modify-policy.json \
         --mode All; then
-        
+
         echo "✅ Policy created successfully!"
-        
+
         # Create assignment with managed identity
+        export SUBSCRIPTION_ID
         SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         ASSIGNMENT_NAME="add-env-tag-assignment"
-        
+
         echo ""
         echo "Creating policy assignment with managed identity..."
-        
+
         if az policy assignment create \
             --name "$ASSIGNMENT_NAME" \
             --policy "$POLICY_NAME" \
             --assign-identity \
             --location "eastus" \
             --params '{"tagValue": {"value": "Development"}}'; then
-            
+
             echo "✅ Assignment created with managed identity!"
             echo ""
             echo "⚠️  Note: You may need to assign permissions to the managed identity"
             echo "   Role needed: Contributor or Tag Contributor"
-            
+
         else
             echo "❌ Failed to create assignment"
         fi
     else
         echo "❌ Failed to create policy"
     fi
-    
+
     # Cleanup
     rm -f /tmp/modify-policy.json
 }
@@ -185,26 +186,26 @@ create_remediation_task() {
     echo ""
     echo "🔧 Creating Remediation Task"
     echo "============================"
-    
+
     # List available assignments
     echo "Available assignments for remediation:"
     echo $REMEDIATION_ASSIGNMENTS | jq -r '.[] | "\(.name): \(.displayName // .name)"' | nl
-    
+
     read -p "Enter assignment name: " ASSIGNMENT_NAME
     read -p "Enter remediation task name: " TASK_NAME
-    
+
     echo ""
     echo "🚀 Creating remediation task..."
-    
+
     if az policy remediation create \
         --name "$TASK_NAME" \
         --policy-assignment "$ASSIGNMENT_NAME"; then
-        
+
         echo "✅ Remediation task created successfully!"
         echo ""
         echo "📊 Task details:"
         az policy remediation show --name "$TASK_NAME" --policy-assignment "$ASSIGNMENT_NAME" --output table
-        
+
     else
         echo "❌ Failed to create remediation task"
         echo "💡 Check that the assignment exists and supports remediation"

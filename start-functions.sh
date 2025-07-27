@@ -35,14 +35,14 @@ else
 fi
 echo ""
 
-# Navigate to functions directory
-cd functions/basic
+# Navigate to the functions directory
+cd functions/basic || exit
 
 # Check if virtual environment exists
 echo "🔧 Python virtual environment:"
 if [ -d ".venv" ]; then
     echo "✅ Virtual environment exists"
-    
+
     # Activate virtual environment and check packages
     source .venv/bin/activate
     echo "📦 Key packages installed:"
@@ -78,7 +78,7 @@ echo "🎯 Quick Start Commands:"
 echo "======================="
 echo "1. Start Azure Functions:"
 echo "   cd functions/basic"
-echo "   source .venv/bin/activate" 
+echo "   source .venv/bin/activate"
 echo "   func start"
 echo ""
 echo "2. Test endpoints:"

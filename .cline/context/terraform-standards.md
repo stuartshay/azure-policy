@@ -3,6 +3,7 @@
 ## Module Structure
 
 ### Standard Module Layout
+
 ```
 modules/{module-name}/
 ├── main.tf          # Primary resource definitions
@@ -19,12 +20,14 @@ modules/{module-name}/
 ## Variable Standards
 
 ### Variable Naming
+
 - Use snake_case for variable names
 - Use descriptive names that indicate purpose
 - Group related variables together
 - Use consistent prefixes for related variables
 
 ### Variable Validation
+
 ```hcl
 variable "environment" {
   description = "Environment name (dev, staging, prod)"
@@ -46,6 +49,7 @@ variable "location" {
 ```
 
 ### Variable Documentation
+
 ```hcl
 variable "resource_group_name" {
   description = "Name of the Azure Resource Group where resources will be created"
@@ -61,6 +65,7 @@ variable "resource_group_name" {
 ## Resource Standards
 
 ### Naming Convention Implementation
+
 ```hcl
 locals {
   # Standard naming components
@@ -79,6 +84,7 @@ locals {
 ```
 
 ### Required Tags
+
 ```hcl
 locals {
   common_tags = {
@@ -102,6 +108,7 @@ resource "azurerm_resource_group" "main" {
 ## Provider Configuration
 
 ### Version Constraints
+
 ```hcl
 # versions.tf
 terraform {
@@ -140,6 +147,7 @@ provider "azurerm" {
 ## State Management
 
 ### Backend Configuration
+
 ```hcl
 # backend-config.tf.example
 terraform {
@@ -153,6 +161,7 @@ terraform {
 ```
 
 ### State File Organization
+
 - Separate state files per environment
 - Use descriptive key names
 - Include environment in the path
@@ -161,6 +170,7 @@ terraform {
 ## Output Standards
 
 ### Output Naming
+
 ```hcl
 # outputs.tf
 output "resource_group_name" {
@@ -189,6 +199,7 @@ output "subnet_ids" {
 ## Data Sources
 
 ### Standard Data Source Usage
+
 ```hcl
 # Get current client configuration
 data "azurerm_client_config" "current" {}
@@ -209,6 +220,7 @@ data "azurerm_subnet" "app_service" {
 ## Security Best Practices
 
 ### Managed Identity
+
 ```hcl
 resource "azurerm_user_assigned_identity" "main" {
   name                = "id-${local.workload}-${local.environment}-${local.location_short[var.location]}-001"
@@ -219,6 +231,7 @@ resource "azurerm_user_assigned_identity" "main" {
 ```
 
 ### Key Vault Integration
+
 ```hcl
 resource "azurerm_key_vault" "main" {
   name                = "kv-${local.workload}-${local.environment}-${random_string.suffix.result}"
@@ -237,6 +250,7 @@ resource "azurerm_key_vault" "main" {
 ## Error Handling
 
 ### Conditional Resource Creation
+
 ```hcl
 resource "azurerm_application_insights" "main" {
   count = var.enable_application_insights ? 1 : 0
@@ -251,6 +265,7 @@ resource "azurerm_application_insights" "main" {
 ```
 
 ### Lifecycle Management
+
 ```hcl
 resource "azurerm_storage_account" "main" {
   name                     = local.storage_name
@@ -294,30 +309,36 @@ module "example" {
 ```
 
 ## Requirements
+
 | Name | Version |
 |------|---------|
 | terraform | >= 1.5 |
 | azurerm | ~> 3.80 |
 
 ## Providers
+
 | Name | Version |
 |------|---------|
 | azurerm | ~> 3.80 |
 
 ## Resources
+
 | Name | Type |
 |------|------|
 | azurerm_resource_group.main | resource |
 
 ## Inputs
+
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | resource_group_name | Name of the resource group | `string` | n/a | yes |
 
 ## Outputs
+
 | Name | Description |
 |------|-------------|
 | resource_group_id | ID of the created resource group |
+
 ```
 
 ## Testing Standards
@@ -338,6 +359,7 @@ terraform plan -detailed-exitcode
 ```
 
 ### Integration Testing
+
 ```hcl
 # test/integration_test.go
 package test

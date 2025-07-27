@@ -19,16 +19,19 @@ These scripts provide hands-on experience with Azure Policy, covering everything
 ### Bash Scripts
 
 1. **Make scripts executable:**
+
    ```bash
    chmod +x *.sh
    ```
 
 2. **Start with the interactive menu:**
+
    ```bash
    ./menu.sh
    ```
 
 3. **Or run scripts individually:**
+
    ```bash
    ./01-list-policies.sh
    ```
@@ -36,16 +39,19 @@ These scripts provide hands-on experience with Azure Policy, covering everything
 ### PowerShell Setup
 
 1. **Install PowerShell modules:**
+
    ```bash
    pwsh ./Install-PowerShellModules.ps1
    ```
 
 2. **Setup PowerShell profile:**
+
    ```bash
    pwsh ./Setup-PowerShellProfile.ps1
    ```
 
 3. **Start PowerShell with Azure context:**
+
    ```bash
    pwsh
    azconnect  # Connect to Azure
@@ -87,48 +93,57 @@ These scripts provide hands-on experience with Azure Policy, covering everything
 ## 🔧 PowerShell Modules Included
 
 ### Core Azure Modules
+
 - **Az** - Complete Azure PowerShell module suite
 - **Az.Accounts** - Azure authentication and account management
 - **Az.Resources** - Azure Resource Manager operations
 - **Az.Storage** - Azure Storage account management
 
 ### Policy & Governance
+
 - **Az.PolicyInsights** - Azure Policy compliance and insights
 - **Az.ResourceGraph** - Azure Resource Graph queries for advanced analytics
 - **Az.Security** - Azure Security Center management
 
 ### Functions & Compute
+
 - **Az.Functions** - Azure Functions management
 - **Az.Websites** - Azure App Service and Function Apps
 - **Az.Monitor** - Azure Monitor and Application Insights
 
 ### Development Tools
+
 - **PSScriptAnalyzer** - PowerShell script analysis and linting
 - **Pester** - PowerShell testing framework
 - **PowerShellGet** - PowerShell module management
 - **Microsoft.PowerShell.SecretManagement** - Secure credential management
 
 ### Utility Modules
+
 - **ImportExcel** - Excel file manipulation without Excel
 - **PSReadLine** - Enhanced command line editing
 
 ## 🎓 Learning Path
 
 ### Beginner (Start Here)
+
 1. `01-list-policies.sh` - Understand what policies exist
 2. `02-show-policy-details.sh` - Examine policy structure
 3. `03-list-assignments.sh` - See how policies are assigned
 
 ### Intermediate
+
 4. `04-create-assignment.sh` - Create your first assignment
 5. `05-compliance-report.sh` - Understand compliance evaluation
 6. `06-list-initiatives.sh` - Learn about policy grouping
 
 ### Advanced
+
 7. `07-create-custom-policy.sh` - Author your own policies
 8. `08-remediation.sh` - Implement automated remediation
 
 ### PowerShell Automation
+
 9. `Install-PowerShellModules.ps1` - Setup PowerShell environment
 10. Use PowerShell for advanced Azure automation and bulk operations
 
@@ -162,17 +177,20 @@ analyze "script.ps1"
 ## 🔧 Script Features
 
 ### Interactive Elements
+
 - **Guided prompts** for user input
 - **Menu-driven choices** for different scenarios
 - **Educational explanations** throughout execution
 - **Next steps suggestions** after each operation
 
 ### Error Handling
+
 - **Prerequisites checking** (Azure login, permissions)
 - **Graceful error messages** with helpful suggestions
 - **Input validation** for user choices
 
 ### Educational Content
+
 - **Concept explanations** before technical operations
 - **Best practices** and recommendations
 - **Links to documentation** for deeper learning
@@ -204,21 +222,25 @@ The custom policy script (`07-create-custom-policy.sh`) includes templates for:
 ## 🔍 Common Use Cases
 
 ### Governance
+
 - Enforce organizational standards
 - Implement compliance frameworks
 - Audit resource configurations
 
 ### Security
+
 - Ensure security best practices
 - Audit security configurations
 - Enforce encryption requirements
 
 ### Cost Management
+
 - Prevent expensive resource creation
 - Enforce resource sizing limits
 - Audit unused resources
 
 ### Automation (PowerShell)
+
 - Bulk policy operations
 - Advanced compliance reporting
 - Resource graph queries
@@ -239,6 +261,7 @@ The custom policy script (`07-create-custom-policy.sh`) includes templates for:
 ### Common Issues
 
 **"Not logged in to Azure"**
+
 ```bash
 az login
 # or in PowerShell
@@ -246,21 +269,25 @@ azconnect
 ```
 
 **"Permission denied"**
+
 ```bash
 chmod +x *.sh
 ```
 
 **"PowerShell module not found"**
+
 ```powershell
 ./Install-PowerShellModules.ps1 -Force
 ```
 
 **"No policies found"**
+
 - Check your subscription access
 - Verify Azure Policy is enabled
 - Try different search terms
 
 **"Policy evaluation pending"**
+
 - Wait 30 minutes for initial evaluation
 - Check assignment scope matches resources
 - Verify policy effect is not "Disabled"
@@ -285,6 +312,7 @@ chmod +x *.sh
 ## 🤝 Contributing
 
 Feel free to enhance these scripts by:
+
 - Adding new policy examples
 - Improving error handling
 - Adding more educational content
@@ -300,17 +328,20 @@ These scripts are designed to make Azure Policy accessible and understandable. T
 ## 🔧 Script Features
 
 ### Interactive Elements
+
 - **Guided prompts** for user input
 - **Menu-driven choices** for different scenarios
 - **Educational explanations** throughout execution
 - **Next steps suggestions** after each operation
 
 ### Error Handling
+
 - **Prerequisites checking** (Azure login, permissions)
 - **Graceful error messages** with helpful suggestions
 - **Input validation** for user choices
 
 ### Educational Content
+
 - **Concept explanations** before technical operations
 - **Best practices** and recommendations
 - **Links to documentation** for deeper learning
@@ -341,16 +372,19 @@ The custom policy script (`07-create-custom-policy.sh`) includes templates for:
 ## 🔍 Common Use Cases
 
 ### Governance
+
 - Enforce organizational standards
 - Implement compliance frameworks
 - Audit resource configurations
 
 ### Security
+
 - Ensure security best practices
 - Audit security configurations
 - Enforce encryption requirements
 
 ### Cost Management
+
 - Prevent expensive resource creation
 - Enforce resource sizing limits
 - Audit unused resources
@@ -368,21 +402,25 @@ The custom policy script (`07-create-custom-policy.sh`) includes templates for:
 ### Common Issues
 
 **"Not logged in to Azure"**
+
 ```bash
 az login
 ```
 
 **"Permission denied"**
+
 ```bash
 chmod +x *.sh
 ```
 
 **"No policies found"**
+
 - Check your subscription access
 - Verify Azure Policy is enabled
 - Try different search terms
 
 **"Policy evaluation pending"**
+
 - Wait 30 minutes for initial evaluation
 - Check assignment scope matches resources
 - Verify policy effect is not "Disabled"
@@ -404,6 +442,7 @@ chmod +x *.sh
 ## 🤝 Contributing
 
 Feel free to enhance these scripts by:
+
 - Adding new policy examples
 - Improving error handling
 - Adding more educational content

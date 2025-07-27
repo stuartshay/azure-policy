@@ -6,6 +6,7 @@
 
 **Problem**: DevContainer fails to build
 **Solutions**:
+
 ```bash
 # Rebuild container without cache
 Ctrl+Shift+P → "Dev Containers: Rebuild Container"
@@ -21,6 +22,7 @@ docker-compose -f .devcontainer/docker-compose.yml build --no-cache
 **Solutions**:
 
 1. **Check virtual environment**:
+
    ```bash
    cd functions/basic
    source .venv/bin/activate
@@ -28,6 +30,7 @@ docker-compose -f .devcontainer/docker-compose.yml build --no-cache
    ```
 
 2. **Recreate virtual environment**:
+
    ```bash
    cd functions/basic
    rm -rf .venv
@@ -38,6 +41,7 @@ docker-compose -f .devcontainer/docker-compose.yml build --no-cache
    ```
 
 3. **Check local.settings.json**:
+
    ```bash
    cd functions/basic
    cp local.settings.json.template local.settings.json
@@ -49,12 +53,14 @@ docker-compose -f .devcontainer/docker-compose.yml build --no-cache
 **Solutions**:
 
 1. **Check Azurite is running**:
+
    ```bash
    docker ps | grep azurite
    nc -z azurite 10000
    ```
 
 2. **Update connection string in local.settings.json**:
+
    ```json
    {
      "Values": {
@@ -64,6 +70,7 @@ docker-compose -f .devcontainer/docker-compose.yml build --no-cache
    ```
 
 3. **Restart Azurite container**:
+
    ```bash
    docker-compose -f .devcontainer/docker-compose.yml restart azurite
    ```
@@ -78,6 +85,7 @@ docker-compose -f .devcontainer/docker-compose.yml build --no-cache
    - Choose: `functions/basic/.venv/bin/python`
 
 2. **Update VS Code settings**:
+
    ```json
    {
      "python.defaultInterpreterPath": "./functions/basic/.venv/bin/python"
@@ -90,6 +98,7 @@ docker-compose -f .devcontainer/docker-compose.yml build --no-cache
 **Solutions**:
 
 1. **Stop conflicting services**:
+
    ```bash
    # Find process using port
    lsof -i :7071
@@ -107,6 +116,7 @@ docker-compose -f .devcontainer/docker-compose.yml build --no-cache
 **Solutions**:
 
 1. **Fix file permissions**:
+
    ```bash
    sudo chown -R $USER:$USER .
    chmod +x scripts/*.sh
@@ -114,6 +124,7 @@ docker-compose -f .devcontainer/docker-compose.yml build --no-cache
    ```
 
 2. **Run as correct user**:
+
    ```bash
    # Check current user in container
    whoami
@@ -138,12 +149,14 @@ docker-compose -f .devcontainer/docker-compose.yml build --no-cache
 **Solutions**:
 
 1. **Check Azure Functions version**:
+
    ```bash
    func --version
    # Should be 4.x
    ```
 
 2. **Clear function cache**:
+
    ```bash
    cd functions/basic
    rm -rf __pycache__/
@@ -151,6 +164,7 @@ docker-compose -f .devcontainer/docker-compose.yml build --no-cache
    ```
 
 3. **Update host.json**:
+
    ```json
    {
      "version": "2.0",
@@ -184,6 +198,7 @@ python -m pytest tests/ -v
 ## Development Workflow
 
 1. **Start development**:
+
    ```bash
    # Open in DevContainer
    code .
@@ -193,6 +208,7 @@ python -m pytest tests/ -v
    ```
 
 2. **Start Azure Functions**:
+
    ```bash
    cd functions/basic
    source .venv/bin/activate
@@ -200,6 +216,7 @@ python -m pytest tests/ -v
    ```
 
 3. **Run tests**:
+
    ```bash
    python -m pytest tests/ -v --cov=.
    ```
@@ -211,6 +228,7 @@ python -m pytest tests/ -v
 ## Getting Help
 
 1. **Check container logs**:
+
    ```bash
    docker-compose -f .devcontainer/docker-compose.yml logs
    ```

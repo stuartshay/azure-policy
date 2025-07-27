@@ -13,11 +13,13 @@ This repository contains tools and examples for Azure Policy management and Azur
 ## Features
 
 ### Azure Policy Tools
+
 - Policy definitions and examples
 - Azure CLI scripts for policy management
 - Compliance reporting tools
 
 ### Azure Functions
+
 - Python 3.13 with Azure Functions v4
 - HTTP triggers with "Hello World" example
 - Health check and info endpoints
@@ -25,6 +27,7 @@ This repository contains tools and examples for Azure Policy management and Azur
 - Local development with Azurite storage emulator
 
 ### Development Environment
+
 - **DevContainer**: Complete containerized development environment
 - **Python 3.13**: Latest Python runtime
 - **Azure CLI**: For Azure resource management
@@ -70,6 +73,7 @@ func start
 ```
 
 The functions will be available at:
+
 - Hello World: `http://localhost:7071/api/hello`
 - Health Check: `http://localhost:7071/api/health`
 - Info: `http://localhost:7071/api/info`
@@ -89,17 +93,20 @@ If you prefer not to use DevContainer:
 ### Installation
 
 1. Install all development tools:
+
    ```bash
    ./install.sh
    ```
 
 2. Authenticate with Azure and GitHub:
+
    ```bash
    az login
    gh auth login
    ```
 
 3. Set up Azure Functions:
+
    ```bash
    cd functions/basic
    python -m venv .venv
@@ -108,11 +115,13 @@ If you prefer not to use DevContainer:
    ```
 
 4. Start Azurite (in a separate terminal):
+
    ```bash
    azurite --silent --location /tmp/azurite --debug /tmp/azurite/debug.log
    ```
 
 5. Start Azure Functions:
+
    ```bash
    func start
    ```
@@ -120,11 +129,13 @@ If you prefer not to use DevContainer:
 ## Development Workflow
 
 ### Azure Policy Development
+
 1. Create or modify policy definitions in `policies/`
 2. Use scripts in `scripts/` to deploy and manage policies
 3. Test policy compliance and remediation
 
 ### Azure Functions Development
+
 1. Modify functions in `functions/basic/function_app.py`
 2. Run tests: `python -m pytest tests/ -v`
 3. Format code: `black .`
@@ -142,9 +153,11 @@ The repository includes comprehensive VS Code configuration:
 ## Available Scripts
 
 ### Environment Setup
+
 - `start-functions.sh` - Verify and setup Azure Functions development environment
 
 ### Policy Management (`scripts/`)
+
 - `menu.sh` - Interactive menu for policy operations
 - `menu.sh` - Interactive menu for policy operations
 - `01-list-policies.sh` - List all policies
@@ -155,6 +168,7 @@ The repository includes comprehensive VS Code configuration:
 - And more...
 
 ### VS Code Tasks
+
 - **Start Azure Functions** - Launch function app locally
 - **Start Azurite** - Start Azure Storage emulator
 - **Install Python Dependencies** - Install/update packages

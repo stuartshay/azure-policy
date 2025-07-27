@@ -31,7 +31,7 @@ case $TEMPLATE_CHOICE in
         POLICY_NAME="require-rg-environment-tag"
         DISPLAY_NAME="Require Environment tag on Resource Groups"
         DESCRIPTION="This policy requires that resource groups have an Environment tag with allowed values"
-        
+
         cat > "$POLICIES_DIR/${POLICY_NAME}.json" << 'EOF'
 {
   "mode": "All",
@@ -87,7 +87,7 @@ EOF
         POLICY_NAME="enforce-storage-naming-convention"
         DISPLAY_NAME="Enforce Storage Account Naming Convention"
         DESCRIPTION="Storage accounts must follow naming convention: [env][purpose]st[random]"
-        
+
         cat > "$POLICIES_DIR/${POLICY_NAME}.json" << 'EOF'
 {
   "mode": "Indexed",
@@ -136,7 +136,7 @@ EOF
         POLICY_NAME="audit-vm-backup-enabled"
         DISPLAY_NAME="Audit VMs without backup enabled"
         DESCRIPTION="Audits virtual machines that don't have backup protection enabled"
-        
+
         cat > "$POLICIES_DIR/${POLICY_NAME}.json" << 'EOF'
 {
   "mode": "Indexed",
@@ -175,7 +175,7 @@ EOF
         POLICY_NAME="deny-expensive-vm-sizes"
         DISPLAY_NAME="Deny expensive VM sizes"
         DESCRIPTION="Prevents creation of VMs with expensive size SKUs"
-        
+
         cat > "$POLICIES_DIR/${POLICY_NAME}.json" << 'EOF'
 {
   "mode": "Indexed",
@@ -231,7 +231,7 @@ EOF
         read -p "Enter policy name (lowercase, no spaces): " POLICY_NAME
         read -p "Enter display name: " DISPLAY_NAME
         read -p "Enter description: " DESCRIPTION
-        
+
         cat > "$POLICIES_DIR/${POLICY_NAME}.json" << 'EOF'
 {
   "mode": "All",
@@ -269,7 +269,7 @@ if az policy definition create \
     --rules "$POLICIES_DIR/${POLICY_NAME}.json" \
     --mode All \
     --output table; then
-    
+
     echo ""
     echo "✅ Custom policy created successfully!"
     echo ""
@@ -278,14 +278,14 @@ if az policy definition create \
     echo "Display Name: $DISPLAY_NAME"
     echo "Description: $DESCRIPTION"
     echo "File: $POLICIES_DIR/${POLICY_NAME}.json"
-    
+
     echo ""
     echo "💡 Next steps:"
     echo "1. Review the policy file: cat $POLICIES_DIR/${POLICY_NAME}.json"
     echo "2. Test the policy: ./04-create-assignment.sh"
     echo "3. View policy details: ./02-show-policy-details.sh '$DISPLAY_NAME'"
     echo "4. Create more policies or modify existing ones"
-    
+
 else
     echo ""
     echo "❌ Failed to create policy definition!"

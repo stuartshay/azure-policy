@@ -41,8 +41,8 @@ echo ""
 echo "📈 Overall Compliance Summary:"
 echo "=============================="
 echo $COMPLIANCE_DATA | jq -r '
-group_by(.complianceState) | 
-map({state: .[0].complianceState, count: length}) | 
+group_by(.complianceState) |
+map({state: .[0].complianceState, count: length}) |
 .[] | "\(.state): \(.count)"'
 
 # Compliance by policy
@@ -90,7 +90,7 @@ echo "========================="
 ASSIGNMENTS=$(az policy assignment list --output json)
 echo $ASSIGNMENTS | jq -r '.[] | "
 Assignment: \(.displayName // .name)
-Effect: \(.policyDefinitionId as $id | 
+Effect: \(.policyDefinitionId as $id |
     if ($id | contains("policyDefinitions")) then
         ($id | split("/") | .[-1])
     else

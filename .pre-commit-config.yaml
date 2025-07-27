@@ -1,0 +1,109 @@
+# Azure Policy & Functions Pre-commit Configuration
+# This file configures pre-commit hooks to maintain code quality and consistency
+
+repos:
+  # General file formatting and checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: ['--allow-multiple-documents']
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # Python formatting and linting
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        language_version: python3
+        args: ['--line-length=88']
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ['--profile=black', '--line-length=88']
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        args: ['--max-line-length=88', '--extend-ignore=E203,W503']
+
+  # PowerShell formatting and linting
+  - repo: local
+    hooks:
+      - id: powershell-format
+        name: PowerShell Formatter
+        entry: pwsh
+        args: ['-Command', 'if (Get-Module -ListAvailable PSScriptAnalyzer) { Invoke-ScriptAnalyzer -Path $args -Settings PSGallery } else { Write-Host "PSScriptAnalyzer not available, skipping PowerShell analysis" }']
+        language: system
+        files: '\.ps1$'
+        pass_filenames: true
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: ['--severity=warning']
+
+  # Secrets detection
+  # - repo: https://github.com/Yelp/detect-secrets
+  #   rev: v1.5.0
+  #   hooks:
+  #     - id: detect-secrets
+  #       args: ['--baseline', '.secrets.baseline']
+  #       exclude: '\.secrets\.baseline$|package-lock\.json$|\.git/|\.venv/'
+
+  # Documentation and markdown
+  # - repo: https://github.com/igorshubovych/markdownlint-cli
+  #   rev: v0.42.0
+  #   hooks:
+  #     - id: markdownlint
+  #       args: ['--fix']
+  #       exclude: 'CHANGELOG\.md$'
+
+  # Azure specific validations
+  - repo: local
+    hooks:
+      - id: azure-policy-validation
+        name: Azure Policy JSON Validation
+        entry: bash
+        args: ['-c', 'for file in "$@"; do if ! jq empty "$file" 2>/dev/null; then echo "Invalid JSON in $file"; exit 1; fi; done', '--']
+        language: system
+        files: 'policies/.*\.json$'
+        pass_filenames: true
+
+      - id: bicep-validation
+        name: Bicep Template Validation
+        entry: bash
+        args: ['-c', 'if command -v az >/dev/null 2>&1; then for file in "$@"; do az bicep build --file "$file" --stdout >/dev/null || exit 1; done; else echo "Azure CLI not available, skipping Bicep validation"; fi', '--']
+        language: system
+        files: '\.bicep$'
+        pass_filenames: true
+
+  # Security and dependency scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: ['--exclude', '*/.*,*/.venv/*,*/venv/*,*/__pycache__/*,*/site-packages/*,*/tests/*']
+        files: '^functions/basic/function_app\.py$'
+
+# Configuration for specific hooks
+default_language_version:
+  python: python3.13

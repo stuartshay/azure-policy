@@ -74,7 +74,7 @@ case $POLICY_CHOICE in
     2) POLICY_NAME="Require a tag on resources" ;;
     3) POLICY_NAME="Not allowed resource types" ;;
     4) POLICY_NAME="Audit VMs that do not use managed disks" ;;
-    5) 
+    5)
         read -p "Enter policy name: " POLICY_NAME
         ;;
     *)
@@ -129,7 +129,7 @@ if az policy assignment create \
     --scope "$SCOPE" \
     --enforcement-mode "$ENFORCEMENT_MODE" \
     --output table; then
-    
+
     echo ""
     echo "✅ Policy assignment created successfully!"
     echo ""

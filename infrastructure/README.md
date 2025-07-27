@@ -49,18 +49,21 @@ infrastructure/
 ### Initial Setup
 
 1. **Clone the repository**:
+
    ```bash
    git clone <repository-url>
    cd azure-policy/infrastructure
    ```
 
 2. **Configure Azure credentials**:
+
    ```bash
    az login
    az account set --subscription <subscription-id>
    ```
 
 3. **Setup PowerShell environment (optional)**:
+
    ```bash
    # Install PowerShell modules
    pwsh ../scripts/Install-PowerShellModules.ps1
@@ -74,6 +77,7 @@ infrastructure/
    ```
 
 3. **Create Terraform backend storage**:
+
    ```bash
    # Create resource group for Terraform state
    az group create --name rg-terraform-state-dev-eastus --location "East US"
@@ -102,27 +106,32 @@ infrastructure/
 ### Local Development
 
 1. **Copy example variables**:
+
    ```bash
    cp terraform.tfvars.example terraform.tfvars
    ```
 
 2. **Edit variables** to match your environment:
+
    ```bash
    nano terraform.tfvars
    ```
 
 3. **Initialize Terraform**:
+
    ```bash
    cd terraform
    terraform init
    ```
 
 4. **Plan deployment**:
+
    ```bash
    terraform plan
    ```
 
 5. **Apply changes**:
+
    ```bash
    terraform apply
    ```
@@ -142,6 +151,7 @@ The infrastructure supports multiple environments with different configurations:
 ### Key Configuration Options
 
 #### Network Configuration
+
 ```hcl
 # VNet address space
 vnet_address_space = ["10.0.0.0/16"]
@@ -165,6 +175,7 @@ subnet_config = {
 ```
 
 #### App Service Configuration
+
 ```hcl
 # App Service Plan SKU
 app_service_plan_sku = "B1"  # Basic tier for development
@@ -185,6 +196,7 @@ function_apps = {
 ```
 
 #### Cost Management
+
 ```hcl
 # Monthly budget in USD
 budget_amount = 100
@@ -196,6 +208,7 @@ budget_alert_thresholds = [50, 80, 100]
 ## 🔄 GitHub Actions Workflows
 
 ### Terraform Validate
+
 **Trigger**: Pull requests and pushes to main branch
 **Purpose**: Validates Terraform code, checks naming conventions, and runs security scans
 
@@ -205,6 +218,7 @@ gh workflow run terraform-validate.yml
 ```
 
 ### Terraform Apply
+
 **Trigger**: Manual workflow dispatch
 **Purpose**: Deploys infrastructure to specified environment
 
@@ -214,6 +228,7 @@ gh workflow run terraform-apply.yml -f environment=dev -f confirm=apply
 ```
 
 ### Terraform Destroy
+
 **Trigger**: Manual workflow dispatch
 **Purpose**: Destroys infrastructure in specified environment
 
@@ -251,18 +266,21 @@ All resources are tagged with:
 ## 🔒 Security
 
 ### Network Security
+
 - Network Security Groups with restrictive rules
 - Service endpoints for secure Azure service access
 - Private endpoints for sensitive resources (optional)
 - VNet integration for Function Apps
 
 ### Access Control
+
 - Managed identities for Azure service authentication
 - Key Vault for secrets management
 - Least privilege access principles
 - Environment-based access controls
 
 ### Monitoring
+
 - Application Insights for application monitoring
 - Diagnostic logs for all resources
 - Security scanning with tfsec
@@ -271,12 +289,14 @@ All resources are tagged with:
 ## 💰 Cost Management
 
 ### Development Environment
+
 - Basic tier App Service Plan (~$13/month)
 - Standard LRS storage (~$5/month)
 - Application Insights (~$2/month)
 - **Estimated total: ~$20/month**
 
 ### Cost Optimization Features
+
 - Auto-shutdown for development resources
 - Budget alerts at 50%, 80%, and 100%
 - Cost monitoring workflows
@@ -287,6 +307,7 @@ All resources are tagged with:
 ### Common Issues
 
 #### Terraform Backend Issues
+
 ```bash
 # Reinitialize backend
 terraform init -reconfigure
@@ -296,6 +317,7 @@ terraform force-unlock <lock-id>
 ```
 
 #### Azure Authentication Issues
+
 ```bash
 # Check current account
 az account show
@@ -308,11 +330,13 @@ az account set --subscription <subscription-id>
 ```
 
 #### Resource Naming Conflicts
+
 - Storage account names must be globally unique
 - Add random suffix if conflicts occur
 - Check existing resources in Azure Portal
 
 #### Network Configuration Issues
+
 - Verify subnet CIDR ranges don't overlap
 - Check NSG rules for connectivity issues
 - Validate service endpoint configurations

@@ -60,7 +60,7 @@ switch_subscription() {
     az account list --output table
     echo ""
     read -p "Enter subscription ID or name: " SUB_INPUT
-    
+
     if az account set --subscription "$SUB_INPUT"; then
         echo "✅ Switched to subscription: $(az account show --query name --output tsv)"
     else
@@ -86,11 +86,11 @@ show_context() {
 run_script() {
     local script_name="$1"
     local script_description="$2"
-    
+
     echo "🚀 Running: $script_description"
     echo "Script: $script_name"
     echo "========================================"
-    
+
     if [ -f "$script_name" ]; then
         if [ -x "$script_name" ]; then
             ./"$script_name"
@@ -102,7 +102,7 @@ run_script() {
     else
         echo "❌ Script '$script_name' not found!"
     fi
-    
+
     echo ""
     echo "========================================"
     read -p "Press Enter to continue..."
@@ -114,7 +114,7 @@ while true; do
     show_menu
     read -p "Enter your choice (0-11): " choice
     echo ""
-    
+
     case $choice in
         1)
             run_script "01-list-policies.sh" "List Azure Policies"

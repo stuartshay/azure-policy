@@ -3,6 +3,7 @@
 ## Workflow Organization
 
 ### Standard Workflow Files
+
 ```
 .github/
 └── workflows/
@@ -17,6 +18,7 @@
 ## Common Workflow Patterns
 
 ### Environment Variables
+
 ```yaml
 env:
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -28,6 +30,7 @@ env:
 ```
 
 ### Standard Job Structure
+
 ```yaml
 jobs:
   terraform-action:
@@ -52,6 +55,7 @@ jobs:
 ## Validation Workflow Pattern
 
 ### terraform-validate.yml
+
 ```yaml
 name: Terraform Validate
 
@@ -100,6 +104,7 @@ jobs:
 ## Plan Workflow Pattern
 
 ### terraform-plan.yml
+
 ```yaml
 name: Terraform Plan
 
@@ -182,6 +187,7 @@ jobs:
 ## Apply Workflow Pattern
 
 ### terraform-apply.yml
+
 ```yaml
 name: Terraform Apply
 
@@ -260,6 +266,7 @@ jobs:
 ## Destroy Workflow Pattern
 
 ### terraform-destroy.yml
+
 ```yaml
 name: Terraform Destroy
 
@@ -352,6 +359,7 @@ jobs:
 ## Cost Monitoring Pattern
 
 ### cost-monitoring.yml
+
 ```yaml
 name: Cost Monitoring
 
@@ -419,6 +427,7 @@ jobs:
 ## Security Patterns
 
 ### Secret Management
+
 ```yaml
 # Use GitHub Environments for secret management
 environment: development
@@ -430,6 +439,7 @@ secrets:
 ```
 
 ### OIDC Authentication (Recommended)
+
 ```yaml
 permissions:
   id-token: write
@@ -447,6 +457,7 @@ steps:
 ## Error Handling Patterns
 
 ### Retry Logic
+
 ```yaml
 - name: Terraform Apply with Retry
   uses: nick-fields/retry@v2
@@ -460,6 +471,7 @@ steps:
 ```
 
 ### Failure Notifications
+
 ```yaml
 - name: Notify on Failure
   if: failure()
@@ -484,6 +496,7 @@ steps:
 ## Reusable Workflow Patterns
 
 ### Composite Action for Terraform Setup
+
 ```yaml
 # .github/actions/setup-terraform/action.yml
 name: 'Setup Terraform'
@@ -512,6 +525,7 @@ runs:
 ## Best Practices
 
 ### Workflow Security
+
 1. Use GitHub Environments for sensitive operations
 2. Implement approval requirements for production
 3. Use OIDC instead of service principal secrets when possible
@@ -519,12 +533,14 @@ runs:
 5. Use dependabot for action version updates
 
 ### Performance Optimization
+
 1. Cache Terraform providers and modules
 2. Use matrix builds for multiple environments
 3. Implement conditional execution based on changed files
 4. Use artifacts for sharing data between jobs
 
 ### Monitoring and Alerting
+
 1. Implement cost monitoring workflows
 2. Set up drift detection
 3. Create failure notification mechanisms
@@ -532,6 +548,7 @@ runs:
 5. Implement automated rollback procedures
 
 ### Documentation
+
 1. Include workflow descriptions in README
 2. Document required secrets and permissions
 3. Provide troubleshooting guides

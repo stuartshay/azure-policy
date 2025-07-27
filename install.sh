@@ -306,6 +306,193 @@ install_azure_functions_tools() {
   fi
 }
 
+# Function to install pre-commit and setup hooks
+install_precommit() {
+  echo "Installing pre-commit and setting up hooks..."
+
+  # Check if pre-commit is already installed
+  if command -v pre-commit >/dev/null 2>&1; then
+    echo "pre-commit is already installed: $(pre-commit --version)"
+  else
+    echo "Installing pre-commit..."
+    if [[ "$OS" == "Linux" ]]; then
+      # Install using pip3.13 (more reliable than apt)
+      sudo python3.13 -m pip install pre-commit
+    elif [[ "$OS" == "Darwin" ]]; then
+      brew install pre-commit
+    fi
+
+    # Verify installation
+    if command -v pre-commit >/dev/null 2>&1; then
+      echo "pre-commit installed successfully: $(pre-commit --version)"
+    else
+      echo "Warning: pre-commit installation may have failed." >&2
+      return 1
+    fi
+  fi
+
+  # Navigate to project root
+  cd "$(dirname "$0")"
+
+  # Create .pre-commit-config.yaml if it doesn't exist
+  if [ ! -f .pre-commit-config.yaml ]; then
+    echo "Creating .pre-commit-config.yaml with essential hooks..."
+    cat > .pre-commit-config.yaml << 'EOF'
+# Azure Policy & Functions Pre-commit Configuration
+# This file configures pre-commit hooks to maintain code quality and consistency
+
+repos:
+  # General file formatting and checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: ['--allow-multiple-documents']
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # Python formatting and linting
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        language_version: python3
+        args: ['--line-length=88']
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ['--profile=black', '--line-length=88']
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        args: ['--max-line-length=88', '--extend-ignore=E203,W503']
+
+  # PowerShell formatting and linting
+  - repo: local
+    hooks:
+      - id: powershell-format
+        name: PowerShell Formatter
+        entry: pwsh
+        args: ['-Command', 'if (Get-Module -ListAvailable PSScriptAnalyzer) { Invoke-ScriptAnalyzer -Path $args -Settings PSGallery } else { Write-Host "PSScriptAnalyzer not available, skipping PowerShell analysis" }']
+        language: system
+        files: '\.ps1$'
+        pass_filenames: true
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: ['--severity=warning']
+
+  # Secrets detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: '\.secrets\.baseline$|package-lock\.json$|\.git/|\.venv/'
+
+  # Documentation and markdown
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.42.0
+    hooks:
+      - id: markdownlint
+        args: ['--fix']
+        exclude: 'CHANGELOG\.md$'
+
+  # Azure specific validations
+  - repo: local
+    hooks:
+      - id: azure-policy-validation
+        name: Azure Policy JSON Validation
+        entry: bash
+        args: ['-c', 'for file in "$@"; do if ! jq empty "$file" 2>/dev/null; then echo "Invalid JSON in $file"; exit 1; fi; done', '--']
+        language: system
+        files: 'policies/.*\.json$'
+        pass_filenames: true
+
+      - id: bicep-validation
+        name: Bicep Template Validation
+        entry: bash
+        args: ['-c', 'if command -v az >/dev/null 2>&1; then for file in "$@"; do az bicep build --file "$file" --stdout >/dev/null || exit 1; done; else echo "Azure CLI not available, skipping Bicep validation"; fi', '--']
+        language: system
+        files: '\.bicep$'
+        pass_filenames: true
+
+  # Security and dependency scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: ['-r', 'functions/']
+        files: 'functions/.*\.py$'
+
+# Configuration for specific hooks
+default_language_version:
+  python: python3.13
+EOF
+    echo "✅ Created .pre-commit-config.yaml with essential hooks"
+  else
+    echo "✅ .pre-commit-config.yaml already exists"
+  fi
+
+  # Create secrets baseline if it doesn't exist
+  if [ ! -f .secrets.baseline ]; then
+    echo "Creating secrets baseline..."
+    pre-commit run detect-secrets --all-files || true
+    if [ ! -f .secrets.baseline ]; then
+      echo '{}' > .secrets.baseline
+    fi
+    echo "✅ Created .secrets.baseline"
+  fi
+
+  # Install the git hooks
+  echo "Installing pre-commit hooks..."
+  pre-commit install
+
+  # Install commit-msg hook for conventional commits (optional)
+  pre-commit install --hook-type commit-msg || echo "Note: commit-msg hook not configured"
+
+  echo "✅ Pre-commit hooks installed successfully!"
+
+  # Run hooks on all files to ensure everything is working
+  echo "Running pre-commit on all files to verify setup..."
+  pre-commit run --all-files || echo "⚠️  Some hooks failed. This is normal for first run - files may have been auto-fixed."
+
+  echo ""
+  echo "🎯 Pre-commit setup complete!"
+  echo ""
+  echo "Pre-commit will now automatically run on:"
+  echo "  • Every git commit (validates staged files)"
+  echo "  • Manual execution: pre-commit run --all-files"
+  echo ""
+  echo "Key hooks configured:"
+  echo "  • Python: black, isort, flake8, bandit"
+  echo "  • PowerShell: PSScriptAnalyzer"
+  echo "  • Shell: shellcheck"
+  echo "  • Secrets: detect-secrets"
+  echo "  • General: trailing whitespace, file endings, JSON/YAML validation"
+  echo "  • Azure: Policy JSON validation, Bicep validation"
+  echo ""
+}
+
 # Install Python 3.13 first
 echo "=== Installing Python 3.13 ==="
 install_python313
@@ -358,12 +545,17 @@ echo "=== Setting up GitHub CLI ==="
 setup_github_cli
 
 echo ""
+echo "=== Installing Pre-commit ==="
+install_precommit
+
+echo ""
 echo "=== Installation Summary ==="
 echo "Python version: $(python3.13 --version 2>/dev/null || echo 'Not found')"
 echo "Azure CLI version: $(az --version 2>/dev/null | head -n1 || echo 'Not found')"
 echo "Azure Functions Core Tools version: $(func --version 2>/dev/null || echo 'Not found')"
 echo "GitHub CLI version: $(gh --version 2>/dev/null | head -n1 || echo 'Not found')"
 echo "PowerShell version: $(pwsh --version 2>/dev/null || echo 'Not found')"
+echo "Pre-commit version: $(pre-commit --version 2>/dev/null || echo 'Not found')"
 echo "jq version: $(jq --version 2>/dev/null || echo 'Not found')"
 echo ""
 echo "Installation complete!"
@@ -374,6 +566,7 @@ echo "2. Authenticate with GitHub: gh auth login"
 echo "3. Navigate to functions: cd functions/basic"
 echo "4. Setup Python environment: python3.13 -m venv .venv && source .venv/bin/activate"
 echo "5. Install Python dependencies: pip install -r requirements.txt"
+echo "6. Pre-commit hooks are ready - they'll run automatically on git commits"
 echo ""
 echo "🚀 You're ready for Azure Policy & Functions development!"
 echo ""
@@ -383,6 +576,7 @@ echo "   • Azure CLI for cloud management"
 echo "   • Azure Functions Core Tools for local development"
 echo "   • GitHub CLI for repository management"
 echo "   • PowerShell for Azure automation and scripting"
+echo "   • Pre-commit for code quality and consistency"
 echo "   • jq for JSON processing (perfect for CLI output parsing)"
 echo ""
 echo "📚 Quick reference:"
@@ -390,4 +584,3 @@ echo "   • Azure Functions: http://localhost:7071 (when running)"
 echo "   • Documentation: Check README.md for detailed setup"
 echo "   • Troubleshooting: See TROUBLESHOOTING.md"
 echo ""
-

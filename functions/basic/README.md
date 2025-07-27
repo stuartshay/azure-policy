@@ -29,6 +29,7 @@ This directory contains a basic Azure Functions application with HTTP triggers, 
 3. Wait for the container to build and setup to complete
 4. Open a terminal in VS Code and navigate to `functions/basic`
 5. Start the Azure Functions:
+
    ```bash
    func start
    ```
@@ -36,57 +37,68 @@ This directory contains a basic Azure Functions application with HTTP triggers, 
 ### Manual Setup
 
 1. Navigate to the functions/basic directory:
+
    ```bash
    cd functions/basic
    ```
 
 2. Create and activate a Python virtual environment:
+
    ```bash
    python -m venv .venv
    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    ```
 
 3. Install dependencies:
+
    ```bash
    pip install -r requirements.txt
    ```
 
 4. Start Azurite (Azure Storage Emulator):
+
    ```bash
    azurite --silent --location /tmp/azurite --debug /tmp/azurite/debug.log
    ```
 
 5. Start Azure Functions:
+
    ```bash
    func start
    ```
 
 ## Available Endpoints
 
-Once the function app is running (default: http://localhost:7071), you can access:
+Once the function app is running (default: <http://localhost:7071>), you can access:
 
 ### Hello World Function
+
 - **URL**: `GET/POST http://localhost:7071/api/hello`
 - **Query Parameter**: `?name=YourName`
 - **POST Body**: `{"name": "YourName"}`
 - **Example**:
+
   ```bash
   curl "http://localhost:7071/api/hello?name=Azure"
   curl -X POST "http://localhost:7071/api/hello" -H "Content-Type: application/json" -d '{"name":"Functions"}'
   ```
 
 ### Health Check
+
 - **URL**: `GET http://localhost:7071/api/health`
 - **Purpose**: Application health monitoring
 - **Example**:
+
   ```bash
   curl "http://localhost:7071/api/health"
   ```
 
 ### Application Info
+
 - **URL**: `GET http://localhost:7071/api/info`
 - **Purpose**: Application and endpoint information
 - **Example**:
+
   ```bash
   curl "http://localhost:7071/api/info"
   ```
@@ -170,11 +182,13 @@ The `host.json` file configures the Azure Functions host:
 ### Azure Deployment
 
 1. Create an Azure Function App:
+
    ```bash
    az functionapp create --resource-group myResourceGroup --consumption-plan-location westus --runtime python --runtime-version 3.11 --functions-version 4 --name myFunctionApp --storage-account mystorageaccount
    ```
 
 2. Deploy the function:
+
    ```bash
    func azure functionapp publish myFunctionApp
    ```

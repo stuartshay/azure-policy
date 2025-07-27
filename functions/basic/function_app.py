@@ -22,34 +22,34 @@ app = func.FunctionApp()
 def hello_world(req: func.HttpRequest) -> func.HttpResponse:
     """
     HTTP-triggered Azure Function that returns a Hello World message.
-    
+
     This function accepts both GET and POST requests and returns a JSON
     response with a greeting message, timestamp, and request information.
-    
+
     Args:
         req (func.HttpRequest): The HTTP request object
-        
+
     Returns:
         func.HttpResponse: JSON response with greeting and metadata
     """
     logging.info("Python HTTP trigger function processed a request.")
-    
+
     try:
         # Get the name parameter from query string or request body
-        name = req.params.get('name')
-        
+        name = req.params.get("name")
+
         if not name:
             try:
                 req_body = req.get_json()
                 if req_body:
-                    name = req_body.get('name')
+                    name = req_body.get("name")
             except ValueError:
                 logging.warning("Invalid JSON in request body")
-        
+
         # Default name if none provided
         if not name:
             name = "World"
-        
+
         # Create response data
         response_data: Dict[str, Any] = {
             "message": f"Hello, {name}!",
@@ -58,12 +58,12 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
             "url": req.url,
             "function_name": "HelloWorld",
             "version": "1.0.0",
-            "status": "success"
+            "status": "success",
         }
-        
+
         # Log successful execution
         logging.info("Successfully processed request for name: %s", name)
-        
+
         # Return JSON response
         return func.HttpResponse(
             json.dumps(response_data, indent=2),
@@ -71,26 +71,26 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
             headers={
                 "Content-Type": "application/json",
                 "X-Function-Name": "HelloWorld",
-                "X-Timestamp": response_data["timestamp"]
-            }
+                "X-Timestamp": response_data["timestamp"],
+            },
         )
-        
+
     except (ValueError, TypeError, KeyError) as e:
         # Log error
         logging.error("Error processing request: %s", str(e))
-        
+
         # Return error response
         error_response = {
             "error": "Internal server error",
             "message": "An error occurred while processing your request",
             "timestamp": datetime.utcnow().isoformat() + "Z",
-            "status": "error"
+            "status": "error",
         }
-        
+
         return func.HttpResponse(
             json.dumps(error_response, indent=2),
             status_code=500,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
 
@@ -99,27 +99,27 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
 def health_check(_req: func.HttpRequest) -> func.HttpResponse:
     """
     Health check endpoint for monitoring and diagnostics.
-    
+
     Args:
         _req (func.HttpRequest): The HTTP request object (unused)
-        
+
     Returns:
         func.HttpResponse: JSON response with health status
     """
     logging.info("Health check endpoint accessed")
-    
+
     health_data = {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "service": "Azure Functions - Basic",
         "version": "1.0.0",
-        "uptime": "Available"
+        "uptime": "Available",
     }
-    
+
     return func.HttpResponse(
         json.dumps(health_data, indent=2),
         status_code=200,
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "application/json"},
     )
 
 
@@ -128,15 +128,15 @@ def health_check(_req: func.HttpRequest) -> func.HttpResponse:
 def info(_req: func.HttpRequest) -> func.HttpResponse:
     """
     Information endpoint that returns details about the function app.
-    
+
     Args:
         _req (func.HttpRequest): The HTTP request object (unused)
-        
+
     Returns:
         func.HttpResponse: JSON response with function app information
     """
     logging.info("Info endpoint accessed")
-    
+
     info_data = {
         "name": "Azure Functions - Basic HTTP Triggers",
         "description": "A basic Azure Functions app with HTTP triggers",
@@ -147,24 +147,24 @@ def info(_req: func.HttpRequest) -> func.HttpResponse:
             "hello": {
                 "path": "/api/hello",
                 "methods": ["GET", "POST"],
-                "description": "Returns a Hello World message"
+                "description": "Returns a Hello World message",
             },
             "health": {
                 "path": "/api/health",
                 "methods": ["GET"],
-                "description": "Health check endpoint"
+                "description": "Health check endpoint",
             },
             "info": {
                 "path": "/api/info",
                 "methods": ["GET"],
-                "description": "Function app information"
-            }
+                "description": "Function app information",
+            },
         },
-        "timestamp": datetime.utcnow().isoformat() + "Z"
+        "timestamp": datetime.utcnow().isoformat() + "Z",
     }
-    
+
     return func.HttpResponse(
         json.dumps(info_data, indent=2),
         status_code=200,
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "application/json"},
     )
