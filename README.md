@@ -29,6 +29,7 @@ This repository contains tools and examples for Azure Policy management and Azur
 - **Python 3.13**: Latest Python runtime
 - **Azure CLI**: For Azure resource management
 - **Azure Functions Core Tools**: For local function development
+- **GitHub CLI**: For repository and pull request management
 - **Azurite**: Local Azure Storage emulator
 - **VS Code Extensions**: Recommended extensions for optimal development experience
 
@@ -82,18 +83,20 @@ If you prefer not to use DevContainer:
 - Python 3.13
 - Azure CLI
 - Azure Functions Core Tools v4
+- GitHub CLI
 - Docker (for Azurite)
 
 ### Installation
 
-1. Install Azure CLI:
+1. Install all development tools:
    ```bash
    ./install.sh
    ```
 
-2. Authenticate with Azure:
+2. Authenticate with Azure and GitHub:
    ```bash
    az login
+   gh auth login
    ```
 
 3. Set up Azure Functions:

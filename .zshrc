@@ -30,6 +30,17 @@ alias azlogin='az login'
 alias azls='az account list --output table'
 alias azset='az account set --subscription'
 
+# GitHub CLI aliases
+alias ghpr='gh pr create'
+alias ghprs='gh pr status'
+alias ghprv='gh pr view'
+alias ghprl='gh pr list'
+alias ghrepo='gh repo view'
+alias ghissue='gh issue create'
+alias ghissues='gh issue list'
+alias ghclone='gh repo clone'
+alias ghauth='gh auth login'
+
 # Git aliases
 alias gs='git status'
 alias ga='git add'
@@ -74,4 +85,6 @@ echo "Quick commands:"
 echo "  funcs     - Navigate to functions directory"
 echo "  start-func - Start Azure Functions"
 echo "  azlogin   - Login to Azure"
+echo "  ghauth    - Login to GitHub"
+echo "  ghpr      - Create GitHub PR"
 echo ""

@@ -20,6 +20,10 @@
       "installZsh": true,
       "configureZshAsDefaultShell": true,
       "installOhMyZsh": true
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "installDirectlyFromGitHubRelease": true,
+      "version": "latest"
     }
   },
   "customizations": {
@@ -36,7 +40,10 @@
         "ms-python.flake8",
         "ms-vscode.vscode-json",
         "redhat.vscode-yaml",
-        "ms-vscode.powershell"
+        "ms-vscode.powershell",
+        "GitHub.vscode-pull-request-github",
+        "GitHub.copilot",
+        "GitHub.copilot-chat"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
