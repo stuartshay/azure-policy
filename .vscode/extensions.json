@@ -13,7 +13,13 @@
     "redhat.vscode-yaml",
     "ms-vscode.powershell",
     "ms-python.mypy-type-checker",
-    "ms-python.pytest"
+    "ms-python.pytest",
+    "ms-vscode.azure-account",
+    "ms-azuretools.vscode-azureresourcegroups",
+    "ms-azuretools.vscode-azurestorage",
+    "GitHub.vscode-pull-request-github",
+    "GitHub.copilot",
+    "GitHub.copilot-chat"
   ],
   "unwantedRecommendations": []
 }

@@ -12,6 +12,9 @@
     "ghcr.io/devcontainers/features/azure-cli:1": {
       "version": "latest"
     },
+    "ghcr.io/devcontainers/features/powershell:1": {
+      "version": "latest"
+    },
     "ghcr.io/devcontainers/features/node:1": {
       "version": "lts",
       "nodeGypDependencies": true
@@ -41,9 +44,14 @@
         "ms-vscode.vscode-json",
         "redhat.vscode-yaml",
         "ms-vscode.powershell",
+        "ms-vscode.azure-account",
+        "ms-azuretools.vscode-azureresourcegroups",
+        "ms-azuretools.vscode-azurestorage",
         "GitHub.vscode-pull-request-github",
         "GitHub.copilot",
-        "GitHub.copilot-chat"
+        "GitHub.copilot-chat",
+        "ms-python.mypy-type-checker",
+        "ms-python.pytest"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
@@ -55,6 +63,10 @@
           "zsh": {
             "path": "zsh",
             "icon": "terminal"
+          },
+          "pwsh": {
+            "path": "pwsh",
+            "icon": "terminal-powershell"
           }
         },
         "python.defaultInterpreterPath": "/usr/local/bin/python3",

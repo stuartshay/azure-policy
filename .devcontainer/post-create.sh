@@ -15,10 +15,16 @@ cd /workspace
 # Make scripts executable
 echo "Making scripts executable..."
 chmod +x scripts/*.sh
+chmod +x scripts/*.ps1
 
 # Set up git safe directory
 echo "Configuring git..."
 git config --global --add safe.directory /workspace
+
+# Setup PowerShell modules and profile
+echo "Setting up PowerShell environment..."
+pwsh -Command "& /workspace/scripts/Install-PowerShellModules.ps1 -Force -SkipPublisherCheck" || echo "PowerShell module installation completed with warnings"
+pwsh -Command "& /workspace/scripts/Setup-PowerShellProfile.ps1 -Force" || echo "PowerShell profile setup completed"
 
 # Navigate to functions directory
 echo "Setting up Azure Functions..."

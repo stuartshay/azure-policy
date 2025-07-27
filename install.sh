@@ -101,6 +101,68 @@ install_jq() {
   fi
 }
 
+# Function to install PowerShell
+install_powershell() {
+  # Check if PowerShell is already installed
+  if command -v pwsh >/dev/null 2>&1; then
+    echo "PowerShell is already installed: $(pwsh --version)"
+    return 0
+  fi
+
+  if [[ "$OS" == "Linux" ]]; then
+    if command -v apt >/dev/null 2>&1; then
+      echo "Installing PowerShell using apt..."
+
+      # Check if GPG key already exists
+      if [ ! -f /usr/share/keyrings/microsoft-prod.gpg ]; then
+        echo "Adding Microsoft GPG key..."
+        curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+      else
+        echo "Microsoft GPG key already exists, skipping..."
+      fi
+
+      # Check if repository is already added
+      if [ ! -f /etc/apt/sources.list.d/microsoft-prod.list ]; then
+        echo "Adding Microsoft repository..."
+        echo "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/repos/microsoft-ubuntu-$(lsb_release -rs)-prod $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/microsoft-prod.list > /dev/null
+      else
+        echo "Microsoft repository already configured, skipping..."
+      fi
+
+      # Update the list of packages and install PowerShell
+      echo "Updating package list..."
+      sudo apt update >/dev/null 2>&1 || echo "Warning: Package update had issues, continuing..."
+
+      echo "Installing PowerShell package..."
+      sudo apt install -y powershell
+
+      echo "PowerShell installation complete."
+    elif command -v yum >/dev/null 2>&1; then
+      echo "Installing PowerShell using yum..."
+      # Register the Microsoft RedHat repository
+      curl -sSL https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm | sudo rpm -i
+
+      # Update package index and install PowerShell
+      sudo dnf update -y
+      sudo dnf install -y powershell
+
+      echo "PowerShell installation complete."
+    fi
+  elif [[ "$OS" == "Darwin" ]]; then
+    echo "Installing PowerShell using Homebrew..."
+    brew install --cask powershell
+
+    echo "PowerShell installation complete."
+  fi
+
+  # Verify installation
+  if command -v pwsh >/dev/null 2>&1; then
+    echo "PowerShell version: $(pwsh --version)"
+  else
+    echo "Warning: PowerShell installation may have failed." >&2
+  fi
+}
+
 # Function to install GitHub CLI
 install_github_cli() {
   if [[ "$OS" == "Linux" ]]; then
@@ -284,6 +346,10 @@ echo "=== Installing Azure Functions Core Tools ==="
 install_azure_functions_tools
 
 echo ""
+echo "=== Installing PowerShell ==="
+install_powershell
+
+echo ""
 echo "=== Installing GitHub CLI ==="
 install_github_cli
 
@@ -297,6 +363,7 @@ echo "Python version: $(python3.13 --version 2>/dev/null || echo 'Not found')"
 echo "Azure CLI version: $(az --version 2>/dev/null | head -n1 || echo 'Not found')"
 echo "Azure Functions Core Tools version: $(func --version 2>/dev/null || echo 'Not found')"
 echo "GitHub CLI version: $(gh --version 2>/dev/null | head -n1 || echo 'Not found')"
+echo "PowerShell version: $(pwsh --version 2>/dev/null || echo 'Not found')"
 echo "jq version: $(jq --version 2>/dev/null || echo 'Not found')"
 echo ""
 echo "Installation complete!"
@@ -315,10 +382,12 @@ echo "   • Python 3.13 with venv support"
 echo "   • Azure CLI for cloud management"
 echo "   • Azure Functions Core Tools for local development"
 echo "   • GitHub CLI for repository management"
+echo "   • PowerShell for Azure automation and scripting"
 echo "   • jq for JSON processing (perfect for CLI output parsing)"
 echo ""
 echo "📚 Quick reference:"
 echo "   • Azure Functions: http://localhost:7071 (when running)"
 echo "   • Documentation: Check README.md for detailed setup"
 echo "   • Troubleshooting: See TROUBLESHOOTING.md"
+echo ""
 

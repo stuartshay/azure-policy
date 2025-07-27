@@ -42,8 +42,9 @@ infrastructure/
 
 1. **Azure Subscription**: Active Azure subscription with appropriate permissions
 2. **Azure CLI**: Installed and configured
-3. **Terraform**: Version 1.5 or later
-4. **GitHub Repository**: With Actions enabled
+3. **PowerShell**: For enhanced Azure automation (optional but recommended)
+4. **Terraform**: Version 1.5 or later
+5. **GitHub Repository**: With Actions enabled
 
 ### Initial Setup
 
@@ -57,6 +58,19 @@ infrastructure/
    ```bash
    az login
    az account set --subscription <subscription-id>
+   ```
+
+3. **Setup PowerShell environment (optional)**:
+   ```bash
+   # Install PowerShell modules
+   pwsh ../scripts/Install-PowerShellModules.ps1
+
+   # Setup PowerShell profile
+   pwsh ../scripts/Setup-PowerShellProfile.ps1
+
+   # Connect to Azure with PowerShell
+   pwsh
+   azconnect
    ```
 
 3. **Create Terraform backend storage**:
