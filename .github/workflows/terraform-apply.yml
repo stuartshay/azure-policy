@@ -1,0 +1,216 @@
+name: Terraform Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - staging
+        - prod
+      confirm:
+        description: 'Type "apply" to confirm deployment'
+        required: true
+        type: string
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+jobs:
+  validate-input:
+    name: Validate Input
+    runs-on: ubuntu-latest
+    steps:
+    - name: Validate Confirmation
+      run: |
+        if [ "${{ github.event.inputs.confirm }}" != "apply" ]; then
+          echo "❌ Confirmation failed. You must type 'apply' to proceed."
+          exit 1
+        fi
+        echo "✅ Confirmation validated"
+
+  apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: validate-input
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.0
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Set Environment Variables
+      run: |
+        echo "TF_VAR_environment=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+
+        # Set location based on environment
+        case "${{ github.event.inputs.environment }}" in
+          "dev")
+            echo "TF_VAR_location=East US" >> $GITHUB_ENV
+            echo "TF_VAR_cost_center=development" >> $GITHUB_ENV
+            ;;
+          "staging")
+            echo "TF_VAR_location=East US 2" >> $GITHUB_ENV
+            echo "TF_VAR_cost_center=operations" >> $GITHUB_ENV
+            ;;
+          "prod")
+            echo "TF_VAR_location=East US" >> $GITHUB_ENV
+            echo "TF_VAR_cost_center=production" >> $GITHUB_ENV
+            ;;
+        esac
+
+    - name: Create Backend Configuration
+      run: |
+        cat > backend-config.hcl << EOF
+        resource_group_name  = "rg-terraform-state-${{ github.event.inputs.environment }}-eastus"
+        storage_account_name = "stterraformstate${{ github.event.inputs.environment }}001"
+        container_name       = "tfstate"
+        key                  = "azurepolicy/${{ github.event.inputs.environment }}/terraform.tfstate"
+        EOF
+      working-directory: infrastructure/terraform
+
+    - name: Terraform Init
+      run: terraform init -backend-config=backend-config.hcl
+      working-directory: infrastructure/terraform
+
+    - name: Terraform Plan
+      id: plan
+      run: |
+        terraform plan -detailed-exitcode -out=tfplan
+        echo "exitcode=$?" >> $GITHUB_OUTPUT
+      working-directory: infrastructure/terraform
+
+    - name: Upload Plan Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: terraform-plan-${{ github.event.inputs.environment }}
+        path: infrastructure/terraform/tfplan
+        retention-days: 30
+
+    - name: Terraform Apply
+      if: steps.plan.outputs.exitcode == 2
+      run: terraform apply tfplan
+      working-directory: infrastructure/terraform
+
+    - name: Get Terraform Outputs
+      id: outputs
+      if: success()
+      run: |
+        echo "resource_group_name=$(terraform output -raw resource_group_name)" >> $GITHUB_OUTPUT
+        echo "vnet_name=$(terraform output -raw vnet_name)" >> $GITHUB_OUTPUT
+        echo "function_app_names=$(terraform output -json function_app_names)" >> $GITHUB_OUTPUT
+      working-directory: infrastructure/terraform
+
+    - name: Generate Deployment Summary
+      if: success()
+      run: |
+        echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Environment Details" >> $GITHUB_STEP_SUMMARY
+        echo "- **Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Location:** ${{ env.TF_VAR_location }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Deployed Resources" >> $GITHUB_STEP_SUMMARY
+        echo "- **Resource Group:** ${{ steps.outputs.outputs.resource_group_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Virtual Network:** ${{ steps.outputs.outputs.vnet_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+        echo "1. Verify resources in Azure Portal" >> $GITHUB_STEP_SUMMARY
+        echo "2. Test Function App deployments" >> $GITHUB_STEP_SUMMARY
+        echo "3. Configure monitoring alerts" >> $GITHUB_STEP_SUMMARY
+        echo "4. Review cost management dashboard" >> $GITHUB_STEP_SUMMARY
+
+    - name: Create Success Issue
+      if: success()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const title = `✅ Infrastructure Deployed - ${{ github.event.inputs.environment }}`;
+          const body = `
+          ## Infrastructure Deployment Successful
+
+          **Environment:** ${{ github.event.inputs.environment }}
+          **Deployed by:** ${{ github.actor }}
+          **Timestamp:** ${new Date().toISOString()}
+
+          ### Resources Created
+          - Resource Group: ${{ steps.outputs.outputs.resource_group_name }}
+          - Virtual Network: ${{ steps.outputs.outputs.vnet_name }}
+          - Function Apps: Ready for deployment
+
+          ### Post-Deployment Tasks
+          - [ ] Verify all resources are running
+          - [ ] Test network connectivity
+          - [ ] Deploy Function App code
+          - [ ] Configure monitoring
+          - [ ] Review security settings
+
+          **Workflow Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          `;
+
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: title,
+            body: body,
+            labels: ['infrastructure', 'deployment', 'success', '${{ github.event.inputs.environment }}']
+          });
+
+    - name: Notify on Failure
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const title = `❌ Infrastructure Deployment Failed - ${{ github.event.inputs.environment }}`;
+          const body = `
+          ## Infrastructure Deployment Failed
+
+          **Environment:** ${{ github.event.inputs.environment }}
+          **Triggered by:** ${{ github.actor }}
+          **Timestamp:** ${new Date().toISOString()}
+
+          ### Failure Details
+          Please check the workflow logs for detailed error information.
+
+          ### Troubleshooting Steps
+          1. Check Azure service health
+          2. Verify Azure credentials and permissions
+          3. Review Terraform configuration
+          4. Check for resource naming conflicts
+          5. Validate network configuration
+
+          **Workflow Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          `;
+
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: title,
+            body: body,
+            labels: ['infrastructure', 'deployment', 'failure', '${{ github.event.inputs.environment }}']
+          });
+
+    - name: Cleanup on Failure
+      if: failure()
+      run: |
+        echo "Deployment failed. Consider running terraform destroy if partial resources were created."
+        echo "Use the terraform-destroy workflow with environment: ${{ github.event.inputs.environment }}"

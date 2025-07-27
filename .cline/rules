@@ -1,0 +1,210 @@
+# Azure Policy Infrastructure Project - Cline Rules
+
+## Project Overview
+This project manages Azure infrastructure for the AzurePolicy resource group using Terraform and GitHub Actions. The infrastructure includes VNet, NSG, Subnets, App Service Plans, and Azure Functions with comprehensive CI/CD pipelines.
+
+## Development Standards
+
+### File Organization
+- All infrastructure code goes in `infrastructure/` directory
+- Terraform modules are organized by logical grouping (networking, app-service, policies)
+- GitHub Actions workflows are in `.github/workflows/`
+- Documentation includes Mermaid diagrams for visual architecture representation
+- Scripts for automation are in `infrastructure/scripts/`
+
+### Terraform Standards
+- Use consistent naming following Azure CAF (Cloud Adoption Framework)
+- All resources must have required tags: Environment, CostCenter, Project, Owner
+- Use modules for reusable components
+- Pin provider versions in versions.tf
+- Use remote state with Azure Storage backend
+- Include comprehensive outputs for module integration
+- Use variables.tf for all configurable values
+- Include validation rules for critical variables
+
+### Azure Naming Convention
+Follow this pattern: `{resource-type}-{workload}-{environment}-{region}-{instance}`
+Examples:
+- Resource Group: `rg-azurepolicy-dev-eastus`
+- VNet: `vnet-azurepolicy-dev-eastus-001`
+- NSG: `nsg-azurepolicy-{subnet}-dev-eastus-001`
+- App Service Plan: `asp-azurepolicy-dev-eastus-001`
+- Function App: `func-azurepolicy-{name}-dev-eastus-001`
+- Storage Account: `stazurepolicydev001` (no hyphens, lowercase only)
+
+### Required Tags
+All Azure resources must include these tags:
+- Environment: dev/staging/prod
+- CostCenter: development/operations/production
+- Project: azurepolicy
+- Owner: team-name or email
+- CreatedBy: terraform
+- CreatedDate: YYYY-MM-DD
+
+### GitHub Actions Standards
+- Use manual approval for infrastructure changes
+- Include cost estimation in PR comments
+- Validate Terraform on every PR
+- Use environment-specific workflows
+- Include destroy workflows with double confirmation
+- Implement cost monitoring and alerting
+- Use GitHub secrets for sensitive values
+- Include comprehensive logging and error handling
+
+### Security Requirements
+- Use Managed Identity where possible
+- Implement least privilege access
+- Use private endpoints for storage accounts
+- Configure NSG rules following principle of least access
+- Enable Azure Policy for governance
+- Use Key Vault for sensitive configuration
+- Implement network segmentation
+
+### Cost Management
+- Use development-appropriate SKUs (B1, S1 tier)
+- Implement auto-shutdown for non-production
+- Tag all resources for cost tracking
+- Set up budget alerts ($50 warning, $100 critical)
+- Include cost estimation in deployment workflows
+- Provide easy teardown mechanisms
+
+### Documentation Requirements
+- Include Mermaid diagrams for architecture visualization
+- Maintain comprehensive README files
+- Document all variables and outputs
+- Include runbooks for common operations
+- Provide troubleshooting guides
+- Keep cost optimization recommendations updated
+
+### Code Quality
+- Use consistent indentation (2 spaces)
+- Include comments for complex logic
+- Use descriptive variable names
+- Validate all inputs
+- Include error handling
+- Follow DRY principles
+- Use locals for repeated values
+
+### Testing and Validation
+- Validate Terraform syntax and formatting
+- Test modules independently
+- Include integration tests where applicable
+- Validate Azure Policy compliance
+- Test cost controls and budgets
+- Verify network connectivity and security
+
+### Workflow Patterns
+- Feature branches for all changes
+- PR reviews required for infrastructure changes
+- Automated validation on every commit
+- Manual approval for apply operations
+- Scheduled drift detection
+- Automated cost reporting
+
+## File Templates
+
+### Terraform Module Structure
+```
+modules/{module-name}/
+├── main.tf          # Primary resource definitions
+├── variables.tf     # Input variables with validation
+├── outputs.tf       # Output values
+├── README.md        # Module documentation
+└── examples/        # Usage examples
+    └── basic/
+        ├── main.tf
+        └── variables.tf
+```
+
+### GitHub Actions Workflow Template
+- Use consistent job names and steps
+- Include proper error handling
+- Use environment variables for configuration
+- Include cost estimation steps
+- Implement proper secret management
+- Add comprehensive logging
+
+### Documentation Template
+- Start with overview and architecture diagram
+- Include prerequisites and setup instructions
+- Provide step-by-step deployment guide
+- Include troubleshooting section
+- Add cost optimization recommendations
+- Include links to relevant Azure documentation
+
+## Common Commands
+
+### Terraform Operations
+```bash
+# Initialize and plan
+cd infrastructure/terraform
+terraform init
+terraform plan -var-file="terraform.tfvars"
+
+# Apply with confirmation
+terraform apply -var-file="terraform.tfvars"
+
+# Destroy (development only)
+terraform destroy -var-file="terraform.tfvars"
+```
+
+### Azure CLI Operations
+```bash
+# Login and set subscription
+az login
+az account set --subscription "subscription-id"
+
+# Check costs
+az consumption usage list --start-date 2024-01-01 --end-date 2024-01-31
+
+# Validate policies
+az policy state list --resource-group rg-azurepolicy-dev-eastus
+```
+
+### GitHub CLI Operations
+```bash
+# Create PR
+gh pr create --title "Infrastructure: Add networking module" --body "Description"
+
+# Check workflow status
+gh run list --workflow=terraform-plan.yml
+
+# Set secrets
+gh secret set AZURE_CLIENT_ID --body "client-id-value"
+```
+
+## Best Practices Reminders
+
+1. **Always** validate Terraform before committing
+2. **Never** commit sensitive values or secrets
+3. **Always** use consistent naming conventions
+4. **Include** cost impact in PR descriptions
+5. **Test** infrastructure changes in development first
+6. **Document** any manual configuration steps
+7. **Monitor** costs regularly and optimize
+8. **Use** modules for reusable components
+9. **Implement** proper error handling
+10. **Keep** documentation up to date
+
+## Emergency Procedures
+
+### Infrastructure Issues
+1. Check GitHub Actions workflow logs
+2. Verify Azure service health
+3. Check Terraform state consistency
+4. Review recent changes in Git history
+5. Use emergency destroy workflow if needed
+
+### Cost Overruns
+1. Check Azure Cost Management dashboard
+2. Review resource utilization
+3. Scale down or stop non-essential resources
+4. Use destroy workflow for development environments
+5. Review and optimize resource configurations
+
+### Security Incidents
+1. Review NSG and firewall logs
+2. Check Azure Activity Log
+3. Verify Managed Identity permissions
+4. Review Key Vault access logs
+5. Update security policies if needed
