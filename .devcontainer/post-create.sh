@@ -9,26 +9,31 @@ echo "Configuring zsh as default shell..."
 sudo chsh -s $(which zsh) vscode
 echo 'export SHELL=$(which zsh)' >> ~/.bashrc
 
-# Navigate to workspace
-cd /workspace
+# Navigate to project directory
+cd /azure-policy
 
 # Make scripts executable
 echo "Making scripts executable..."
-chmod +x scripts/*.sh
-chmod +x scripts/*.ps1
+chmod +x scripts/*.sh 2>/dev/null || echo "No shell scripts found"
+chmod +x scripts/*.ps1 2>/dev/null || echo "No PowerShell scripts found"
 
 # Set up git safe directory
 echo "Configuring git..."
-git config --global --add safe.directory /workspace
+git config --global --add safe.directory /azure-policy
 
 # Setup PowerShell modules and profile
 echo "Setting up PowerShell environment..."
-pwsh -Command "& /workspace/scripts/Install-PowerShellModules.ps1 -Force -SkipPublisherCheck" || echo "PowerShell module installation completed with warnings"
-pwsh -Command "& /workspace/scripts/Setup-PowerShellProfile.ps1 -Force" || echo "PowerShell profile setup completed"
+pwsh -Command "& /azure-policy/scripts/Install-PowerShellModules.ps1 -Force -SkipPublisherCheck" || echo "PowerShell module installation completed with warnings"
+pwsh -Command "& /azure-policy/scripts/Setup-PowerShellProfile.ps1 -Force" || echo "PowerShell profile setup completed"
+
+# Install development dependencies in the main workspace
+echo "Installing Python development dependencies..."
+cd /azure-policy
+pip install --user -r requirements.txt
 
 # Navigate to functions directory
 echo "Setting up Azure Functions..."
-cd functions/basic
+cd /azure-policy/functions/basic
 
 # Create Python virtual environment for Azure Functions
 echo "Creating Python virtual environment..."

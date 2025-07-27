@@ -126,6 +126,34 @@ If you prefer not to use DevContainer:
    func start
    ```
 
+## Requirements Management
+
+This project uses a centralized requirements management system to avoid version conflicts and simplify dependency management:
+
+- **`requirements/base.txt`** - Core dependencies (Azure SDK, utilities)
+- **`requirements/dev.txt`** - Development tools (includes base.txt)
+- **`requirements/functions.txt`** - Minimal Azure Functions runtime dependencies
+- **`requirements.txt`** - Main development requirements (includes dev.txt)
+
+### Installing Dependencies
+
+```bash
+# Install all development dependencies
+pip install -r requirements.txt
+
+# Install only function runtime dependencies
+cd functions/basic
+pip install -r requirements.txt
+```
+
+### Adding New Dependencies
+
+1. **Core dependencies** (needed everywhere): Add to `requirements/base.txt`
+2. **Development tools** (testing, linting): Add to `requirements/dev.txt`
+3. **Function-specific runtime**: Add to `requirements/functions.txt`
+
+See `requirements/README.md` for detailed documentation.
+
 ## Development Workflow
 
 ### Azure Policy Development
@@ -156,9 +184,17 @@ The repository includes comprehensive VS Code configuration:
 
 - `start-functions.sh` - Verify and setup Azure Functions development environment
 
+### DevContainer Testing
+
+- `test-devcontainer.sh` - Complete DevContainer build and test suite
+- `quick-rebuild-devcontainer.sh` - Fast rebuild for iterative development
+- `debug-devcontainer.sh` - Comprehensive diagnostic and debugging tool
+- `validate-requirements.sh` - Validate Python requirements setup
+
+See `DEVCONTAINER_TESTING.md` for detailed usage and troubleshooting guide.
+
 ### Policy Management (`scripts/`)
 
-- `menu.sh` - Interactive menu for policy operations
 - `menu.sh` - Interactive menu for policy operations
 - `01-list-policies.sh` - List all policies
 - `02-show-policy-details.sh` - Show policy details

@@ -1,0 +1,16 @@
+# Minimal requirements for Azure Functions deployment
+# This file should only contain packages needed for function runtime
+
+# Azure Functions runtime
+azure-functions==1.23.0
+
+# Core Azure SDK packages needed for function execution
+azure-storage-blob==12.24.0
+azure-identity==1.19.0
+
+# HTTP client for function operations
+aiohttp==3.11.10
+requests==2.32.3
+
+# Configuration
+python-dotenv==1.0.1

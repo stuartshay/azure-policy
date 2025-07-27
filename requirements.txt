@@ -1,0 +1,9 @@
+# Main requirements file for development environment
+# This includes all dependencies needed for development
+
+# Include development requirements (which includes base requirements)
+-r requirements/dev.txt
+
+# Additional development tools that might be useful
+ipython>=8.0.0
+jupyter>=1.0.0

@@ -2,7 +2,7 @@
   "name": "Azure Policy & Functions Development",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
-  "workspaceFolder": "/workspace",
+  "workspaceFolder": "/azure-policy",
   "shutdownAction": "stopCompose",
   "features": {
     "ghcr.io/devcontainers/features/python:1": {
@@ -96,7 +96,7 @@
       }
     }
   },
-  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postCreateCommand": "bash /azure-policy/.devcontainer/post-create.sh",
   "forwardPorts": [
     7071,
     10000,

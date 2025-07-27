@@ -1,0 +1,16 @@
+# Core Azure SDK packages
+azure-functions==1.23.0
+azure-storage-blob==12.24.0
+azure-identity==1.19.0
+azure-keyvault-secrets==4.9.0
+azure-core==1.32.0
+azure-common==1.1.28
+
+# HTTP client and utilities
+aiohttp==3.11.10
+requests==2.32.3
+typing-extensions==4.12.2
+
+# Configuration and data validation
+python-dotenv==1.0.1
+pydantic==2.10.3

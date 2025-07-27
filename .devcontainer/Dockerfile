@@ -9,42 +9,24 @@ RUN apt-get update && apt-get install -y \
     netcat \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Azure Functions Core Tools
+# Install Azure Functions Core Tools, Azure CLI, and PowerShell
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg \
     && mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg \
     && sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-bullseye-prod bullseye main" > /etc/apt/sources.list.d/dotnetdev.list' \
     && apt-get update \
-    && apt-get install -y azure-functions-core-tools-4 \
+    && apt-get install -y azure-functions-core-tools-4 azure-cli powershell \
     && rm -rf /var/lib/apt/lists/*
 
-# Install additional Python tools globally
-RUN pip install --upgrade pip \
-    && pip install \
-    azure-functions>=1.18.0 \
-    azure-functions-worker>=1.0.0 \
-    azure-storage-blob>=12.19.0 \
-    azure-identity>=1.15.0 \
-    black>=23.0.0 \
-    pylint>=2.17.0 \
-    flake8>=6.0.0 \
-    pytest>=7.4.0 \
-    pytest-asyncio>=0.21.0 \
-    pytest-cov>=4.1.0 \
-    isort>=5.12.0 \
-    mypy>=1.0.0 \
-    requests>=2.31.0
+# Upgrade pip globally but don't install packages here
+# Packages will be installed in virtual environment via post-create script
+RUN pip install --upgrade pip
 
 # Set up workspace
-WORKDIR /workspace
+WORKDIR /azure-policy
 
-# Create a non-root user
+# The base image already has a vscode user, so we just need to ensure sudo access
 ARG USERNAME=vscode
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
-
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
-    && apt-get update \
+RUN apt-get update \
     && apt-get install -y sudo \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
