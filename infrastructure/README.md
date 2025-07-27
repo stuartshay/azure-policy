@@ -41,10 +41,11 @@ infrastructure/
 ### Prerequisites
 
 1. **Azure Subscription**: Active Azure subscription with appropriate permissions
-2. **Azure CLI**: Installed and configured
-3. **PowerShell**: For enhanced Azure automation (optional but recommended)
-4. **Terraform**: Version 1.5 or later
-5. **GitHub Repository**: With Actions enabled
+2. **Azure CLI**: Installed and configured (available via `install.sh`)
+3. **PowerShell**: Installed and available (via `install.sh`)
+4. **Pre-commit**: Installed for code quality checks (via `install.sh`)
+5. **Terraform**: Version 1.5 or later
+6. **GitHub Repository**: With Actions enabled
 
 ### Initial Setup
 
@@ -52,31 +53,30 @@ infrastructure/
 
    ```bash
    git clone <repository-url>
-   cd azure-policy/infrastructure
+   cd azure-policy
    ```
 
-2. **Configure Azure credentials**:
+2. **Run the installation script** (installs all required tools):
+
+   ```bash
+   chmod +x install.sh
+   ./install.sh
+   ```
+
+3. **Configure Azure credentials**:
 
    ```bash
    az login
    az account set --subscription <subscription-id>
    ```
 
-3. **Setup PowerShell environment (optional)**:
+4. **Navigate to infrastructure directory**:
 
    ```bash
-   # Install PowerShell modules
-   pwsh ../scripts/Install-PowerShellModules.ps1
-
-   # Setup PowerShell profile
-   pwsh ../scripts/Setup-PowerShellProfile.ps1
-
-   # Connect to Azure with PowerShell
-   pwsh
-   azconnect
+   cd infrastructure
    ```
 
-3. **Create Terraform backend storage**:
+5. **Create Terraform backend storage**:
 
    ```bash
    # Create resource group for Terraform state
@@ -108,13 +108,16 @@ infrastructure/
 1. **Copy example variables**:
 
    ```bash
-   cp terraform.tfvars.example terraform.tfvars
+   cp terraform/terraform.tfvars.example terraform/terraform.tfvars
    ```
 
 2. **Edit variables** to match your environment:
 
    ```bash
-   nano terraform.tfvars
+   # Use your preferred editor
+   nano terraform/terraform.tfvars
+   # or
+   code terraform/terraform.tfvars
    ```
 
 3. **Initialize Terraform**:
@@ -124,17 +127,49 @@ infrastructure/
    terraform init
    ```
 
-4. **Plan deployment**:
+4. **Validate configuration**:
+
+   ```bash
+   terraform validate
+   terraform fmt -check
+   ```
+
+5. **Plan deployment**:
 
    ```bash
    terraform plan
    ```
 
-5. **Apply changes**:
+6. **Apply changes**:
 
    ```bash
    terraform apply
    ```
+
+### Code Quality and Pre-commit
+
+The project includes pre-commit hooks for maintaining code quality:
+
+```bash
+# Pre-commit hooks run automatically on git commit
+git add .
+git commit -m "feat: add new infrastructure component"
+
+# Run pre-commit manually on all files
+pre-commit run --all-files
+
+# Update pre-commit hooks
+pre-commit autoupdate
+```
+
+**Available hooks:**
+- **Terraform**: Format checking, validation
+- **PowerShell**: PSScriptAnalyzer for script quality
+- **Python**: black, isort, flake8, bandit
+- **Shell**: shellcheck for bash scripts
+- **Security**: detect-secrets, bandit
+- **General**: trailing whitespace, file endings, JSON/YAML validation
+- **Azure**: Policy JSON validation, Bicep validation
 
 ## 🔧 Configuration
 
@@ -340,6 +375,36 @@ az account set --subscription <subscription-id>
 - Verify subnet CIDR ranges don't overlap
 - Check NSG rules for connectivity issues
 - Validate service endpoint configurations
+
+#### PowerShell Issues
+
+```bash
+# Check PowerShell installation
+pwsh --version
+
+# Install PSScriptAnalyzer module (for pre-commit)
+pwsh -Command "Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser"
+
+# Test PowerShell script analysis
+pwsh -Command "Invoke-ScriptAnalyzer -Path scripts/ -Recurse"
+```
+
+#### Pre-commit Issues
+
+```bash
+# Reinstall pre-commit hooks
+pre-commit uninstall
+pre-commit install
+
+# Skip hooks temporarily (not recommended)
+git commit --no-verify -m "emergency commit"
+
+# Update hooks to latest versions
+pre-commit autoupdate
+
+# Clear pre-commit cache
+pre-commit clean
+```
 
 ### Getting Help
 
