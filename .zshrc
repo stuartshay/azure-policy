@@ -1,11 +1,12 @@
+#!/usr/bin/env zsh
 # Azure Policy & Functions Development - Zsh Configuration
 
 # Oh My Zsh configuration (if installed)
 export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="robbyrussell"
+export ZSH_THEME="robbyrussell"
 
 # Which plugins would you like to load?
-plugins=(
+export plugins=(
     git
     azure
     python
@@ -69,7 +70,7 @@ export PYTHONPATH="/workspace/functions/basic:$PYTHONPATH"
 
 # Auto-activate Python virtual environment when in functions directory
 function cd() {
-    builtin cd "$@"
+    builtin cd "$@" || return
     if [[ -f ".venv/bin/activate" ]]; then
         source .venv/bin/activate
     fi
