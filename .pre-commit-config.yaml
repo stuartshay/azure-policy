@@ -48,11 +48,12 @@ repos:
     hooks:
       - id: powershell-format
         name: PowerShell Formatter
-        entry: pwsh
+        entry: bash
         args:
           [
-            '-Command',
-            'if (Get-Module -ListAvailable PSScriptAnalyzer) { Invoke-ScriptAnalyzer -Path $args -Settings PSGallery } else { Write-Host "PSScriptAnalyzer not available, skipping PowerShell analysis" }',
+            '-c',
+            'for file in "$@"; do echo "Analyzing $file"; if command -v pwsh >/dev/null 2>&1; then pwsh -Command "if (Get-Module -ListAvailable PSScriptAnalyzer) { \$result = Invoke-ScriptAnalyzer -Path \"$file\" -Settings PSGallery; if (\$result) { \$result | Format-Table; exit 1 } } else { Write-Host \"PSScriptAnalyzer not available, skipping PowerShell analysis\" }"; else echo "PowerShell not available, skipping analysis"; fi; done',
+            '--',
           ]
         language: system
         files: '\.ps1$'
@@ -64,6 +65,7 @@ repos:
     hooks:
       - id: shellcheck
         args: ['--severity=warning']
+        exclude: '\.zshrc$'
 
   # Secrets detection
   # - repo: https://github.com/Yelp/detect-secrets

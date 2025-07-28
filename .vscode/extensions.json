@@ -1,24 +1,26 @@
 {
   "recommendations": [
+    "Azurite.azurite",
     "ms-azuretools.vscode-azurefunctions",
+    "ms-azuretools.vscode-azureterraform",
+    "ms-azuretools.vscode-azureresourcegroups",
+    "ms-azuretools.vscode-azurestorage",
     "ms-python.python",
     "ms-python.pylint",
     "ms-python.black-formatter",
-    "ms-python.isort",
-    "ms-vscode.azurecli",
-    "Azurite.azurite",
-    "ms-python.debugpy",
-    "ms-python.flake8",
-    "ms-vscode.vscode-json",
-    "redhat.vscode-yaml",
-    "ms-vscode.powershell",
     "ms-python.mypy-type-checker",
     "ms-python.pytest",
-    "ms-azuretools.vscode-azureresourcegroups",
-    "ms-azuretools.vscode-azurestorage",
+    "ms-python.isort",
+    "ms-python.debugpy",
+    "ms-python.flake8",
+    "ms-vscode.azurecli",
+    "ms-vscode.vscode-json",
+    "ms-vscode.powershell",
+    "redhat.vscode-yaml",
     "GitHub.vscode-pull-request-github",
     "GitHub.copilot",
-    "GitHub.copilot-chat"
+    "GitHub.copilot-chat",
+    "saoudrizwan.claude-dev"
   ],
   "unwantedRecommendations": []
 }

@@ -111,7 +111,8 @@ test_python_environment() {
 
     # Test Python installation
     if docker exec "$CONTAINER_NAME" python3 --version >/dev/null 2>&1; then
-        local python_version=$(docker exec "$CONTAINER_NAME" python3 --version)
+        local python_version
+        python_version=$(docker exec "$CONTAINER_NAME" python3 --version)
         print_success "Python is installed: $python_version"
     else
         print_error "Python is not properly installed"
@@ -120,7 +121,8 @@ test_python_environment() {
 
     # Test pip installation
     if docker exec "$CONTAINER_NAME" pip --version >/dev/null 2>&1; then
-        local pip_version=$(docker exec "$CONTAINER_NAME" pip --version)
+        local pip_version
+        pip_version=$(docker exec "$CONTAINER_NAME" pip --version)
         print_success "Pip is installed: $pip_version"
     else
         print_error "Pip is not properly installed"
@@ -150,7 +152,8 @@ test_azure_functions_tools() {
     print_status "Testing Azure Functions Core Tools..."
 
     if docker exec "$CONTAINER_NAME" func --version >/dev/null 2>&1; then
-        local func_version=$(docker exec "$CONTAINER_NAME" func --version)
+        local func_version
+        func_version=$(docker exec "$CONTAINER_NAME" func --version)
         print_success "Azure Functions Core Tools installed: $func_version"
     else
         print_error "Azure Functions Core Tools not properly installed"
@@ -212,7 +215,8 @@ test_azure_function() {
             print_success "Azure Functions are responding"
 
             # Test actual function response
-            local response=$(docker exec "$CONTAINER_NAME" curl -s http://localhost:7071/api/hello)
+            local response
+            response=$(docker exec "$CONTAINER_NAME" curl -s http://localhost:7071/api/hello)
             if [[ "$response" == *"Hello"* ]]; then
                 print_success "Hello function returned expected response"
             else
@@ -297,7 +301,7 @@ cleanup() {
     # Remove any dangling images
     if docker images -f "dangling=true" -q | grep -q .; then
         print_status "Removing dangling images..."
-        docker rmi $(docker images -f "dangling=true" -q) || true
+        docker rmi "$(docker images -f "dangling=true" -q)" || true
     fi
 }
 
@@ -324,7 +328,6 @@ show_usage() {
 main() {
     local cleanup_only=false
     local keep_containers=false
-    local verbose=false
     local no_build=false
     local build_only=false
 
@@ -344,7 +347,6 @@ main() {
                 shift
                 ;;
             -v|--verbose)
-                verbose=true
                 shift
                 ;;
             --no-build)

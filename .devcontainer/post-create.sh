@@ -6,11 +6,11 @@ echo "Setting up Azure Functions development environment..."
 
 # Configure zsh as default shell for user
 echo "Configuring zsh as default shell..."
-sudo chsh -s $(which zsh) vscode
+sudo chsh -s "$(which zsh)" vscode
 echo 'export SHELL=$(which zsh)' >> ~/.bashrc
 
 # Navigate to project directory
-cd /azure-policy
+cd /azure-policy || exit
 
 # Make scripts executable
 echo "Making scripts executable..."
@@ -28,12 +28,12 @@ pwsh -Command "& /azure-policy/scripts/Setup-PowerShellProfile.ps1 -Force" || ec
 
 # Install development dependencies in the main workspace
 echo "Installing Python development dependencies..."
-cd /azure-policy
+cd /azure-policy || exit
 pip install --user -r requirements.txt
 
 # Navigate to functions directory
 echo "Setting up Azure Functions..."
-cd /azure-policy/functions/basic
+cd /azure-policy/functions/basic || exit
 
 # Create Python virtual environment for Azure Functions
 echo "Creating Python virtual environment..."
