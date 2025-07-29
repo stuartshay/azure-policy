@@ -2,10 +2,11 @@
 # This module creates VNet, Subnets, and Network Security Groups
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.80"
+      version = "~> 3.0"
     }
   }
 }
@@ -65,13 +66,13 @@ resource "azurerm_network_security_rule" "allow_https_inbound" {
   network_security_group_name = azurerm_network_security_group.main[each.key].name
 }
 
-resource "azurerm_network_security_rule" "allow_http_inbound" {
+resource "azurerm_network_security_rule" "deny_http_inbound" {
   for_each = var.subnet_config
 
-  name                        = "Allow-HTTP-Inbound"
+  name                        = "Deny-HTTP-Inbound"
   priority                    = 110
   direction                   = "Inbound"
-  access                      = "Allow"
+  access                      = "Deny"
   protocol                    = "Tcp"
   source_port_range           = "*"
   destination_port_range      = "80"
@@ -188,8 +189,8 @@ resource "azurerm_route_table" "main" {
   location            = var.location
   resource_group_name = var.resource_group_name
 
-  # Disable BGP route propagation for more control
-  disable_bgp_route_propagation = false
+  # Enable BGP route propagation for more control
+  bgp_route_propagation_enabled = true
 
   tags = var.tags
 }
@@ -233,6 +234,23 @@ resource "azurerm_storage_account" "flow_logs" {
   location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+
+  # Security configurations
+  shared_access_key_enabled       = false
+  allow_nested_items_to_be_public = false
+
+  # SAS expiration policy
+  sas_policy {
+    expiration_period = "01.00:00:00"
+    expiration_action = "Log"
+  }
+
+  # Blob soft delete
+  blob_properties {
+    delete_retention_policy {
+      days = 7
+    }
+  }
 
   tags = var.tags
 }

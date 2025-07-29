@@ -3,6 +3,29 @@
 *.swo
 .DS_Store
 
+# Azurite storage emulator data
+azurite-data/
+__azurite_db_blob__.json
+__azurite_db_blob_extent__.json
+__blobstorage__/
+
+# Terraform
+**/.terraform/
+**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform.tfstate.lock.info
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+crash.log
+crash.*.log
+
 # Azure Functions
 functions/basic/local.settings.json
 functions/basic/.venv/

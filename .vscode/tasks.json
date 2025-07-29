@@ -53,9 +53,9 @@
       "args": [
         "--silent",
         "--location",
-        "/tmp/azurite",
+        "${workspaceFolder}/azurite-data",
         "--debug",
-        "/tmp/azurite/debug.log"
+        "${workspaceFolder}/azurite-data/debug.log"
       ],
       "group": "build",
       "presentation": {
