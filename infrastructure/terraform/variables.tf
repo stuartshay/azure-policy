@@ -62,7 +62,7 @@ variable "vnet_address_space" {
 variable "subnet_config" {
   description = "Configuration for subnets"
   type = map(object({
-    address_prefixes = list(string)
+    address_prefixes  = list(string)
     service_endpoints = optional(list(string), [])
     delegation = optional(object({
       name = string
@@ -75,11 +75,11 @@ variable "subnet_config" {
 
   default = {
     default = {
-      address_prefixes = ["10.0.1.0/24"]
+      address_prefixes  = ["10.0.1.0/24"]
       service_endpoints = []
     }
     appservice = {
-      address_prefixes = ["10.0.2.0/24"]
+      address_prefixes  = ["10.0.2.0/24"]
       service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault"]
       delegation = {
         name = "app-service-delegation"
@@ -92,11 +92,11 @@ variable "subnet_config" {
       }
     }
     functions = {
-      address_prefixes = ["10.0.3.0/24"]
+      address_prefixes  = ["10.0.3.0/24"]
       service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault"]
     }
     privateendpoints = {
-      address_prefixes = ["10.0.4.0/24"]
+      address_prefixes  = ["10.0.4.0/24"]
       service_endpoints = []
     }
   }
@@ -110,11 +110,11 @@ variable "app_service_plan_sku" {
 
   validation {
     condition = contains([
-      "B1", "B2", "B3",           # Basic tier
-      "S1", "S2", "S3",           # Standard tier
-      "P1", "P2", "P3",           # Premium tier
-      "P1v2", "P2v2", "P3v2",    # Premium v2 tier
-      "P1v3", "P2v3", "P3v3"     # Premium v3 tier
+      "B1", "B2", "B3",       # Basic tier
+      "S1", "S2", "S3",       # Standard tier
+      "P1", "P2", "P3",       # Premium tier
+      "P1v2", "P2v2", "P3v2", # Premium v2 tier
+      "P1v3", "P2v3", "P3v3"  # Premium v3 tier
     ], var.app_service_plan_sku)
     error_message = "App Service Plan SKU must be a valid Azure App Service Plan SKU."
   }
@@ -142,31 +142,31 @@ variable "allowed_locations" {
 variable "function_apps" {
   description = "Configuration for Azure Function Apps"
   type = map(object({
-    name_suffix = string
-    runtime_stack = optional(string, "python")
+    name_suffix     = string
+    runtime_stack   = optional(string, "python")
     runtime_version = optional(string, "3.11")
-    always_on = optional(bool, false)
-    app_settings = optional(map(string), {})
+    always_on       = optional(bool, false)
+    app_settings    = optional(map(string), {})
   }))
 
   default = {
     processor = {
-      name_suffix = "processor"
-      runtime_stack = "python"
+      name_suffix     = "processor"
+      runtime_stack   = "python"
       runtime_version = "3.11"
-      always_on = false
+      always_on       = false
       app_settings = {
-        "FUNCTIONS_WORKER_RUNTIME" = "python"
+        "FUNCTIONS_WORKER_RUNTIME"           = "python"
         "PYTHON_ISOLATE_WORKER_DEPENDENCIES" = "1"
       }
     }
     validator = {
-      name_suffix = "validator"
-      runtime_stack = "python"
+      name_suffix     = "validator"
+      runtime_stack   = "python"
       runtime_version = "3.11"
-      always_on = false
+      always_on       = false
       app_settings = {
-        "FUNCTIONS_WORKER_RUNTIME" = "python"
+        "FUNCTIONS_WORKER_RUNTIME"           = "python"
         "PYTHON_ISOLATE_WORKER_DEPENDENCIES" = "1"
       }
     }
@@ -177,7 +177,7 @@ variable "function_apps" {
 variable "enable_private_endpoints" {
   description = "Enable private endpoints for storage and other services"
   type        = bool
-  default     = false  # Disabled for development to reduce costs
+  default     = false # Disabled for development to reduce costs
 }
 
 variable "enable_key_vault" {
@@ -269,7 +269,7 @@ variable "backup_retention_days" {
 variable "allowed_ip_ranges" {
   description = "List of allowed IP ranges for network access"
   type        = list(string)
-  default     = ["0.0.0.0/0"]  # Open for development, restrict for production
+  default     = ["0.0.0.0/0"] # Open for development, restrict for production
 
   validation {
     condition = alltrue([
@@ -283,17 +283,17 @@ variable "allowed_ip_ranges" {
 variable "enable_advanced_threat_protection" {
   description = "Enable Advanced Threat Protection for storage accounts"
   type        = bool
-  default     = false  # Disabled for development to reduce costs
+  default     = false # Disabled for development to reduce costs
 }
 
 variable "enable_backup" {
   description = "Enable backup for applicable resources"
   type        = bool
-  default     = false  # Disabled for development
+  default     = false # Disabled for development
 }
 
 variable "enable_geo_redundancy" {
   description = "Enable geo-redundant storage and services"
   type        = bool
-  default     = false  # Disabled for development
+  default     = false # Disabled for development
 }

@@ -83,10 +83,10 @@ module "networking" {
   source = "./modules/networking"
 
   resource_group_name = azurerm_resource_group.main.name
-  location           = azurerm_resource_group.main.location
-  environment        = var.environment
-  workload           = local.workload
-  location_short     = local.location_short[var.location]
+  location            = azurerm_resource_group.main.location
+  environment         = var.environment
+  workload            = local.workload
+  location_short      = local.location_short[var.location]
 
   # Network configuration
   vnet_address_space = var.vnet_address_space
@@ -100,18 +100,9 @@ module "app_service" {
   source = "./modules/app-service"
 
   resource_group_name = azurerm_resource_group.main.name
-  location           = azurerm_resource_group.main.location
-  environment        = var.environment
-  workload           = local.workload
-  location_short     = local.location_short[var.location]
-  random_suffix      = random_string.suffix.result
-
-  # Network integration
-  app_service_subnet_id = module.networking.subnet_ids["appservice"]
-
-  # App Service configuration
-  app_service_plan_sku = var.app_service_plan_sku
-  enable_application_insights = var.enable_application_insights
+  location            = azurerm_resource_group.main.location
+  environment         = var.environment
+  workload            = local.workload
 
   tags = local.common_tags
 
@@ -122,14 +113,7 @@ module "app_service" {
 module "policies" {
   source = "./modules/policies"
 
-  resource_group_name = azurerm_resource_group.main.name
-  environment        = var.environment
-  workload           = local.workload
-  location_short     = local.location_short[var.location]
+  resource_group_id = azurerm_resource_group.main.id
 
-  # Policy configuration
-  allowed_locations = var.allowed_locations
-  required_tags     = keys(local.common_tags)
-
-  tags = local.common_tags
+  depends_on = [azurerm_resource_group.main]
 }

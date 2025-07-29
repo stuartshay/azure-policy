@@ -163,6 +163,186 @@ install_powershell() {
   fi
 }
 
+# Function to install Terraform
+install_terraform() {
+  # Check if Terraform is already installed
+  if command -v terraform >/dev/null 2>&1; then
+    echo "Terraform is already installed: $(terraform --version | head -n1)"
+    return 0
+  fi
+
+  if [[ "$OS" == "Linux" ]]; then
+    if command -v apt >/dev/null 2>&1; then
+      echo "Installing Terraform using apt..."
+
+      # Check if HashiCorp repository is already configured
+      if [ ! -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]; then
+        echo "Adding HashiCorp GPG key..."
+        # Use timeout to prevent hanging
+        timeout 30 wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+        if [ $? -ne 0 ]; then
+          echo "Failed to download HashiCorp GPG key. Trying alternative method..."
+          # Alternative: download directly
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+        fi
+      else
+        echo "HashiCorp GPG key already exists, skipping..."
+      fi
+
+      # Check if repository is already added
+      if [ ! -f /etc/apt/sources.list.d/hashicorp.list ]; then
+        echo "Adding HashiCorp repository..."
+        echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list > /dev/null
+      else
+        echo "HashiCorp repository already configured, skipping..."
+      fi
+
+      echo "Updating package list..."
+      sudo apt update >/dev/null 2>&1 || echo "Warning: Package update had issues, continuing..."
+
+      echo "Installing Terraform package..."
+      sudo apt install -y terraform
+
+      echo "Terraform installation complete."
+    elif command -v yum >/dev/null 2>&1; then
+      echo "Installing Terraform using yum..."
+      sudo yum install -y yum-utils
+      sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+      sudo yum install -y terraform
+
+      echo "Terraform installation complete."
+    fi
+  elif [[ "$OS" == "Darwin" ]]; then
+    echo "Installing Terraform using Homebrew..."
+    brew tap hashicorp/tap
+    brew install hashicorp/tap/terraform
+
+    echo "Terraform installation complete."
+  fi
+
+  # Verify installation
+  if command -v terraform >/dev/null 2>&1; then
+    echo "Terraform version: $(terraform --version | head -n1)"
+  else
+    echo "Warning: Terraform installation may have failed." >&2
+  fi
+}
+
+# Function to install Terragrunt
+install_terragrunt() {
+  if [[ "$OS" == "Linux" ]]; then
+    echo "Installing Terragrunt..."
+    # Get latest version
+    TERRAGRUNT_VERSION=$(curl -s https://api.github.com/repos/gruntwork-io/terragrunt/releases/latest | grep tag_name | cut -d '"' -f 4)
+    wget -O terragrunt "https://github.com/gruntwork-io/terragrunt/releases/download/${TERRAGRUNT_VERSION}/terragrunt_linux_amd64"
+    chmod +x terragrunt
+    sudo mv terragrunt /usr/local/bin/
+
+    echo "Terragrunt installation complete."
+  elif [[ "$OS" == "Darwin" ]]; then
+    echo "Installing Terragrunt using Homebrew..."
+    brew install terragrunt
+
+    echo "Terragrunt installation complete."
+  fi
+
+  # Verify installation
+  if command -v terragrunt >/dev/null 2>&1; then
+    echo "Terragrunt version: $(terragrunt --version)"
+  else
+    echo "Warning: Terragrunt installation may have failed." >&2
+  fi
+}
+
+# Function to install tflint
+install_tflint() {
+  # Check if tflint is already installed
+  if command -v tflint >/dev/null 2>&1; then
+    echo "tflint is already installed: $(tflint --version)"
+    return 0
+  fi
+
+  if [[ "$OS" == "Linux" ]]; then
+    echo "Installing tflint..."
+
+    # Install unzip if not present
+    if ! command -v unzip >/dev/null 2>&1; then
+      echo "Installing unzip dependency..."
+      if command -v apt >/dev/null 2>&1; then
+        sudo apt update && sudo apt install -y unzip
+      elif command -v yum >/dev/null 2>&1; then
+        sudo yum install -y unzip
+      fi
+    fi
+
+    # Get latest version and install manually
+    TFLINT_VERSION=$(curl -s https://api.github.com/repos/terraform-linters/tflint/releases/latest | grep tag_name | cut -d '"' -f 4)
+    wget -O tflint.zip "https://github.com/terraform-linters/tflint/releases/download/${TFLINT_VERSION}/tflint_linux_amd64.zip"
+    unzip tflint.zip
+    chmod +x tflint
+    sudo mv tflint /usr/local/bin/
+    rm tflint.zip
+
+    echo "tflint installation complete."
+  elif [[ "$OS" == "Darwin" ]]; then
+    echo "Installing tflint using Homebrew..."
+    brew install tflint
+
+    echo "tflint installation complete."
+  fi
+
+  # Verify installation
+  if command -v tflint >/dev/null 2>&1; then
+    echo "tflint version: $(tflint --version)"
+  else
+    echo "Warning: tflint installation may have failed." >&2
+  fi
+}
+
+# Function to install terraform-docs
+install_terraform_docs() {
+  if [[ "$OS" == "Linux" ]]; then
+    echo "Installing terraform-docs..."
+    # Get latest version
+    TERRAFORM_DOCS_VERSION=$(curl -s https://api.github.com/repos/terraform-docs/terraform-docs/releases/latest | grep tag_name | cut -d '"' -f 4)
+    wget -O terraform-docs.tar.gz "https://github.com/terraform-docs/terraform-docs/releases/download/${TERRAFORM_DOCS_VERSION}/terraform-docs-${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz"
+    tar -xzf terraform-docs.tar.gz
+    chmod +x terraform-docs
+    sudo mv terraform-docs /usr/local/bin/
+    rm terraform-docs.tar.gz
+
+    echo "terraform-docs installation complete."
+  elif [[ "$OS" == "Darwin" ]]; then
+    echo "Installing terraform-docs using Homebrew..."
+    brew install terraform-docs
+
+    echo "terraform-docs installation complete."
+  fi
+
+  # Verify installation
+  if command -v terraform-docs >/dev/null 2>&1; then
+    echo "terraform-docs version: $(terraform-docs --version)"
+  else
+    echo "Warning: terraform-docs installation may have failed." >&2
+  fi
+}
+
+# Function to install Checkov
+install_checkov() {
+  echo "Installing Checkov..."
+  # Install using pip3.13
+  sudo python3.13 -m pip install checkov
+
+  # Verify installation
+  if command -v checkov >/dev/null 2>&1; then
+    echo "Checkov version: $(checkov --version)"
+  else
+    echo "Warning: Checkov installation may have failed." >&2
+  fi
+
+  echo "Checkov installation complete."
+}
+
 # Function to install GitHub CLI
 install_github_cli() {
   if [[ "$OS" == "Linux" ]]; then
@@ -207,19 +387,19 @@ setup_github_cli() {
 
   # Check if GitHub CLI is installed
   if ! command -v gh &> /dev/null; then
-    echo "❌ GitHub CLI is not installed. Installation may have failed."
+    echo "* GitHub CLI is not installed. Installation may have failed."
     return 1
   fi
 
-  echo "✅ GitHub CLI is installed: $(gh --version | head -n1)"
+  echo "* GitHub CLI is installed: $(gh --version | head -n1)"
   echo ""
 
   # Check authentication status
   if gh auth status &> /dev/null; then
-    echo "✅ Already authenticated with GitHub"
+    echo "* Already authenticated with GitHub"
     gh auth status
   else
-    echo "🔐 GitHub authentication setup:"
+    echo ">> GitHub authentication setup:"
     echo ""
     echo "To authenticate with GitHub, run:"
     echo "  gh auth login"
@@ -232,7 +412,7 @@ setup_github_cli() {
     echo ""
   fi
 
-  echo "🚀 Useful GitHub CLI Commands:"
+  echo ">> Useful GitHub CLI Commands:"
   echo ""
   echo "Repository Management:"
   echo "  gh repo view                    # View current repository"
@@ -264,6 +444,129 @@ setup_github_cli() {
   echo ""
 }
 
+# Function to install Node.js via nvm
+install_nodejs() {
+  # Check if Node.js is already installed
+  if command -v node >/dev/null 2>&1; then
+    current_version=$(node --version)
+    echo "Node.js is already installed: $current_version"
+    echo "npm version: $(npm --version)"
+
+    # Check if it's a recent version (v20+ is acceptable)
+    major_version=$(echo $current_version | sed 's/v\([0-9]*\).*/\1/')
+    if [ "$major_version" -ge 20 ]; then
+      echo "Node.js version is acceptable (v20+), skipping installation."
+      return 0
+    else
+      echo "Node.js version is outdated, will install latest via nvm."
+    fi
+  fi
+
+  echo "Installing Node.js 24 (LTS) via nvm..."
+
+  # Install nvm if not present
+  if ! command -v nvm >/dev/null 2>&1 && [ ! -s "$HOME/.nvm/nvm.sh" ]; then
+    echo "Installing nvm (Node Version Manager)..."
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+
+    # Source nvm for current session
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+  else
+    echo "nvm is already installed, sourcing..."
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+  fi
+
+  # Install Node.js 24 (latest LTS)
+  echo "Installing Node.js 24 (latest LTS)..."
+  nvm install 24
+  nvm use 24
+  nvm alias default 24
+
+  # Update npm to latest version
+  echo "Updating npm to latest version..."
+  npm install -g npm@latest
+
+  echo "Node.js installation complete."
+
+  # Verify installation
+  if command -v node >/dev/null 2>&1; then
+    echo "Node.js version: $(node --version)"
+    echo "npm version: $(npm --version)"
+    echo "nvm version: $(nvm --version)"
+  else
+    echo "Warning: Node.js installation may have failed." >&2
+    echo "You may need to restart your shell or run: source ~/.bashrc"
+  fi
+
+  # Add nvm sourcing to shell profiles if not already present
+  echo "Ensuring nvm is available in future shell sessions..."
+
+  # For bash
+  if [ -f "$HOME/.bashrc" ] && ! grep -q "NVM_DIR" "$HOME/.bashrc"; then
+    echo 'export NVM_DIR="$HOME/.nvm"' >> "$HOME/.bashrc"
+    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> "$HOME/.bashrc"
+    echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' >> "$HOME/.bashrc"
+  fi
+
+  # For zsh
+  if [ -f "$HOME/.zshrc" ] && ! grep -q "NVM_DIR" "$HOME/.zshrc"; then
+    echo 'export NVM_DIR="$HOME/.nvm"' >> "$HOME/.zshrc"
+    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> "$HOME/.zshrc"
+    echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' >> "$HOME/.zshrc"
+  fi
+}
+
+# Function to install Azurite (Azure Storage Emulator)
+install_azurite() {
+  # Check if Azurite is already installed
+  if command -v azurite >/dev/null 2>&1; then
+    echo "Azurite is already installed: $(azurite --version)"
+    return 0
+  fi
+
+  echo "Installing Azurite (Azure Storage Emulator)..."
+
+  # Check if npm is available
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "npm is required for Azurite installation."
+
+    # Try to source nvm if it exists
+    if [ -s "$HOME/.nvm/nvm.sh" ]; then
+      echo "Attempting to source nvm..."
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+      [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+      # Try to use the default node version
+      nvm use default 2>/dev/null || nvm use node 2>/dev/null || true
+    fi
+
+    # Check again if npm is now available
+    if ! command -v npm >/dev/null 2>&1; then
+      echo "WARNING: npm still not available. Node.js installation might need a shell restart."
+      echo "   After restarting your shell, run: npm install -g azurite"
+      return 1
+    fi
+  fi
+
+  # Install Azurite globally via npm
+  echo "Installing Azurite via npm..."
+  npm install -g azurite
+
+  # Verify installation
+  if command -v azurite >/dev/null 2>&1; then
+    echo "Azurite installation complete."
+    echo "Azurite version: $(azurite --version)"
+  else
+    echo "WARNING: Azurite installation may have failed or requires a shell restart."
+    echo "   After restarting your shell, run: npm install -g azurite"
+  fi
+}
+
 # Function to install Azure Functions Core Tools
 install_azure_functions_tools() {
   if [[ "$OS" == "Linux" ]]; then
@@ -283,9 +586,10 @@ install_azure_functions_tools() {
       echo "Azure Functions Core Tools installation complete."
     elif command -v yum >/dev/null 2>&1; then
       echo "Installing Azure Functions Core Tools using npm..."
-      # Install Node.js and npm if not present
-      curl -sL https://rpm.nodesource.com/setup_18.x | sudo bash -
-      sudo yum install -y nodejs
+      # Ensure Node.js is installed first
+      if ! command -v npm >/dev/null 2>&1; then
+        install_nodejs
+      fi
       sudo npm install -g azure-functions-core-tools@4 --unsafe-perm true
 
       echo "Azure Functions Core Tools installation complete."
@@ -304,6 +608,27 @@ install_azure_functions_tools() {
   else
     echo "Warning: Azure Functions Core Tools installation may have failed." >&2
   fi
+}
+
+# Function to setup Azurite data directory
+setup_azurite_directory() {
+  echo "Setting up Azurite data directory..."
+
+  # Navigate to project root
+  cd "$(dirname "$0")"
+
+  # Create azurite-data directory if it doesn't exist
+  if [ ! -d "azurite-data" ]; then
+    mkdir -p azurite-data
+    echo "* Created azurite-data directory"
+  else
+    echo "* azurite-data directory already exists"
+  fi
+
+  # Set appropriate permissions
+  chmod 755 azurite-data
+
+  echo "Azurite data directory setup complete."
 }
 
 # Function to install pre-commit and setup hooks
@@ -448,9 +773,9 @@ repos:
 default_language_version:
   python: python3.13
 EOF
-    echo "✅ Created .pre-commit-config.yaml with essential hooks"
+    echo "* Created .pre-commit-config.yaml with essential hooks"
   else
-    echo "✅ .pre-commit-config.yaml already exists"
+    echo "* .pre-commit-config.yaml already exists"
   fi
 
   # Create secrets baseline if it doesn't exist
@@ -460,7 +785,7 @@ EOF
     if [ ! -f .secrets.baseline ]; then
       echo '{}' > .secrets.baseline
     fi
-    echo "✅ Created .secrets.baseline"
+    echo "* Created .secrets.baseline"
   fi
 
   # Install the git hooks
@@ -470,26 +795,26 @@ EOF
   # Install commit-msg hook for conventional commits (optional)
   pre-commit install --hook-type commit-msg || echo "Note: commit-msg hook not configured"
 
-  echo "✅ Pre-commit hooks installed successfully!"
+  echo "* Pre-commit hooks installed successfully!"
 
   # Run hooks on all files to ensure everything is working
   echo "Running pre-commit on all files to verify setup..."
-  pre-commit run --all-files || echo "⚠️  Some hooks failed. This is normal for first run - files may have been auto-fixed."
+  pre-commit run --all-files || echo "WARNING: Some hooks failed. This is normal for first run - files may have been auto-fixed."
 
   echo ""
-  echo "🎯 Pre-commit setup complete!"
+  echo ">> Pre-commit setup complete!"
   echo ""
   echo "Pre-commit will now automatically run on:"
-  echo "  • Every git commit (validates staged files)"
-  echo "  • Manual execution: pre-commit run --all-files"
+  echo "  - Every git commit (validates staged files)"
+  echo "  - Manual execution: pre-commit run --all-files"
   echo ""
   echo "Key hooks configured:"
-  echo "  • Python: black, isort, flake8, bandit"
-  echo "  • PowerShell: PSScriptAnalyzer"
-  echo "  • Shell: shellcheck"
-  echo "  • Secrets: detect-secrets"
-  echo "  • General: trailing whitespace, file endings, JSON/YAML validation"
-  echo "  • Azure: Policy JSON validation, Bicep validation"
+  echo "  - Python: black, isort, flake8, bandit"
+  echo "  - PowerShell: PSScriptAnalyzer"
+  echo "  - Shell: shellcheck"
+  echo "  - Secrets: detect-secrets"
+  echo "  - General: trailing whitespace, file endings, JSON/YAML validation"
+  echo "  - Azure: Policy JSON validation, Bicep validation"
   echo ""
 }
 
@@ -529,6 +854,14 @@ echo "=== Installing jq (JSON processor) ==="
 install_jq
 
 echo ""
+echo "=== Installing Node.js ==="
+install_nodejs
+
+echo ""
+echo "=== Installing Azurite (Azure Storage Emulator) ==="
+install_azurite
+
+echo ""
 echo "=== Installing Azure Functions Core Tools ==="
 install_azure_functions_tools
 
@@ -545,42 +878,94 @@ echo "=== Setting up GitHub CLI ==="
 setup_github_cli
 
 echo ""
+echo "=== Installing Terraform ==="
+install_terraform
+
+echo ""
+echo "=== Installing Terragrunt ==="
+install_terragrunt
+
+echo ""
+echo "=== Installing tflint ==="
+install_tflint
+
+echo ""
+echo "=== Installing terraform-docs ==="
+install_terraform_docs
+
+echo ""
+echo "=== Installing Checkov ==="
+install_checkov
+
+echo ""
 echo "=== Installing Pre-commit ==="
 install_precommit
 
 echo ""
+echo "=== Setting up Azurite Data Directory ==="
+setup_azurite_directory
+
+echo ""
 echo "=== Installation Summary ==="
 echo "Python version: $(python3.13 --version 2>/dev/null || echo 'Not found')"
+echo "nvm version: $(nvm --version 2>/dev/null || echo 'Not found - restart shell to activate')"
+echo "Node.js version: $(node --version 2>/dev/null || echo 'Not found - restart shell to activate')"
+echo "npm version: $(npm --version 2>/dev/null || echo 'Not found - restart shell to activate')"
+echo "Azurite version: $(azurite --version 2>/dev/null || echo 'Not found - install after Node.js is active')"
 echo "Azure CLI version: $(az --version 2>/dev/null | head -n1 || echo 'Not found')"
 echo "Azure Functions Core Tools version: $(func --version 2>/dev/null || echo 'Not found')"
 echo "GitHub CLI version: $(gh --version 2>/dev/null | head -n1 || echo 'Not found')"
 echo "PowerShell version: $(pwsh --version 2>/dev/null || echo 'Not found')"
+echo "Terraform version: $(terraform --version 2>/dev/null | head -n1 || echo 'Not found')"
+echo "Terragrunt version: $(terragrunt --version 2>/dev/null || echo 'Not found')"
+echo "tflint version: $(tflint --version 2>/dev/null || echo 'Not found')"
+echo "terraform-docs version: $(terraform-docs --version 2>/dev/null || echo 'Not found')"
+echo "Checkov version: $(checkov --version 2>/dev/null || echo 'Not found')"
 echo "Pre-commit version: $(pre-commit --version 2>/dev/null || echo 'Not found')"
 echo "jq version: $(jq --version 2>/dev/null || echo 'Not found')"
 echo ""
 echo "Installation complete!"
 echo ""
-echo "🎯 Next steps:"
-echo "1. Authenticate with Azure: az login"
-echo "2. Authenticate with GitHub: gh auth login"
-echo "3. Navigate to functions: cd functions/basic"
-echo "4. Setup Python environment: python3.13 -m venv .venv && source .venv/bin/activate"
-echo "5. Install Python dependencies: pip install -r requirements.txt"
-echo "6. Pre-commit hooks are ready - they'll run automatically on git commits"
+echo "WARNING: Node.js was installed via nvm"
+echo "   You need to restart your shell or run: source ~/.bashrc (or ~/.zshrc)"
+echo "   Then run: ./scripts/post-install.sh to complete Node.js/Azurite setup"
 echo ""
-echo "🚀 You're ready for Azure Policy & Functions development!"
+echo ">> Next steps:"
+echo "1. Restart your shell or run: source ~/.bashrc (or ~/.zshrc)"
+echo "2. Verify Node.js: node --version (should show v24.x.x)"
+echo "3. Install Azurite: npm install -g azurite"
+echo "4. Authenticate with Azure: az login"
+echo "5. Authenticate with GitHub: gh auth login"
+echo "6. Start Azurite: azurite --silent --location ./azurite-data --debug ./azurite-data/debug.log"
+echo "7. Navigate to functions: cd functions/basic"
+echo "8. Setup Python environment: python3.13 -m venv .venv && source .venv/bin/activate"
+echo "9. Install Python dependencies: pip install -r requirements.txt"
+echo "10. Start Azure Functions: func start"
+echo "11. Pre-commit hooks are ready - they'll run automatically on git commits"
 echo ""
-echo "🔧 Available tools:"
-echo "   • Python 3.13 with venv support"
-echo "   • Azure CLI for cloud management"
-echo "   • Azure Functions Core Tools for local development"
-echo "   • GitHub CLI for repository management"
-echo "   • PowerShell for Azure automation and scripting"
-echo "   • Pre-commit for code quality and consistency"
-echo "   • jq for JSON processing (perfect for CLI output parsing)"
+echo ">> You're ready for Azure Policy & Functions development!"
 echo ""
-echo "📚 Quick reference:"
-echo "   • Azure Functions: http://localhost:7071 (when running)"
-echo "   • Documentation: Check README.md for detailed setup"
-echo "   • Troubleshooting: See TROUBLESHOOTING.md"
+echo ">> Available tools:"
+echo "   - Python 3.13 with venv support"
+echo "   - nvm (Node Version Manager) with Node.js 24 LTS"
+echo "   - npm for JavaScript package management"
+echo "   - Azurite for local Azure Storage emulation"
+echo "   - Azure CLI for cloud management"
+echo "   - Azure Functions Core Tools for local development"
+echo "   - GitHub CLI for repository management"
+echo "   - PowerShell for Azure automation and scripting"
+echo "   - Terraform for Infrastructure as Code"
+echo "   - Terragrunt for DRY Terraform configurations"
+echo "   - tflint for Terraform linting and validation"
+echo "   - terraform-docs for generating documentation"
+echo "   - Checkov for security and compliance scanning"
+echo "   - Pre-commit for code quality and consistency"
+echo "   - jq for JSON processing (perfect for CLI output parsing)"
+echo ""
+echo ">> Quick reference:"
+echo "   - Azure Functions: http://localhost:7071 (when running)"
+echo "   - Azurite Storage: http://localhost:10000 (blob), http://localhost:10001 (queue), http://localhost:10002 (table)"
+echo "   - Azurite data: ./azurite-data/ directory"
+echo "   - Documentation: Check README.md for detailed setup"
+echo "   - Troubleshooting: See TROUBLESHOOTING.md"
 echo ""

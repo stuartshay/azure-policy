@@ -27,6 +27,11 @@
     "ghcr.io/devcontainers/features/github-cli:1": {
       "installDirectlyFromGitHubRelease": true,
       "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/terraform:1": {
+      "version": "latest",
+      "tflint": true,
+      "terragrunt": true
     }
   },
   "customizations": {
@@ -51,7 +56,10 @@
         "GitHub.copilot",
         "GitHub.copilot-chat",
         "ms-python.mypy-type-checker",
-        "ms-python.pytest"
+        "ms-python.pytest",
+        "HashiCorp.terraform",
+        "ms-azuretools.vscode-azureterraform",
+        "bridgecrew.checkov"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
@@ -91,8 +99,15 @@
         "azureFunctions.projectRuntime": "~4",
         "files.exclude": {
           "**/__pycache__": true,
-          "**/*.pyc": true
-        }
+          "**/*.pyc": true,
+          "**/.terraform": true,
+          "**/.terraform.lock.hcl": false
+        },
+        "terraform.experimentalFeatures.validateOnSave": true,
+        "terraform.experimentalFeatures.prefillRequiredFields": true,
+        "terraform.languageServer.enable": true,
+        "terraform.codelens.referenceCount": true,
+        "terraform.validation.enableEnhancedValidation": true
       }
     }
   },

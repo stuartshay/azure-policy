@@ -26,6 +26,20 @@ echo "Setting up PowerShell environment..."
 pwsh -Command "& /azure-policy/scripts/Install-PowerShellModules.ps1 -Force -SkipPublisherCheck" || echo "PowerShell module installation completed with warnings"
 pwsh -Command "& /azure-policy/scripts/Setup-PowerShellProfile.ps1 -Force" || echo "PowerShell profile setup completed"
 
+# Install additional IaC tools not covered by DevContainer features
+echo "Installing terraform-docs..."
+TERRAFORM_DOCS_VERSION=$(curl -s https://api.github.com/repos/terraform-docs/terraform-docs/releases/latest | grep tag_name | cut -d '"' -f 4)
+wget -O terraform-docs.tar.gz "https://github.com/terraform-docs/terraform-docs/releases/download/${TERRAFORM_DOCS_VERSION}/terraform-docs-${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz"
+tar -xzf terraform-docs.tar.gz
+chmod +x terraform-docs
+sudo mv terraform-docs /usr/local/bin/
+rm terraform-docs.tar.gz
+echo "terraform-docs installed: $(terraform-docs --version)"
+
+echo "Installing Checkov..."
+pip install --user checkov
+echo "Checkov installed: $(checkov --version)"
+
 # Install development dependencies in the main workspace
 echo "Installing Python development dependencies..."
 cd /azure-policy || exit
@@ -90,14 +104,42 @@ else
 fi
 
 echo ""
-echo "Azure Functions development environment setup complete!"
+echo "Azure Functions & Infrastructure development environment setup complete!"
 echo ""
-echo "To start developing:"
+echo "🔧 Available tools:"
+echo "   • Python 3.13 with venv support"
+echo "   • Azure CLI for cloud management"
+echo "   • Azure Functions Core Tools for local development"
+echo "   • GitHub CLI for repository management"
+echo "   • PowerShell for Azure automation and scripting"
+echo "   • Terraform for Infrastructure as Code"
+echo "   • Terragrunt for DRY Terraform configurations"
+echo "   • tflint for Terraform linting and validation"
+echo "   • terraform-docs for generating documentation"
+echo "   • Checkov for security and compliance scanning"
+echo ""
+echo "🚀 To start developing:"
+echo ""
+echo "Azure Functions:"
 echo "1. cd functions/basic"
 echo "2. source .venv/bin/activate"
 echo "3. func start"
 echo ""
-echo "Your functions will be available at:"
-echo "- Hello World: http://localhost:7071/api/hello"
-echo "- Health Check: http://localhost:7071/api/health"
-echo "- Info: http://localhost:7071/api/info"
+echo "Terraform Infrastructure:"
+echo "1. cd infrastructure/terraform"
+echo "2. terraform init"
+echo "3. terraform plan"
+echo ""
+echo "📚 Your services will be available at:"
+echo "- Azure Functions: http://localhost:7071"
+echo "  • Hello World: http://localhost:7071/api/hello"
+echo "  • Health Check: http://localhost:7071/api/health"
+echo "  • Info: http://localhost:7071/api/info"
+echo "- Azurite Storage Emulator: http://localhost:10000"
+echo ""
+echo "🎯 Quick commands:"
+echo "- terraform --version"
+echo "- terragrunt --version"
+echo "- tflint --version"
+echo "- terraform-docs --version"
+echo "- checkov --version"

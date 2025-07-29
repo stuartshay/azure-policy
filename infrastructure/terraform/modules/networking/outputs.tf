@@ -144,13 +144,13 @@ output "subnet_route_table_associations" {
 output "networking_summary" {
   description = "Summary of networking configuration"
   value = {
-    vnet_name           = azurerm_virtual_network.main.name
-    vnet_address_space  = azurerm_virtual_network.main.address_space
-    subnet_count        = length(azurerm_subnet.main)
-    nsg_count          = length(azurerm_network_security_group.main)
-    custom_routes_enabled = var.enable_custom_routes
-    network_watcher_enabled = var.enable_network_watcher
-    flow_logs_enabled  = var.enable_flow_logs
+    vnet_name                 = azurerm_virtual_network.main.name
+    vnet_address_space        = azurerm_virtual_network.main.address_space
+    subnet_count              = length(azurerm_subnet.main)
+    nsg_count                 = length(azurerm_network_security_group.main)
+    custom_routes_enabled     = var.enable_custom_routes
+    network_watcher_enabled   = var.enable_network_watcher
+    flow_logs_enabled         = var.enable_flow_logs
     traffic_analytics_enabled = var.enable_traffic_analytics
   }
 }
@@ -199,7 +199,7 @@ output "security_summary" {
       "Allow-HTTPS-Outbound",
       "Allow-DNS-Outbound"
     ]
-    app_service_rules_applied = contains(keys(var.subnet_config), "appservice")
+    app_service_rules_applied  = contains(keys(var.subnet_config), "appservice")
     function_app_rules_applied = contains(keys(var.subnet_config), "functions")
   }
 }
@@ -215,8 +215,8 @@ output "resource_names" {
     nsg_names = {
       for nsg_name, nsg in azurerm_network_security_group.main : nsg_name => nsg.name
     }
-    route_table_name = var.enable_custom_routes ? azurerm_route_table.main[0].name : null
-    network_watcher_name = var.enable_network_watcher ? azurerm_network_watcher.main[0].name : null
+    route_table_name       = var.enable_custom_routes ? azurerm_route_table.main[0].name : null
+    network_watcher_name   = var.enable_network_watcher ? azurerm_network_watcher.main[0].name : null
     flow_logs_storage_name = var.enable_network_watcher && var.enable_flow_logs ? azurerm_storage_account.flow_logs[0].name : null
   }
 }
@@ -225,10 +225,10 @@ output "resource_names" {
 output "connectivity_info" {
   description = "Information for connecting other resources to the network"
   value = {
-    vnet_id = azurerm_virtual_network.main.id
-    vnet_name = azurerm_virtual_network.main.name
+    vnet_id             = azurerm_virtual_network.main.id
+    vnet_name           = azurerm_virtual_network.main.name
     resource_group_name = azurerm_virtual_network.main.resource_group_name
-    location = azurerm_virtual_network.main.location
+    location            = azurerm_virtual_network.main.location
     subnet_ids = {
       for subnet_name, subnet in azurerm_subnet.main : subnet_name => subnet.id
     }

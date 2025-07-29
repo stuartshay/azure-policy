@@ -79,7 +79,7 @@ variable "vnet_address_space" {
 variable "subnet_config" {
   description = "Configuration for subnets"
   type = map(object({
-    address_prefixes = list(string)
+    address_prefixes  = list(string)
     service_endpoints = optional(list(string), [])
     delegation = optional(object({
       name = string
@@ -118,11 +118,11 @@ variable "enable_flow_logs" {
 variable "flow_log_retention_days" {
   description = "Number of days to retain flow logs"
   type        = number
-  default     = 30
+  default     = 91
 
   validation {
-    condition     = var.flow_log_retention_days >= 1 && var.flow_log_retention_days <= 365
-    error_message = "Flow log retention days must be between 1 and 365."
+    condition     = var.flow_log_retention_days >= 91 && var.flow_log_retention_days <= 365
+    error_message = "Flow log retention days must be between 91 and 365 for security compliance."
   }
 }
 
@@ -142,164 +142,4 @@ variable "log_analytics_workspace_resource_id" {
   description = "Log Analytics workspace resource ID for traffic analytics"
   type        = string
   default     = null
-}
-
-# Security Configuration
-variable "allowed_ip_ranges" {
-  description = "List of allowed IP ranges for network access"
-  type        = list(string)
-  default     = ["0.0.0.0/0"]
-
-  validation {
-    condition = alltrue([
-      for ip_range in var.allowed_ip_ranges : can(cidrhost(ip_range, 0))
-    ])
-    error_message = "All IP ranges must be valid CIDR notation."
-  }
-}
-
-variable "enable_ddos_protection" {
-  description = "Enable DDoS protection for the virtual network"
-  type        = bool
-  default     = false
-}
-
-variable "ddos_protection_plan_id" {
-  description = "ID of the DDoS protection plan (if enabled)"
-  type        = string
-  default     = null
-}
-
-# DNS Configuration
-variable "dns_servers" {
-  description = "List of DNS servers for the virtual network"
-  type        = list(string)
-  default     = []
-
-  validation {
-    condition = alltrue([
-      for dns in var.dns_servers : can(regex("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$", dns))
-    ])
-    error_message = "All DNS servers must be valid IP addresses."
-  }
-}
-
-# Network Security Rules Configuration
-variable "additional_security_rules" {
-  description = "Additional security rules to apply to NSGs"
-  type = map(list(object({
-    name                       = string
-    priority                   = number
-    direction                  = string
-    access                     = string
-    protocol                   = string
-    source_port_range          = optional(string, "*")
-    destination_port_range     = optional(string, "*")
-    source_port_ranges         = optional(list(string), [])
-    destination_port_ranges    = optional(list(string), [])
-    source_address_prefix      = optional(string, "*")
-    destination_address_prefix = optional(string, "*")
-    source_address_prefixes    = optional(list(string), [])
-    destination_address_prefixes = optional(list(string), [])
-  })))
-  default = {}
-}
-
-# Peering Configuration (for future use)
-variable "enable_peering" {
-  description = "Enable VNet peering"
-  type        = bool
-  default     = false
-}
-
-variable "peering_vnets" {
-  description = "List of VNets to peer with"
-  type = list(object({
-    name                = string
-    resource_group_name = string
-    allow_forwarded_traffic = optional(bool, false)
-    allow_gateway_transit   = optional(bool, false)
-    use_remote_gateways     = optional(bool, false)
-  }))
-  default = []
-}
-
-# Monitoring Configuration
-variable "enable_diagnostic_settings" {
-  description = "Enable diagnostic settings for networking resources"
-  type        = bool
-  default     = true
-}
-
-variable "diagnostic_storage_account_id" {
-  description = "Storage account ID for diagnostic logs"
-  type        = string
-  default     = null
-}
-
-variable "diagnostic_log_analytics_workspace_id" {
-  description = "Log Analytics workspace ID for diagnostic logs"
-  type        = string
-  default     = null
-}
-
-variable "diagnostic_eventhub_authorization_rule_id" {
-  description = "Event Hub authorization rule ID for diagnostic logs"
-  type        = string
-  default     = null
-}
-
-variable "diagnostic_eventhub_name" {
-  description = "Event Hub name for diagnostic logs"
-  type        = string
-  default     = null
-}
-
-# Private Endpoint Configuration
-variable "enable_private_dns_zones" {
-  description = "Enable private DNS zones for private endpoints"
-  type        = bool
-  default     = false
-}
-
-variable "private_dns_zones" {
-  description = "List of private DNS zones to create"
-  type        = list(string)
-  default     = []
-}
-
-# Network Performance Configuration
-variable "enable_accelerated_networking" {
-  description = "Enable accelerated networking where supported"
-  type        = bool
-  default     = false
-}
-
-# Cost Optimization
-variable "enable_flow_log_storage_analytics" {
-  description = "Enable storage analytics for flow log storage account"
-  type        = bool
-  default     = false
-}
-
-variable "flow_log_storage_tier" {
-  description = "Storage tier for flow log storage account"
-  type        = string
-  default     = "Standard"
-
-  validation {
-    condition     = contains(["Standard", "Premium"], var.flow_log_storage_tier)
-    error_message = "Flow log storage tier must be Standard or Premium."
-  }
-}
-
-variable "flow_log_storage_replication" {
-  description = "Replication type for flow log storage account"
-  type        = string
-  default     = "LRS"
-
-  validation {
-    condition     = contains(["LRS", "GRS", "RAGRS", "ZRS", "GZRS", "RAGZRS"], var.flow_log_storage_replication)
-    error_message = "Flow log storage replication must be a valid Azure storage replication type."
-  }
 }
