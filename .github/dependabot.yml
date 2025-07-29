@@ -1,0 +1,99 @@
+version: 2
+updates:
+  # Python dependencies - Root level
+  - package-ecosystem: 'pip'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+    open-pull-requests-limit: 10
+    reviewers:
+      - 'stuartshay'
+    assignees:
+      - 'stuartshay'
+    commit-message:
+      prefix: 'pip'
+      include: 'scope'
+    labels:
+      - 'dependencies'
+      - 'python'
+
+  # Python dependencies - Functions
+  - package-ecosystem: 'pip'
+    directory: '/functions/basic'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+    open-pull-requests-limit: 5
+    reviewers:
+      - 'stuartshay'
+    assignees:
+      - 'stuartshay'
+    commit-message:
+      prefix: 'pip'
+      include: 'scope'
+    labels:
+      - 'dependencies'
+      - 'python'
+      - 'azure-functions'
+
+  # Terraform providers and modules
+  - package-ecosystem: 'terraform'
+    directory: '/infrastructure/terraform'
+    schedule:
+      interval: 'weekly'
+      day: 'tuesday'
+      time: '09:00'
+    open-pull-requests-limit: 5
+    reviewers:
+      - 'stuartshay'
+    assignees:
+      - 'stuartshay'
+    commit-message:
+      prefix: 'terraform'
+      include: 'scope'
+    labels:
+      - 'dependencies'
+      - 'terraform'
+      - 'infrastructure'
+
+  # GitHub Actions workflows
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'wednesday'
+      time: '09:00'
+    open-pull-requests-limit: 5
+    reviewers:
+      - 'stuartshay'
+    assignees:
+      - 'stuartshay'
+    commit-message:
+      prefix: 'github-actions'
+      include: 'scope'
+    labels:
+      - 'dependencies'
+      - 'github-actions'
+      - 'ci/cd'
+
+  # Docker (if any Dockerfiles are present)
+  - package-ecosystem: 'docker'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'thursday'
+      time: '09:00'
+    open-pull-requests-limit: 3
+    reviewers:
+      - 'stuartshay'
+    assignees:
+      - 'stuartshay'
+    commit-message:
+      prefix: 'docker'
+      include: 'scope'
+    labels:
+      - 'dependencies'
+      - 'docker'
