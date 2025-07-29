@@ -3,7 +3,7 @@ azure-functions==1.23.0
 azure-storage-blob==12.24.0
 azure-identity==1.19.0
 azure-keyvault-secrets==4.9.0
-azure-core==1.32.0
+azure-core==1.35.0
 azure-common==1.1.28
 
 # HTTP client and utilities
