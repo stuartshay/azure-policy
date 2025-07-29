@@ -86,6 +86,19 @@ repos:
   # Azure specific validations
   - repo: local
     hooks:
+      - id: docs-folder-enforcement
+        name: Enforce Documentation Structure
+        entry: bash
+        args:
+          [
+            '-c',
+            'for file in "$@"; do if [[ "$file" =~ \.md$ ]] && [[ ! "$file" =~ ^docs/ ]] && [[ ! "$file" =~ ^README\.md$ ]] && [[ ! "$file" =~ ^CHANGELOG\.md$ ]] && [[ ! "$file" =~ ^CONTRIBUTING\.md$ ]] && [[ ! "$file" =~ ^LICENSE\.md$ ]] && [[ ! "$file" =~ ^\.cline/ ]] && [[ ! "$file" =~ ^\.github/copilot_instructions\.md$ ]] && [[ ! "$file" =~ ^\.github/chatmodes/ ]] && [[ ! "$file" =~ /site-packages/ ]] && [[ ! "$file" =~ /\.venv/ ]]; then echo "❌ Markdown file $file should be in docs/ folder. Please move it: mv $file docs/$(basename $file)"; exit 1; fi; done',
+            '--',
+          ]
+        language: system
+        files: '\.md$'
+        pass_filenames: true
+
       - id: azure-policy-validation
         name: Azure Policy JSON Validation
         entry: bash
