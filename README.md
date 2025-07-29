@@ -6,14 +6,6 @@ A comprehensive Azure Policy management solution that provides custom policy def
 
 This repository contains a complete Azure Policy management platform with:
 
-# Azure Policy Management Project
-
-A comprehensive Azure Policy management solution that provides custom policy definitions, infrastructure automation, and Azure Functions for policy processing. This project demonstrates enterprise-grade governance with Infrastructure as Code (IaC) and GitOps practices.
-
-## 🏗️ Project Overview
-
-This repository contains a complete Azure Policy management platform with:
-
 - **Custom Azure Policy Definitions**: Governance rules for resource naming conventions and compliance
 - **Infrastructure as Code**: Terraform modules for deploying Azure resources with best practices
 - **Azure Functions**: Python-based functions for policy processing and automation
