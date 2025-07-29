@@ -29,8 +29,13 @@ resource "azurerm_linux_web_app" "main" {
   location            = var.location
   service_plan_id     = azurerm_service_plan.main.id
 
+  # Security settings
+  https_only = true # Force HTTPS
+
   site_config {
-    always_on = var.always_on
+    always_on     = true       # Always on for better performance
+    http2_enabled = true       # Enable HTTP/2 for latest version
+    ftps_state    = "Disabled" # Disable FTP
 
     application_stack {
       python_version = var.python_version

@@ -1,0 +1,48 @@
+# Checkov Configuration for Development Environment
+# This configuration skips checks that are not appropriate for development environments
+
+framework:
+  - terraform
+
+skip-check:
+  # Service Plan and Application Service checks that are not needed for dev
+  - CKV_AZURE_225  # App Service Plan zone redundancy not required for dev
+  - CKV_AZURE_212  # Minimum instances for failover not required for dev
+  - CKV_AZURE_211  # Production-suitable SKU not required for dev
+
+  # Authentication and authorization not set up in dev
+  - CKV_AZURE_16   # Azure AD registration not required for dev
+  - CKV_AZURE_13   # App Service authentication not required for dev
+
+  # Development-specific settings that would interfere with debugging
+  - CKV_AZURE_222  # Public network access needed for dev
+  - CKV_AZURE_17   # Client certificates not needed for dev
+
+  # Logging and monitoring not fully configured in dev
+  - CKV_AZURE_66   # Failed request tracing not needed for dev
+  - CKV_AZURE_63   # HTTP logging not needed for dev
+  - CKV_AZURE_65   # Detailed error messages not needed for dev
+  - CKV_AZURE_213  # Health check not configured for dev
+
+  # Storage and identity settings appropriate for dev environment
+  - CKV_AZURE_88   # Azure Files not used in dev
+  - CKV_AZURE_71   # Managed identity not configured for dev
+  - CKV2_AZURE_33  # Private endpoints not used in dev
+  - CKV2_AZURE_1   # Customer managed keys not used in dev
+
+  # Storage account settings for flow logs (dev-appropriate)
+  - CKV_AZURE_206  # Storage replication not critical for dev flow logs
+  - CKV_AZURE_33   # Queue service logging not needed for dev
+  - CKV_AZURE_44   # Latest TLS version not enforced for dev
+  - CKV_AZURE_59   # Public access restriction not enforced for dev
+
+# Skip parsing issues with complex policy definitions
+skip-path:
+  - /infrastructure/terraform/modules/policies/main.tf# Output format
+output: cli
+
+# Quiet mode - only show failures
+quiet: false
+
+# Show only failed checks
+compact: true

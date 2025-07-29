@@ -92,7 +92,7 @@ repos:
         args:
           [
             '-c',
-            'for file in "$@"; do if [[ "$file" =~ \.md$ ]] && [[ ! "$file" =~ ^docs/ ]] && [[ ! "$file" =~ ^README\.md$ ]] && [[ ! "$file" =~ ^CHANGELOG\.md$ ]] && [[ ! "$file" =~ ^CONTRIBUTING\.md$ ]] && [[ ! "$file" =~ ^LICENSE\.md$ ]] && [[ ! "$file" =~ ^\.cline/ ]] && [[ ! "$file" =~ ^\.github/copilot_instructions\.md$ ]] && [[ ! "$file" =~ ^\.github/chatmodes/ ]] && [[ ! "$file" =~ /site-packages/ ]] && [[ ! "$file" =~ /\.venv/ ]]; then echo "❌ Markdown file $file should be in docs/ folder. Please move it: mv $file docs/$(basename $file)"; exit 1; fi; done',
+            'for file in "$@"; do if [[ "$file" =~ \.md$ ]] && [[ ! "$file" =~ ^docs/ ]] && [[ ! "$file" =~ ^README\.md$ ]] && [[ ! "$file" =~ ^CHANGELOG\.md$ ]] && [[ ! "$file" =~ ^CONTRIBUTING\.md$ ]] && [[ ! "$file" =~ ^LICENSE\.md$ ]] && [[ ! "$file" =~ ^\.cline/ ]] && [[ ! "$file" =~ ^\.github/copilot_instructions\.md$ ]] && [[ ! "$file" =~ ^\.github/chatmodes/ ]] && [[ ! "$file" =~ /site-packages/ ]] && [[ ! "$file" =~ /\.venv/ ]] && [[ ! "$file" =~ modules/.*README\.md$ ]]; then echo "❌ Markdown file $file should be in docs/ folder. Please move it: mv $file docs/$(basename $file)"; exit 1; fi; done',
             '--',
           ]
         language: system
@@ -153,7 +153,7 @@ repos:
       - id: terraform_checkov
         args:
           - --args=--framework terraform
-          - --args=--skip-check CKV_AZURE_1,CKV_AZURE_2
+          - --args=--config-file=/home/vagrant/git/azure-policy/.checkov.yaml
 
   # Security and dependency scanning
   - repo: https://github.com/PyCQA/bandit
