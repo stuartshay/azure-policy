@@ -105,7 +105,7 @@ jobs:
       run: |
         echo "resource_group_name=$(terraform output -raw resource_group_name)" >> $GITHUB_OUTPUT
         echo "vnet_name=$(terraform output -raw vnet_name)" >> $GITHUB_OUTPUT
-        echo "function_app_names=$(terraform output -json function_app_names)" >> $GITHUB_OUTPUT
+        echo "app_service_name=$(terraform output -raw app_service_name)" >> $GITHUB_OUTPUT
       working-directory: infrastructure/terraform
 
     - name: Generate Deployment Summary
@@ -122,10 +122,11 @@ jobs:
         echo "### Deployed Resources" >> $GITHUB_STEP_SUMMARY
         echo "- **Resource Group:** ${{ steps.outputs.outputs.resource_group_name }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Virtual Network:** ${{ steps.outputs.outputs.vnet_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **App Service:** ${{ steps.outputs.outputs.app_service_name }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
         echo "1. Verify resources in Azure Portal" >> $GITHUB_STEP_SUMMARY
-        echo "2. Test Function App deployments" >> $GITHUB_STEP_SUMMARY
+        echo "2. Test App Service deployments" >> $GITHUB_STEP_SUMMARY
         echo "3. Configure monitoring alerts" >> $GITHUB_STEP_SUMMARY
         echo "4. Review cost management dashboard" >> $GITHUB_STEP_SUMMARY
 
@@ -145,12 +146,12 @@ jobs:
           ### Resources Created
           - Resource Group: ${{ steps.outputs.outputs.resource_group_name }}
           - Virtual Network: ${{ steps.outputs.outputs.vnet_name }}
-          - Function Apps: Ready for deployment
+          - App Service: ${{ steps.outputs.outputs.app_service_name }}
 
           ### Post-Deployment Tasks
           - [ ] Verify all resources are running
           - [ ] Test network connectivity
-          - [ ] Deploy Function App code
+          - [ ] Deploy App Service code
           - [ ] Configure monitoring
           - [ ] Review security settings
 
