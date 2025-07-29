@@ -5,7 +5,7 @@ on:
     paths:
       - '**/*.md'
   push:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
     paths:
       - '**/*.md'
 
@@ -15,88 +15,88 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Check Markdown File Locations
-      run: |
-        echo "🔍 Checking markdown file locations..."
+      - name: Check Markdown File Locations
+        run: |
+          echo "🔍 Checking markdown file locations..."
 
-        # Find all markdown files not in docs/ folder (excluding root-level exceptions and special directories)
-        MISPLACED_FILES=$(find . -name "*.md" \
-          -not -path "./docs/*" \
-          -not -name "README.md" \
-          -not -name "CHANGELOG.md" \
-          -not -name "CONTRIBUTING.md" \
-          -not -name "LICENSE.md" \
-          -not -path "./.git/*" \
-          -not -path "./node_modules/*" \
-          -not -path "./.venv/*" \
-          -not -path "./*/venv/*" \
-          -not -path "./.cline/*" \
-          -not -path "./.github/copilot_instructions.md" \
-          -not -path "./.github/chatmodes/*" \
-          -not -path "./*/site-packages/*" \
-          -not -path "./*/.venv/*" | head -10)
+          # Find all markdown files not in docs/ folder (excluding root-level exceptions and special directories)
+          MISPLACED_FILES=$(find . -name "*.md" \
+            -not -path "./docs/*" \
+            -not -name "README.md" \
+            -not -name "CHANGELOG.md" \
+            -not -name "CONTRIBUTING.md" \
+            -not -name "LICENSE.md" \
+            -not -path "./.git/*" \
+            -not -path "./node_modules/*" \
+            -not -path "./.venv/*" \
+            -not -path "./*/venv/*" \
+            -not -path "./.cline/*" \
+            -not -path "./.github/copilot_instructions.md" \
+            -not -path "./.github/chatmodes/*" \
+            -not -path "./*/site-packages/*" \
+            -not -path "./*/.venv/*" | head -10)
 
-        if [ -n "$MISPLACED_FILES" ]; then
-          echo "❌ Found markdown files outside docs/ folder:"
-          echo "$MISPLACED_FILES"
-          echo ""
-          echo "📋 Please move these files to the docs/ folder:"
-          for file in $MISPLACED_FILES; do
-            filename=$(basename "$file")
-            echo "  mv $file docs/$filename"
-          done
-          echo ""
-          echo "📚 Documentation Structure Rules:"
-          echo "  • All .md files (except root-level README.md, CHANGELOG.md, CONTRIBUTING.md, LICENSE.md) should be in docs/"
-          echo "  • This helps maintain a clean and organized repository structure"
-          echo "  • See docs/README.md for documentation guidelines"
-          exit 1
-        else
-          echo "✅ All markdown files are properly organized!"
-        fi
+          if [ -n "$MISPLACED_FILES" ]; then
+            echo "❌ Found markdown files outside docs/ folder:"
+            echo "$MISPLACED_FILES"
+            echo ""
+            echo "📋 Please move these files to the docs/ folder:"
+            for file in $MISPLACED_FILES; do
+              filename=$(basename "$file")
+              echo "  mv $file docs/$filename"
+            done
+            echo ""
+            echo "📚 Documentation Structure Rules:"
+            echo "  • All .md files (except root-level README.md, CHANGELOG.md, CONTRIBUTING.md, LICENSE.md) should be in docs/"
+            echo "  • This helps maintain a clean and organized repository structure"
+            echo "  • See docs/README.md for documentation guidelines"
+            exit 1
+          else
+            echo "✅ All markdown files are properly organized!"
+          fi
 
-    - name: Check for Documentation Index
-      run: |
-        echo "📚 Checking documentation index..."
+      - name: Check for Documentation Index
+        run: |
+          echo "📚 Checking documentation index..."
 
-        if [ ! -f "docs/README.md" ]; then
-          echo "⚠️  No docs/README.md found. Creating documentation index..."
+          if [ ! -f "docs/README.md" ]; then
+            echo "⚠️  No docs/README.md found. Creating documentation index..."
 
-          cat > docs/README.md << 'EOF'
-        # Documentation
+            cat > docs/README.md << 'EOF'
+          # Documentation
 
-        This directory contains all project documentation.
+          This directory contains all project documentation.
 
-        ## 📋 Available Documentation
+          ## 📋 Available Documentation
 
-        ### Setup and Configuration
-        - [Azure Secrets Setup](AZURE_SECRETS_SETUP.md) - How to configure Azure authentication for GitHub Actions
-        - [DevContainer Setup](DEVCONTAINER_TESTING.md) - Development container configuration and testing
-        - [Workspace Path Configuration](WORKSPACE_PATH_FIX.md) - Fixing workspace path issues
+          ### Setup and Configuration
+          - [Azure Secrets Setup](AZURE_SECRETS_SETUP.md) - How to configure Azure authentication for GitHub Actions
+          - [DevContainer Setup](DEVCONTAINER_TESTING.md) - Development container configuration and testing
+          - [Workspace Path Configuration](WORKSPACE_PATH_FIX.md) - Fixing workspace path issues
 
-        ### Operations and Troubleshooting
-        - [Azurite Setup](AZURITE.md) - Local Azure Storage emulator configuration
-        - [DevContainer Fixes](DEVCONTAINER_FIXES.md) - Common DevContainer issues and solutions
-        - [Troubleshooting Guide](TROUBLESHOOTING.md) - General troubleshooting tips
+          ### Operations and Troubleshooting
+          - [Azurite Setup](AZURITE.md) - Local Azure Storage emulator configuration
+          - [DevContainer Fixes](DEVCONTAINER_FIXES.md) - Common DevContainer issues and solutions
+          - [Troubleshooting Guide](TROUBLESHOOTING.md) - General troubleshooting tips
 
-        ## 📁 Documentation Structure
+          ## 📁 Documentation Structure
 
-        All markdown files (except root-level README.md, CHANGELOG.md, CONTRIBUTING.md, LICENSE.md) should be placed in this `docs/` folder to maintain a clean repository structure.
+          All markdown files (except root-level README.md, CHANGELOG.md, CONTRIBUTING.md, LICENSE.md) should be placed in this `docs/` folder to maintain a clean repository structure.
 
-        ## 🔗 External Links
+          ## 🔗 External Links
 
-        - [Azure Policy Documentation](https://docs.microsoft.com/en-us/azure/governance/policy/)
-        - [Azure Functions Documentation](https://docs.microsoft.com/en-us/azure/azure-functions/)
-        - [Terraform Azure Provider Documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
+          - [Azure Policy Documentation](https://docs.microsoft.com/en-us/azure/governance/policy/)
+          - [Azure Functions Documentation](https://docs.microsoft.com/en-us/azure/azure-functions/)
+          - [Terraform Azure Provider Documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 
-        EOF
+          EOF
 
-          echo "✅ Created docs/README.md with documentation index"
-        else
-          echo "✅ Documentation index exists"
-        fi
+            echo "✅ Created docs/README.md with documentation index"
+          else
+            echo "✅ Documentation index exists"
+          fi
