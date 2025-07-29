@@ -6,7 +6,7 @@ azure-functions==1.23.0
 
 # Core Azure SDK packages needed for function execution
 azure-storage-blob==12.24.0
-azure-identity==1.19.0
+azure-identity==1.23.1
 
 # HTTP client for function operations
 aiohttp==3.11.10
