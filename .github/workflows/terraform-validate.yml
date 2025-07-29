@@ -1,6 +1,13 @@
 name: Terraform Validate
 
 on:
+  workflow_dispatch:
+    inputs:
+      terraform_directory:
+        description: 'Terraform directory to validate'
+        required: false
+        default: 'infrastructure/terraform'
+        type: string
   pull_request:
     paths:
       - 'infrastructure/**'
@@ -15,6 +22,9 @@ jobs:
     name: Validate Terraform
     runs-on: ubuntu-latest
 
+    env:
+      TF_DIR: ${{ github.event.inputs.terraform_directory || 'infrastructure/terraform' }}
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -26,20 +36,20 @@ jobs:
 
     - name: Terraform Format Check
       run: terraform fmt -check -recursive
-      working-directory: infrastructure/terraform
+      working-directory: ${{ env.TF_DIR }}
 
     - name: Terraform Init
       run: terraform init -backend=false
-      working-directory: infrastructure/terraform
+      working-directory: ${{ env.TF_DIR }}
 
     - name: Terraform Validate
       run: terraform validate
-      working-directory: infrastructure/terraform
+      working-directory: ${{ env.TF_DIR }}
 
     - name: Run tfsec Security Scan
       uses: aquasecurity/tfsec-action@v1.0.3
       with:
-        working_directory: infrastructure/terraform
+        working_directory: ${{ env.TF_DIR }}
         soft_fail: true
 
     - name: Validate Naming Conventions
@@ -47,12 +57,12 @@ jobs:
         echo "Validating Azure naming conventions..."
 
         # Check for proper resource naming patterns
-        if grep -r "azurerm_resource_group" infrastructure/terraform --include="*.tf" | grep -v "rg-"; then
+        if grep -r "azurerm_resource_group" ${{ env.TF_DIR }} --include="*.tf" | grep -v "rg-"; then
           echo "❌ Resource groups must follow naming convention: rg-{workload}-{env}-{region}"
           exit 1
         fi
 
-        if grep -r "azurerm_virtual_network" infrastructure/terraform --include="*.tf" | grep -v "vnet-"; then
+        if grep -r "azurerm_virtual_network" ${{ env.TF_DIR }} --include="*.tf" | grep -v "vnet-"; then
           echo "❌ Virtual networks must follow naming convention: vnet-{workload}-{env}-{region}-{instance}"
           exit 1
         fi
@@ -64,7 +74,7 @@ jobs:
         echo "Checking for required tags..."
 
         # Verify common_tags are defined
-        if ! grep -q "common_tags" infrastructure/terraform/main.tf; then
+        if ! grep -q "common_tags" ${{ env.TF_DIR }}/main.tf; then
           echo "❌ common_tags must be defined in main.tf"
           exit 1
         fi
@@ -72,7 +82,7 @@ jobs:
         # Check for required tag keys
         required_tags=("Environment" "CostCenter" "Project" "Owner" "CreatedBy")
         for tag in "${required_tags[@]}"; do
-          if ! grep -q "$tag" infrastructure/terraform/main.tf; then
+          if ! grep -q "$tag" ${{ env.TF_DIR }}/main.tf; then
             echo "❌ Required tag '$tag' not found"
             exit 1
           fi
@@ -85,7 +95,7 @@ jobs:
         echo "Validating Terraform module structure..."
 
         # Check for required files in each module
-        for module_dir in infrastructure/terraform/modules/*/; do
+        for module_dir in ${{ env.TF_DIR }}/modules/*/; do
           module_name=$(basename "$module_dir")
           echo "Checking module: $module_name"
 
@@ -105,12 +115,12 @@ jobs:
         echo "Checking for sensitive values in code..."
 
         # Check for potential secrets or sensitive data
-        if grep -r -i "password\|secret\|key" infrastructure/terraform --include="*.tf" | grep -v "variable\|output\|description"; then
+        if grep -r -i "password\|secret\|key" ${{ env.TF_DIR }} --include="*.tf" | grep -v "variable\|output\|description"; then
           echo "⚠️ Potential sensitive values found. Please review."
         fi
 
         # Check for hardcoded IPs (except examples)
-        if grep -r -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" infrastructure/terraform --include="*.tf" | grep -v "10.0\|example\|0.0.0.0"; then
+        if grep -r -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" ${{ env.TF_DIR }} --include="*.tf" | grep -v "10.0\|example\|0.0.0.0"; then
           echo "⚠️ Hardcoded IP addresses found. Consider using variables."
         fi
 
