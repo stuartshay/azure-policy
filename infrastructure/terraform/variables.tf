@@ -286,14 +286,4 @@ variable "enable_advanced_threat_protection" {
   default     = false # Disabled for development to reduce costs
 }
 
-variable "enable_backup" {
-  description = "Enable backup for applicable resources"
-  type        = bool
-  default     = false # Disabled for development
-}
 
-variable "enable_geo_redundancy" {
-  description = "Enable geo-redundant storage and services"
-  type        = bool
-  default     = false # Disabled for development
-}
