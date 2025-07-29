@@ -21,7 +21,7 @@ resource "azurerm_policy_definition" "resource_group_naming" {
 
   policy_rule = jsonencode({
     if = {
-      field = "type"
+      field  = "type"
       equals = "Microsoft.Resources/resourceGroups"
     }
     then = {
@@ -30,7 +30,7 @@ resource "azurerm_policy_definition" "resource_group_naming" {
         condition = {
           not = {
             field = "name"
-            like = "rg-*"
+            like  = "rg-*"
           }
         }
       }
@@ -52,7 +52,7 @@ resource "azurerm_policy_definition" "storage_naming" {
 
   policy_rule = jsonencode({
     if = {
-      field = "type"
+      field  = "type"
       equals = "Microsoft.Storage/storageAccounts"
     }
     then = {
@@ -61,7 +61,7 @@ resource "azurerm_policy_definition" "storage_naming" {
         condition = {
           not = {
             field = "name"
-            like = "st*"
+            like  = "st*"
           }
         }
       }
