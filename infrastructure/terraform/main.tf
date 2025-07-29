@@ -15,10 +15,9 @@ terraform {
     }
   }
 
-  backend "azurerm" {
-    # Backend configuration will be provided via backend config file
-    # or environment variables during terraform init
-  }
+  # Using local backend for initial deployment
+  # TODO: Migrate to remote backend after initial infrastructure is created
+  backend "local" {}
 }
 
 provider "azurerm" {
