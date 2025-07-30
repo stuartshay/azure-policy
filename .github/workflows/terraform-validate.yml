@@ -1,12 +1,19 @@
 name: Terraform Validate
 
 on:
+  workflow_dispatch:
+    inputs:
+      terraform_directory:
+        description: 'Terraform directory to validate'
+        required: false
+        default: 'infrastructure/terraform'
+        type: string
   pull_request:
     paths:
       - 'infrastructure/**'
       - '.github/workflows/terraform-*.yml'
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'infrastructure/**'
 
@@ -15,117 +22,124 @@ jobs:
     name: Validate Terraform
     runs-on: ubuntu-latest
 
+    env:
+      TF_DIR: ${{ github.event.inputs.terraform_directory || 'infrastructure/terraform' }}
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.6.0
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
 
-    - name: Terraform Format Check
-      run: terraform fmt -check -recursive
-      working-directory: infrastructure/terraform
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        working-directory: ${{ env.TF_DIR }}
 
-    - name: Terraform Init
-      run: terraform init -backend=false
-      working-directory: infrastructure/terraform
+      - name: Terraform Init
+        run: terraform init -backend=false
+        working-directory: ${{ env.TF_DIR }}
 
-    - name: Terraform Validate
-      run: terraform validate
-      working-directory: infrastructure/terraform
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ${{ env.TF_DIR }}
 
-    - name: Run tfsec Security Scan
-      uses: aquasecurity/tfsec-action@v1.0.3
-      with:
-        working_directory: infrastructure/terraform
-        soft_fail: true
+      - name: Run tfsec Security Scan
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: ${{ env.TF_DIR }}
+          soft_fail: true
 
-    - name: Validate Naming Conventions
-      run: |
-        echo "Validating Azure naming conventions..."
+      - name: Validate Naming Conventions
+        run: |
+          echo "Validating Azure naming conventions..."
 
-        # Check for proper resource naming patterns
-        if grep -r "azurerm_resource_group" infrastructure/terraform --include="*.tf" | grep -v "rg-"; then
-          echo "❌ Resource groups must follow naming convention: rg-{workload}-{env}-{region}"
-          exit 1
-        fi
-
-        if grep -r "azurerm_virtual_network" infrastructure/terraform --include="*.tf" | grep -v "vnet-"; then
-          echo "❌ Virtual networks must follow naming convention: vnet-{workload}-{env}-{region}-{instance}"
-          exit 1
-        fi
-
-        echo "✅ Naming conventions validated"
-
-    - name: Check Required Tags
-      run: |
-        echo "Checking for required tags..."
-
-        # Verify common_tags are defined
-        if ! grep -q "common_tags" infrastructure/terraform/main.tf; then
-          echo "❌ common_tags must be defined in main.tf"
-          exit 1
-        fi
-
-        # Check for required tag keys
-        required_tags=("Environment" "CostCenter" "Project" "Owner" "CreatedBy")
-        for tag in "${required_tags[@]}"; do
-          if ! grep -q "$tag" infrastructure/terraform/main.tf; then
-            echo "❌ Required tag '$tag' not found"
+          # Check for hardcoded resource group names that don't follow convention
+          # This looks for literal string assignments that don't start with "rg-"
+          if grep -r 'name.*=.*"[^"]*"' ${{ env.TF_DIR }} --include="*.tf" | grep -E "(azurerm_resource_group|resource_group_name)" | grep -v '"rg-' | grep -v 'var\.' | grep -v 'local\.' | grep -v 'azurerm_resource_group\..*\.name'; then
+            echo "❌ Found hardcoded resource group names that don't follow naming convention: rg-{workload}-{env}-{region}"
+            echo "Use variables or locals for resource naming instead of hardcoded strings"
             exit 1
           fi
-        done
 
-        echo "✅ Required tags validated"
+          # Check for hardcoded virtual network names that don't follow convention
+          if grep -r 'name.*=.*"[^"]*"' ${{ env.TF_DIR }} --include="*.tf" | grep "azurerm_virtual_network" | grep -v '"vnet-' | grep -v 'var\.' | grep -v 'local\.'; then
+            echo "❌ Found hardcoded virtual network names that don't follow naming convention: vnet-{workload}-{env}-{region}-{instance}"
+            echo "Use variables or locals for resource naming instead of hardcoded strings"
+            exit 1
+          fi
 
-    - name: Validate Module Structure
-      run: |
-        echo "Validating Terraform module structure..."
+          echo "✅ Naming conventions validated - using proper variable/local references"
 
-        # Check for required files in each module
-        for module_dir in infrastructure/terraform/modules/*/; do
-          module_name=$(basename "$module_dir")
-          echo "Checking module: $module_name"
+      - name: Check Required Tags
+        run: |
+          echo "Checking for required tags..."
 
-          required_files=("main.tf" "variables.tf" "outputs.tf")
-          for file in "${required_files[@]}"; do
-            if [ ! -f "$module_dir$file" ]; then
-              echo "❌ Missing required file: $module_dir$file"
+          # Verify common_tags are defined
+          if ! grep -q "common_tags" ${{ env.TF_DIR }}/main.tf; then
+            echo "❌ common_tags must be defined in main.tf"
+            exit 1
+          fi
+
+          # Check for required tag keys
+          required_tags=("Environment" "CostCenter" "Project" "Owner" "CreatedBy")
+          for tag in "${required_tags[@]}"; do
+            if ! grep -q "$tag" ${{ env.TF_DIR }}/main.tf; then
+              echo "❌ Required tag '$tag' not found"
               exit 1
             fi
           done
-        done
 
-        echo "✅ Module structure validated"
+          echo "✅ Required tags validated"
 
-    - name: Check for Sensitive Values
-      run: |
-        echo "Checking for sensitive values in code..."
+      - name: Validate Module Structure
+        run: |
+          echo "Validating Terraform module structure..."
 
-        # Check for potential secrets or sensitive data
-        if grep -r -i "password\|secret\|key" infrastructure/terraform --include="*.tf" | grep -v "variable\|output\|description"; then
-          echo "⚠️ Potential sensitive values found. Please review."
-        fi
+          # Check for required files in each module
+          for module_dir in ${{ env.TF_DIR }}/modules/*/; do
+            module_name=$(basename "$module_dir")
+            echo "Checking module: $module_name"
 
-        # Check for hardcoded IPs (except examples)
-        if grep -r -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" infrastructure/terraform --include="*.tf" | grep -v "10.0\|example\|0.0.0.0"; then
-          echo "⚠️ Hardcoded IP addresses found. Consider using variables."
-        fi
+            required_files=("main.tf" "variables.tf" "outputs.tf")
+            for file in "${required_files[@]}"; do
+              if [ ! -f "$module_dir$file" ]; then
+                echo "❌ Missing required file: $module_dir$file"
+                exit 1
+              fi
+            done
+          done
 
-        echo "✅ Sensitive values check completed"
+          echo "✅ Module structure validated"
 
-    - name: Generate Validation Report
-      if: always()
-      run: |
-        echo "## Terraform Validation Report" >> $GITHUB_STEP_SUMMARY
-        echo "- **Format Check:** ✅ Passed" >> $GITHUB_STEP_SUMMARY
-        echo "- **Validation:** ✅ Passed" >> $GITHUB_STEP_SUMMARY
-        echo "- **Security Scan:** ✅ Completed" >> $GITHUB_STEP_SUMMARY
-        echo "- **Naming Conventions:** ✅ Validated" >> $GITHUB_STEP_SUMMARY
-        echo "- **Required Tags:** ✅ Validated" >> $GITHUB_STEP_SUMMARY
-        echo "- **Module Structure:** ✅ Validated" >> $GITHUB_STEP_SUMMARY
-        echo "- **Sensitive Values:** ✅ Checked" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+      - name: Check for Sensitive Values
+        run: |
+          echo "Checking for sensitive values in code..."
+
+          # Check for potential secrets or sensitive data
+          if grep -r -i "password\|secret\|key" ${{ env.TF_DIR }} --include="*.tf" | grep -v "variable\|output\|description"; then
+            echo "⚠️ Potential sensitive values found. Please review."
+          fi
+
+          # Check for hardcoded IPs (except examples)
+          if grep -r -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" ${{ env.TF_DIR }} --include="*.tf" | grep -v "10.0\|example\|0.0.0.0"; then
+            echo "⚠️ Hardcoded IP addresses found. Consider using variables."
+          fi
+
+          echo "✅ Sensitive values check completed"
+
+      - name: Generate Validation Report
+        if: always()
+        run: |
+          echo "## Terraform Validation Report" >> $GITHUB_STEP_SUMMARY
+          echo "- **Format Check:** ✅ Passed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Validation:** ✅ Passed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Security Scan:** ✅ Completed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Naming Conventions:** ✅ Validated" >> $GITHUB_STEP_SUMMARY
+          echo "- **Required Tags:** ✅ Validated" >> $GITHUB_STEP_SUMMARY
+          echo "- **Module Structure:** ✅ Validated" >> $GITHUB_STEP_SUMMARY
+          echo "- **Sensitive Values:** ✅ Checked" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY

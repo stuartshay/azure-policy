@@ -1,0 +1,46 @@
+# Git Attributes Configuration
+# This file defines rules for file handling in the repository
+
+# Documentation files should be placed in docs/ folder
+# This is enforced through pre-commit hooks and CI/CD workflows
+
+# Text file handling
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Script files
+*.sh text eol=lf
+*.ps1 text eol=crlf
+*.py text eol=lf
+
+# Configuration files
+*.tf text eol=lf
+*.tfvars text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+
+# Language-specific attributes
+*.py diff=python
+*.tf diff=terraform
+*.ps1 diff=powershell
+
+# Mark generated files
+terraform.tfstate linguist-generated=true
+terraform.tfstate.backup linguist-generated=true
+*.tfplan linguist-generated=true
+
+# Archive detection override
+*.zip binary
+*.tar binary
+*.gz binary

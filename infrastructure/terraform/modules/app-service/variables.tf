@@ -24,12 +24,6 @@ variable "sku_name" {
   default     = "B1"
 }
 
-variable "always_on" {
-  description = "Should the app be loaded at all times"
-  type        = bool
-  default     = false
-}
-
 variable "python_version" {
   description = "The Python version"
   type        = string

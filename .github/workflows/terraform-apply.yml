@@ -76,18 +76,8 @@ jobs:
             ;;
         esac
 
-    - name: Create Backend Configuration
-      run: |
-        cat > backend-config.hcl << EOF
-        resource_group_name  = "rg-terraform-state-${{ github.event.inputs.environment }}-eastus"
-        storage_account_name = "stterraformstate${{ github.event.inputs.environment }}001"
-        container_name       = "tfstate"
-        key                  = "azurepolicy/${{ github.event.inputs.environment }}/terraform.tfstate"
-        EOF
-      working-directory: infrastructure/terraform
-
     - name: Terraform Init
-      run: terraform init -backend-config=backend-config.hcl
+      run: terraform init
       working-directory: infrastructure/terraform
 
     - name: Terraform Plan
@@ -98,69 +88,133 @@ jobs:
       working-directory: infrastructure/terraform
 
     - name: Upload Plan Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: terraform-plan-${{ github.event.inputs.environment }}
         path: infrastructure/terraform/tfplan
         retention-days: 30
 
     - name: Terraform Apply
+      id: apply
       if: steps.plan.outputs.exitcode == 2
-      run: terraform apply tfplan
+      run: |
+        terraform apply tfplan
+        echo "applied=true" >> $GITHUB_OUTPUT
+      working-directory: infrastructure/terraform
+
+    - name: No Changes Detected
+      if: steps.plan.outputs.exitcode == 0
+      run: |
+        echo "✅ No changes detected - infrastructure is up to date"
+        echo "## 📋 Terraform Plan Result" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Status:** No changes detected" >> $GITHUB_STEP_SUMMARY
+        echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Location:** ${{ env.TF_VAR_location }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "The current infrastructure matches the desired state. No resources need to be created, modified, or destroyed." >> $GITHUB_STEP_SUMMARY
+
+    - name: Debug Plan and Apply Status
+      run: |
+        echo "🔍 Debugging workflow state:"
+        echo "Plan exitcode: ${{ steps.plan.outputs.exitcode }}"
+        echo "Apply applied: ${{ steps.apply.outputs.applied }}"
+        echo "Working directory: $(pwd)"
+        echo "Terraform state files:"
+        ls -la terraform.tfstate* 2>/dev/null || echo "No state files found"
+        echo "Available outputs:"
+        terraform output 2>&1 || echo "No outputs available"
       working-directory: infrastructure/terraform
 
     - name: Get Terraform Outputs
       id: outputs
-      if: success()
+      if: steps.plan.outputs.exitcode == 0 || (steps.plan.outputs.exitcode == 2 && steps.apply.outputs.applied == 'true')
       run: |
-        echo "resource_group_name=$(terraform output -raw resource_group_name)" >> $GITHUB_OUTPUT
-        echo "vnet_name=$(terraform output -raw vnet_name)" >> $GITHUB_OUTPUT
-        echo "function_app_names=$(terraform output -json function_app_names)" >> $GITHUB_OUTPUT
+        # Check if outputs exist before trying to read them
+        if terraform output resource_group_name >/dev/null 2>&1; then
+          echo "resource_group_name=$(terraform output -raw resource_group_name)" >> $GITHUB_OUTPUT
+          echo "vnet_name=$(terraform output -raw vnet_name)" >> $GITHUB_OUTPUT
+          echo "app_service_name=$(terraform output -raw app_service_name)" >> $GITHUB_OUTPUT
+          echo "outputs_available=true" >> $GITHUB_OUTPUT
+        else
+          echo "⚠️ No outputs available - infrastructure may not be deployed yet"
+          echo "outputs_available=false" >> $GITHUB_OUTPUT
+        fi
       working-directory: infrastructure/terraform
 
     - name: Generate Deployment Summary
-      if: success()
+      if: steps.apply.outputs.applied == 'true' || (steps.plan.outputs.exitcode == 0 && steps.outputs.outputs.outputs_available == 'true')
       run: |
-        echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Environment Details" >> $GITHUB_STEP_SUMMARY
-        echo "- **Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Location:** ${{ env.TF_VAR_location }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Deployed Resources" >> $GITHUB_STEP_SUMMARY
-        echo "- **Resource Group:** ${{ steps.outputs.outputs.resource_group_name }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Virtual Network:** ${{ steps.outputs.outputs.vnet_name }}" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ steps.apply.outputs.applied }}" == "true" ]; then
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Environment Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Location:** ${{ env.TF_VAR_location }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ✅ Infrastructure deployed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.outputs.outputs.outputs_available }}" == "true" ]; then
+            echo "### Deployed Resources" >> $GITHUB_STEP_SUMMARY
+            echo "- **Resource Group:** ${{ steps.outputs.outputs.resource_group_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Virtual Network:** ${{ steps.outputs.outputs.vnet_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **App Service:** ${{ steps.outputs.outputs.app_service_name }}" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "## 📋 Infrastructure Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Environment Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Location:** ${{ env.TF_VAR_location }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ✅ No changes needed - infrastructure is up to date" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.outputs.outputs.outputs_available }}" == "true" ]; then
+            echo "### Existing Resources" >> $GITHUB_STEP_SUMMARY
+            echo "- **Resource Group:** ${{ steps.outputs.outputs.resource_group_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Virtual Network:** ${{ steps.outputs.outputs.vnet_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **App Service:** ${{ steps.outputs.outputs.app_service_name }}" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
         echo "1. Verify resources in Azure Portal" >> $GITHUB_STEP_SUMMARY
-        echo "2. Test Function App deployments" >> $GITHUB_STEP_SUMMARY
+        echo "2. Test App Service deployments" >> $GITHUB_STEP_SUMMARY
         echo "3. Configure monitoring alerts" >> $GITHUB_STEP_SUMMARY
         echo "4. Review cost management dashboard" >> $GITHUB_STEP_SUMMARY
 
     - name: Create Success Issue
-      if: success()
+      if: steps.apply.outputs.applied == 'true' || (steps.plan.outputs.exitcode == 0 && steps.outputs.outputs.outputs_available == 'true')
       uses: actions/github-script@v6
       with:
         script: |
-          const title = `✅ Infrastructure Deployed - ${{ github.event.inputs.environment }}`;
+          const wasDeployed = '${{ steps.apply.outputs.applied }}' === 'true';
+          const title = wasDeployed
+            ? `✅ Infrastructure Deployed - ${{ github.event.inputs.environment }}`
+            : `✅ Infrastructure Verified - ${{ github.event.inputs.environment }}`;
+
+          const deploymentStatus = wasDeployed
+            ? 'Infrastructure Deployment Successful'
+            : 'Infrastructure Status Verified - No Changes Needed';
+
           const body = `
-          ## Infrastructure Deployment Successful
+          ## ${deploymentStatus}
 
           **Environment:** ${{ github.event.inputs.environment }}
-          **Deployed by:** ${{ github.actor }}
+          **${wasDeployed ? 'Deployed' : 'Verified'} by:** ${{ github.actor }}
           **Timestamp:** ${new Date().toISOString()}
 
-          ### Resources Created
+          ### Resources ${wasDeployed ? 'Created' : 'Verified'}
           - Resource Group: ${{ steps.outputs.outputs.resource_group_name }}
           - Virtual Network: ${{ steps.outputs.outputs.vnet_name }}
-          - Function Apps: Ready for deployment
+          - App Service: ${{ steps.outputs.outputs.app_service_name }}
 
-          ### Post-Deployment Tasks
+          ### ${wasDeployed ? 'Post-Deployment' : 'Recommended'} Tasks
           - [ ] Verify all resources are running
           - [ ] Test network connectivity
-          - [ ] Deploy Function App code
+          - [ ] Deploy App Service code
           - [ ] Configure monitoring
           - [ ] Review security settings
 
@@ -172,7 +226,7 @@ jobs:
             repo: context.repo.repo,
             title: title,
             body: body,
-            labels: ['infrastructure', 'deployment', 'success', '${{ github.event.inputs.environment }}']
+            labels: ['infrastructure', wasDeployed ? 'deployment' : 'verification', 'success', '${{ github.event.inputs.environment }}']
           });
 
     - name: Notify on Failure

@@ -15,10 +15,9 @@ terraform {
     }
   }
 
-  backend "azurerm" {
-    # Backend configuration will be provided via backend config file
-    # or environment variables during terraform init
-  }
+  # Using local backend for initial deployment
+  # TODO: Migrate to remote backend after initial infrastructure is created
+  backend "local" {}
 }
 
 provider "azurerm" {
@@ -38,9 +37,6 @@ provider "azurerm" {
   }
 }
 
-# Get current client configuration
-data "azurerm_client_config" "current" {}
-
 # Random suffix for globally unique resources
 resource "random_string" "suffix" {
   length  = 4
@@ -51,7 +47,7 @@ resource "random_string" "suffix" {
 # Local values for consistent naming and tagging
 locals {
   # Naming components
-  workload = "azurepolicy"
+  workload = var.workload
   location_short = {
     "East US"   = "eastus"
     "East US 2" = "eastus2"
@@ -92,6 +88,10 @@ module "networking" {
   vnet_address_space = var.vnet_address_space
   subnet_config      = var.subnet_config
 
+  # Feature toggles
+  enable_network_watcher = var.enable_network_watcher
+  enable_flow_logs       = var.enable_flow_logs
+
   tags = local.common_tags
 }
 
@@ -113,7 +113,8 @@ module "app_service" {
 module "policies" {
   source = "./modules/policies"
 
-  resource_group_id = azurerm_resource_group.main.id
+  resource_group_id         = azurerm_resource_group.main.id
+  enable_policy_assignments = var.enable_policy_assignments
 
   depends_on = [azurerm_resource_group.main]
 }
