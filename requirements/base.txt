@@ -9,7 +9,7 @@ azure-common==1.1.28
 # HTTP client and utilities
 aiohttp==3.12.14
 requests==2.32.3
-typing-extensions==4.12.2
+typing-extensions==4.14.1
 
 # Configuration and data validation
 python-dotenv==1.0.1
