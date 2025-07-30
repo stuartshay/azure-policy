@@ -106,7 +106,7 @@ jobs:
       working-directory: infrastructure/terraform
 
     - name: Upload Destroy Plan
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: terraform-destroy-plan-${{ github.event.inputs.environment }}
         path: infrastructure/terraform/destroy-plan
