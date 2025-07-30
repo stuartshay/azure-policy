@@ -1,6 +1,13 @@
 # Azure Policy Infrastructure - Variables
 # This file defines all input variables for the infrastructure
 
+# Azure Configuration
+variable "subscription_id" {
+  description = "Azure subscription ID"
+  type        = string
+  sensitive   = true
+}
+
 # Environment Configuration
 variable "environment" {
   description = "Environment name (dev, staging, prod)"

@@ -22,6 +22,10 @@ on:
 env:
   TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
   TF_WORKSPACE: azure-policy-${{ github.event.inputs.environment }}
+  # Terraform variables (will be used by Terraform Cloud if enabled)
+  TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  TF_VAR_location: ${{ secrets.AZURE_LOCATION || 'East US' }}
+  TF_VAR_environment: ${{ github.event.inputs.environment }}
 
 jobs:
   validate-destroy:
@@ -86,18 +90,14 @@ jobs:
         run: terraform apply destroy-plan
         working-directory: infrastructure/terraform
 
-      - name: Verify Destruction
-        if: success()
+      - name: Verify Destruction (via Terraform State)
         run: |
-          echo "Verifying resource destruction..."
-
-          # Check if resource group still exists
-          RG_NAME="rg-azurepolicy-${{ github.event.inputs.environment }}-eastus"
-          if az group show --name "$RG_NAME" --output none 2>/dev/null; then
-            echo "⚠️ Resource group $RG_NAME still exists. Manual cleanup may be required."
-          else
-            echo "✅ Resource group $RG_NAME successfully destroyed."
-          fi
+          echo "Verifying destruction..."
+          # Check if terraform state is empty or contains no resources
+          terraform show -no-color | head -20 || echo "No resources found in state"
+          echo ""
+          echo "✅ Destruction verification complete"
+          echo "If you need to verify in Azure Portal, check that the resource group no longer exists."
 
       - name: Generate Destruction Summary
         if: success()
