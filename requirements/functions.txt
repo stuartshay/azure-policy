@@ -9,7 +9,7 @@ azure-storage-blob==12.26.0
 azure-identity==1.23.1
 
 # HTTP client for function operations
-aiohttp==3.12.14
+aiohttp==3.12.15
 requests==2.32.4
 
 # Configuration
