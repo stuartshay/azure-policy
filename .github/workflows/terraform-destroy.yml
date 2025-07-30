@@ -20,10 +20,8 @@ on:
         type: string
 
 env:
-  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+  TF_WORKSPACE: azure-policy-${{ github.event.inputs.environment }}
 
 jobs:
   validate-destroy:
@@ -63,39 +61,10 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.6.0
-
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Set Environment Variables
-        run: |
-          echo "TF_VAR_environment=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
-
-          case "${{ github.event.inputs.environment }}" in
-            "dev")
-              echo "TF_VAR_location=East US" >> $GITHUB_ENV
-              echo "TF_VAR_cost_center=development" >> $GITHUB_ENV
-              ;;
-            "staging")
-              echo "TF_VAR_location=East US 2" >> $GITHUB_ENV
-              echo "TF_VAR_cost_center=operations" >> $GITHUB_ENV
-              ;;
-          esac
-
-      - name: Create Backend Configuration
-        run: |
-          cat > backend-config.hcl << EOF
-          resource_group_name  = "rg-terraform-state-${{ github.event.inputs.environment }}-eastus"
-          storage_account_name = "stterraformstate${{ github.event.inputs.environment }}001"
-          container_name       = "tfstate"
-          key                  = "azurepolicy/${{ github.event.inputs.environment }}/terraform.tfstate"
-          EOF
-        working-directory: infrastructure/terraform
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Init
-        run: terraform init -backend-config=backend-config.hcl
+        run: terraform init
         working-directory: infrastructure/terraform
 
       - name: Terraform Plan Destroy

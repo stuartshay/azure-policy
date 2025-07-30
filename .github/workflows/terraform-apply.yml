@@ -18,10 +18,8 @@ on:
         type: string
 
 env:
-  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+  TF_WORKSPACE: azure-policy-${{ github.event.inputs.environment }}
 
 jobs:
   validate-input:
@@ -50,31 +48,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.6.0
-
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Set Environment Variables
-        run: |
-          echo "TF_VAR_environment=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
-
-          # Set location based on environment
-          case "${{ github.event.inputs.environment }}" in
-            "dev")
-              echo "TF_VAR_location=East US" >> $GITHUB_ENV
-              echo "TF_VAR_cost_center=development" >> $GITHUB_ENV
-              ;;
-            "staging")
-              echo "TF_VAR_location=East US 2" >> $GITHUB_ENV
-              echo "TF_VAR_cost_center=operations" >> $GITHUB_ENV
-              ;;
-            "prod")
-              echo "TF_VAR_location=East US" >> $GITHUB_ENV
-              echo "TF_VAR_cost_center=production" >> $GITHUB_ENV
-              ;;
-          esac
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Init
         run: terraform init
@@ -143,7 +117,7 @@ jobs:
         working-directory: infrastructure/terraform
 
       - name: Generate Deployment Summary
-        if: steps.apply.outputs.applied == 'true' || (steps.plan.outputs.exitcode == 0 && steps.outputs.outputs.outputs_available == 'true')
+        if: steps.apply.outputs.applied == 'true' || (steps.plan.outputs.exitcode == 0 && steps.outputs.outputs_available == 'true')
         run: |
           if [ "${{ steps.apply.outputs.applied }}" == "true" ]; then
             echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
@@ -155,11 +129,11 @@ jobs:
             echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
             echo "- **Status:** ✅ Infrastructure deployed successfully" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            if [ "${{ steps.outputs.outputs.outputs_available }}" == "true" ]; then
+            if [ "${{ steps.outputs.outputs_available }}" == "true" ]; then
               echo "### Deployed Resources" >> $GITHUB_STEP_SUMMARY
-              echo "- **Resource Group:** ${{ steps.outputs.outputs.resource_group_name }}" >> $GITHUB_STEP_SUMMARY
-              echo "- **Virtual Network:** ${{ steps.outputs.outputs.vnet_name }}" >> $GITHUB_STEP_SUMMARY
-              echo "- **App Service:** ${{ steps.outputs.outputs.app_service_name }}" >> $GITHUB_STEP_SUMMARY
+              echo "- **Resource Group:** ${{ steps.outputs.resource_group_name }}" >> $GITHUB_STEP_SUMMARY
+              echo "- **Virtual Network:** ${{ steps.outputs.vnet_name }}" >> $GITHUB_STEP_SUMMARY
+              echo "- **App Service:** ${{ steps.outputs.app_service_name }}" >> $GITHUB_STEP_SUMMARY
             fi
           else
             echo "## 📋 Infrastructure Status" >> $GITHUB_STEP_SUMMARY
@@ -171,11 +145,11 @@ jobs:
             echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
             echo "- **Status:** ✅ No changes needed - infrastructure is up to date" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            if [ "${{ steps.outputs.outputs.outputs_available }}" == "true" ]; then
+            if [ "${{ steps.outputs.outputs_available }}" == "true" ]; then
               echo "### Existing Resources" >> $GITHUB_STEP_SUMMARY
-              echo "- **Resource Group:** ${{ steps.outputs.outputs.resource_group_name }}" >> $GITHUB_STEP_SUMMARY
-              echo "- **Virtual Network:** ${{ steps.outputs.outputs.vnet_name }}" >> $GITHUB_STEP_SUMMARY
-              echo "- **App Service:** ${{ steps.outputs.outputs.app_service_name }}" >> $GITHUB_STEP_SUMMARY
+              echo "- **Resource Group:** ${{ steps.outputs.resource_group_name }}" >> $GITHUB_STEP_SUMMARY
+              echo "- **Virtual Network:** ${{ steps.outputs.vnet_name }}" >> $GITHUB_STEP_SUMMARY
+              echo "- **App Service:** ${{ steps.outputs.app_service_name }}" >> $GITHUB_STEP_SUMMARY
             fi
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -186,7 +160,7 @@ jobs:
           echo "4. Review cost management dashboard" >> $GITHUB_STEP_SUMMARY
 
       - name: Create Success Issue
-        if: steps.apply.outputs.applied == 'true' || (steps.plan.outputs.exitcode == 0 && steps.outputs.outputs.outputs_available == 'true')
+        if: steps.apply.outputs.applied == 'true' || (steps.plan.outputs.exitcode == 0 && steps.outputs.outputs_available == 'true')
         uses: actions/github-script@v7
         with:
           script: |
@@ -207,9 +181,9 @@ jobs:
             **Timestamp:** ${new Date().toISOString()}
 
             ### Resources ${wasDeployed ? 'Created' : 'Verified'}
-            - Resource Group: ${{ steps.outputs.outputs.resource_group_name }}
-            - Virtual Network: ${{ steps.outputs.outputs.vnet_name }}
-            - App Service: ${{ steps.outputs.outputs.app_service_name }}
+            - Resource Group: ${{ steps.outputs.resource_group_name }}
+            - Virtual Network: ${{ steps.outputs.vnet_name }}
+            - App Service: ${{ steps.outputs.app_service_name }}
 
             ### ${wasDeployed ? 'Post-Deployment' : 'Recommended'} Tasks
             - [ ] Verify all resources are running

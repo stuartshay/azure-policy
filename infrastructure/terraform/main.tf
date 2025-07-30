@@ -15,9 +15,18 @@ terraform {
     }
   }
 
-  # Using local backend for initial deployment
-  # TODO: Migrate to remote backend after initial infrastructure is created
-  backend "local" {}
+  # Terraform Cloud backend for state management
+  # To set up:
+  # 1. Create organization at app.terraform.io
+  # 2. Create workspace for each environment (dev, staging, prod)
+  # 3. Add TF_API_TOKEN secret to GitHub repository
+  cloud {
+    organization = "stuartshay-azure-policy" # Change this to your org name
+
+    workspaces {
+      tags = ["azure-policy"]
+    }
+  }
 }
 
 provider "azurerm" {
