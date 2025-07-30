@@ -4,7 +4,7 @@
 
 **Original Issue**: GitHub Actions workflow failing at https://github.com/stuartshay/azure-policy/actions/runs/16612091439/job/46996991831
 
-**Root Cause**: 
+**Root Cause**:
 1. Mixed authentication methods (ARM environment variables + azure/login action)
 2. Inconsistent secret naming (AZURE_* vs ARM_*)
 3. Double output references in workflow

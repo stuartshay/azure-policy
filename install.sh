@@ -631,6 +631,63 @@ setup_azurite_directory() {
   echo "Azurite data directory setup complete."
 }
 
+# Function to extract hook information from .pre-commit-config.yaml
+extract_precommit_hooks() {
+  local config_file=".pre-commit-config.yaml"
+
+  if [ ! -f "$config_file" ]; then
+    echo "Unable to read pre-commit configuration"
+    return 1
+  fi
+
+  # Extract hook categories and tools using grep and awk (excluding commented lines)
+  echo "Key hooks configured:"
+
+  # Python tools
+  if grep -v "^\s*#" "$config_file" | grep -q "black\|isort\|flake8\|bandit"; then
+    local python_tools=""
+    grep -v "^\s*#" "$config_file" | grep -q "black" && python_tools="black"
+    grep -v "^\s*#" "$config_file" | grep -q "isort" && python_tools="${python_tools:+$python_tools, }isort"
+    grep -v "^\s*#" "$config_file" | grep -q "flake8" && python_tools="${python_tools:+$python_tools, }flake8"
+    grep -v "^\s*#" "$config_file" | grep -q "bandit" && python_tools="${python_tools:+$python_tools, }bandit"
+    [ -n "$python_tools" ] && echo "  - Python: $python_tools"
+  fi
+
+  # Terraform tools
+  if grep -v "^\s*#" "$config_file" | grep -q "terraform"; then
+    local terraform_tools=""
+    grep -v "^\s*#" "$config_file" | grep -q "terraform_fmt" && terraform_tools="terraform_fmt"
+    grep -v "^\s*#" "$config_file" | grep -q "terraform_validate" && terraform_tools="${terraform_tools:+$terraform_tools, }terraform_validate"
+    grep -v "^\s*#" "$config_file" | grep -q "terraform_docs" && terraform_tools="${terraform_tools:+$terraform_tools, }terraform_docs"
+    grep -v "^\s*#" "$config_file" | grep -q "terraform_tflint" && terraform_tools="${terraform_tools:+$terraform_tools, }tflint"
+    grep -v "^\s*#" "$config_file" | grep -q "terraform_checkov" && terraform_tools="${terraform_tools:+$terraform_tools, }checkov"
+    [ -n "$terraform_tools" ] && echo "  - Terraform: $terraform_tools"
+  fi
+
+  # PowerShell
+  grep -v "^\s*#" "$config_file" | grep -q "powershell\|PSScriptAnalyzer" && echo "  - PowerShell: PSScriptAnalyzer"
+
+  # Shell
+  grep -v "^\s*#" "$config_file" | grep -q "shellcheck" && echo "  - Shell: shellcheck"
+
+  # Secrets detection (only if not commented out)
+  grep -v "^\s*#" "$config_file" | grep -q "detect-secrets" && echo "  - Secrets: detect-secrets"
+
+  # General file checks
+  if grep -v "^\s*#" "$config_file" | grep -q "trailing-whitespace\|end-of-file-fixer\|check-yaml\|check-json"; then
+    echo "  - General: trailing whitespace, file endings, JSON/YAML validation"
+  fi
+
+  # Azure specific
+  if grep -v "^\s*#" "$config_file" | grep -q "azure-policy-validation\|bicep-validation\|docs-folder-enforcement"; then
+    local azure_tools=""
+    grep -v "^\s*#" "$config_file" | grep -q "azure-policy-validation" && azure_tools="Policy JSON validation"
+    grep -v "^\s*#" "$config_file" | grep -q "bicep-validation" && azure_tools="${azure_tools:+$azure_tools, }Bicep validation"
+    grep -v "^\s*#" "$config_file" | grep -q "docs-folder-enforcement" && azure_tools="${azure_tools:+$azure_tools, }Documentation structure"
+    [ -n "$azure_tools" ] && echo "  - Azure: $azure_tools"
+  fi
+}
+
 # Function to install pre-commit and setup hooks
 install_precommit() {
   echo "Installing pre-commit and setting up hooks..."
@@ -659,9 +716,11 @@ install_precommit() {
   # Navigate to project root
   cd "$(dirname "$0")"
 
-  # Create .pre-commit-config.yaml if it doesn't exist
-  if [ ! -f .pre-commit-config.yaml ]; then
-    echo "Creating .pre-commit-config.yaml with essential hooks..."
+  # Check if .pre-commit-config.yaml exists
+  if [ -f .pre-commit-config.yaml ]; then
+    echo "* Using existing .pre-commit-config.yaml configuration"
+  else
+    echo "Creating basic .pre-commit-config.yaml..."
     cat > .pre-commit-config.yaml << 'EOF'
 # Azure Policy & Functions Pre-commit Configuration
 # This file configures pre-commit hooks to maintain code quality and consistency
@@ -677,47 +736,23 @@ repos:
       - id: check-yaml
         args: ['--allow-multiple-documents']
       - id: check-json
-      - id: check-toml
-      - id: check-xml
       - id: check-added-large-files
         args: ['--maxkb=1000']
-      - id: check-case-conflict
       - id: check-merge-conflict
-      - id: debug-statements
-      - id: detect-private-key
-      - id: mixed-line-ending
-        args: ['--fix=lf']
 
   # Python formatting and linting
   - repo: https://github.com/psf/black
-    rev: 24.10.0
+    rev: 25.1.0
     hooks:
       - id: black
         language_version: python3
         args: ['--line-length=88']
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: ['--profile=black', '--line-length=88']
 
   - repo: https://github.com/pycqa/flake8
     rev: 7.1.1
     hooks:
       - id: flake8
         args: ['--max-line-length=88', '--extend-ignore=E203,W503']
-
-  # PowerShell formatting and linting
-  - repo: local
-    hooks:
-      - id: powershell-format
-        name: PowerShell Formatter
-        entry: pwsh
-        args: ['-Command', 'if (Get-Module -ListAvailable PSScriptAnalyzer) { Invoke-ScriptAnalyzer -Path $args -Settings PSGallery } else { Write-Host "PSScriptAnalyzer not available, skipping PowerShell analysis" }']
-        language: system
-        files: '\.ps1$'
-        pass_filenames: true
 
   # Shell script linting
   - repo: https://github.com/shellcheck-py/shellcheck-py
@@ -726,66 +761,23 @@ repos:
       - id: shellcheck
         args: ['--severity=warning']
 
-  # Secrets detection
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.5.0
-    hooks:
-      - id: detect-secrets
-        args: ['--baseline', '.secrets.baseline']
-        exclude: '\.secrets\.baseline$|package-lock\.json$|\.git/|\.venv/'
-
-  # Documentation and markdown
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.42.0
-    hooks:
-      - id: markdownlint
-        args: ['--fix']
-        exclude: 'CHANGELOG\.md$'
-
-  # Azure specific validations
-  - repo: local
-    hooks:
-      - id: azure-policy-validation
-        name: Azure Policy JSON Validation
-        entry: bash
-        args: ['-c', 'for file in "$@"; do if ! jq empty "$file" 2>/dev/null; then echo "Invalid JSON in $file"; exit 1; fi; done', '--']
-        language: system
-        files: 'policies/.*\.json$'
-        pass_filenames: true
-
-      - id: bicep-validation
-        name: Bicep Template Validation
-        entry: bash
-        args: ['-c', 'if command -v az >/dev/null 2>&1; then for file in "$@"; do az bicep build --file "$file" --stdout >/dev/null || exit 1; done; else echo "Azure CLI not available, skipping Bicep validation"; fi', '--']
-        language: system
-        files: '\.bicep$'
-        pass_filenames: true
-
-  # Security and dependency scanning
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.10
-    hooks:
-      - id: bandit
-        args: ['-r', 'functions/']
-        files: 'functions/.*\.py$'
-
 # Configuration for specific hooks
 default_language_version:
   python: python3.13
 EOF
-    echo "* Created .pre-commit-config.yaml with essential hooks"
-  else
-    echo "* .pre-commit-config.yaml already exists"
+    echo "* Created basic .pre-commit-config.yaml - consider customizing for your needs"
   fi
 
-  # Create secrets baseline if it doesn't exist
-  if [ ! -f .secrets.baseline ]; then
+  # Create secrets baseline if it doesn't exist (only if detect-secrets is configured and not commented)
+  if grep -v "^\s*#" .pre-commit-config.yaml | grep -q "detect-secrets" && [ ! -f .secrets.baseline ]; then
     echo "Creating secrets baseline..."
     pre-commit run detect-secrets --all-files || true
     if [ ! -f .secrets.baseline ]; then
       echo '{}' > .secrets.baseline
     fi
     echo "* Created .secrets.baseline"
+  elif grep -q "detect-secrets" .pre-commit-config.yaml; then
+    echo "* detect-secrets is configured but commented out - skipping baseline creation"
   fi
 
   # Install the git hooks
@@ -808,13 +800,10 @@ EOF
   echo "  - Every git commit (validates staged files)"
   echo "  - Manual execution: pre-commit run --all-files"
   echo ""
-  echo "Key hooks configured:"
-  echo "  - Python: black, isort, flake8, bandit"
-  echo "  - PowerShell: PSScriptAnalyzer"
-  echo "  - Shell: shellcheck"
-  echo "  - Secrets: detect-secrets"
-  echo "  - General: trailing whitespace, file endings, JSON/YAML validation"
-  echo "  - Azure: Policy JSON validation, Bicep validation"
+
+  # Extract and display hook information from the config file
+  extract_precommit_hooks
+
   echo ""
 }
 

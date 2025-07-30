@@ -87,12 +87,12 @@ For automatic plan triggers on pull requests:
 
 ## Benefits of This Setup
 
-✅ **Centralized State Management**: No more state file conflicts  
-✅ **Collaboration**: Team members can see plans and state  
-✅ **Security**: Sensitive variables are encrypted  
-✅ **Audit Trail**: All changes are logged  
-✅ **Plan/Apply Separation**: Review changes before applying  
-✅ **Free for Small Teams**: Up to 5 users at no cost  
+✅ **Centralized State Management**: No more state file conflicts
+✅ **Collaboration**: Team members can see plans and state
+✅ **Security**: Sensitive variables are encrypted
+✅ **Audit Trail**: All changes are logged
+✅ **Plan/Apply Separation**: Review changes before applying
+✅ **Free for Small Teams**: Up to 5 users at no cost
 
 ## Troubleshooting
 
