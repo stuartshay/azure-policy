@@ -271,11 +271,14 @@ resource "azurerm_network_watcher_flow_log" "main" {
     days    = var.flow_log_retention_days
   }
 
-  traffic_analytics {
-    enabled               = var.enable_traffic_analytics
-    workspace_id          = var.log_analytics_workspace_id
-    workspace_region      = var.location
-    workspace_resource_id = var.log_analytics_workspace_resource_id
+  dynamic "traffic_analytics" {
+    for_each = var.enable_traffic_analytics && var.log_analytics_workspace_id != null ? [1] : []
+    content {
+      enabled               = true
+      workspace_id          = var.log_analytics_workspace_id
+      workspace_region      = var.location
+      workspace_resource_id = var.log_analytics_workspace_resource_id
+    }
   }
 
   tags = var.tags
