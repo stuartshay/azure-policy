@@ -4,19 +4,21 @@ This document outlines the required GitHub repository secrets for the Terraform 
 
 ## Required Secrets
 
-### Terraform Cloud Integration
+### For Local Backend (Current Configuration)
+- `AZURE_CLIENT_ID`: Azure Service Principal client ID
+  - Value from your .env: `ARM_CLIENT_ID`
+- `AZURE_CLIENT_SECRET`: Azure Service Principal client secret  
+  - Value from your .env: `ARM_CLIENT_SECRET`
+- `AZURE_SUBSCRIPTION_ID`: Your Azure subscription ID
+  - Value from your .env: `ARM_SUBSCRIPTION_ID`
+- `AZURE_TENANT_ID`: Your Azure tenant ID
+  - Value from your .env: `ARM_TENANT_ID`
+- `AZURE_LOCATION`: Azure region (optional, defaults to 'East US')
+
+### For Terraform Cloud Integration (If Enabled Later)
 - `TF_API_TOKEN`: Your Terraform Cloud API token
   - Get from: https://app.terraform.io/app/settings/tokens
-  - Required for both apply and destroy workflows
-
-### Azure Authentication
-- `AZURE_SUBSCRIPTION_ID`: Your Azure subscription ID
-  - Same as `ARM_SUBSCRIPTION_ID` from your .env file
-  - Used as `TF_VAR_subscription_id` in workflows
-
-### Optional Secrets
-- `AZURE_LOCATION`: Azure region (defaults to 'East US' if not set)
-  - Used as `TF_VAR_location` in workflows
+  - Required only if using Terraform Cloud backend
 
 ## Setting Up Secrets
 

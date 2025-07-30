@@ -20,12 +20,17 @@ on:
         type: string
 
 env:
-  TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
-  TF_WORKSPACE: azure-policy-${{ github.event.inputs.environment }}
-  # Terraform variables (will be used by Terraform Cloud if enabled)
+  # Azure authentication for local backend
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  # Terraform variables
   TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   TF_VAR_location: ${{ secrets.AZURE_LOCATION || 'East US' }}
   TF_VAR_environment: ${{ github.event.inputs.environment }}
+  TF_VAR_owner: platform-team
+  TF_VAR_cost_center: development
 
 jobs:
   validate-destroy:
@@ -65,7 +70,6 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.6.0
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Init
         run: terraform init
