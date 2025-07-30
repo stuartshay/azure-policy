@@ -114,9 +114,21 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "The current infrastructure matches the desired state. No resources need to be created, modified, or destroyed." >> $GITHUB_STEP_SUMMARY
 
+    - name: Debug Plan and Apply Status
+      run: |
+        echo "🔍 Debugging workflow state:"
+        echo "Plan exitcode: ${{ steps.plan.outputs.exitcode }}"
+        echo "Apply applied: ${{ steps.apply.outputs.applied }}"
+        echo "Working directory: $(pwd)"
+        echo "Terraform state files:"
+        ls -la terraform.tfstate* 2>/dev/null || echo "No state files found"
+        echo "Available outputs:"
+        terraform output 2>&1 || echo "No outputs available"
+      working-directory: infrastructure/terraform
+
     - name: Get Terraform Outputs
       id: outputs
-      if: steps.plan.outputs.exitcode == 0 || steps.apply.outputs.applied == 'true'
+      if: steps.plan.outputs.exitcode == 0 || (steps.plan.outputs.exitcode == 2 && steps.apply.outputs.applied == 'true')
       run: |
         # Check if outputs exist before trying to read them
         if terraform output resource_group_name >/dev/null 2>&1; then
@@ -131,7 +143,7 @@ jobs:
       working-directory: infrastructure/terraform
 
     - name: Generate Deployment Summary
-      if: steps.apply.outputs.applied == 'true' || steps.plan.outputs.exitcode == 0
+      if: steps.apply.outputs.applied == 'true' || (steps.plan.outputs.exitcode == 0 && steps.outputs.outputs.outputs_available == 'true')
       run: |
         if [ "${{ steps.apply.outputs.applied }}" == "true" ]; then
           echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
