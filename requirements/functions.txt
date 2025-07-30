@@ -10,7 +10,7 @@ azure-identity==1.23.1
 
 # HTTP client for function operations
 aiohttp==3.12.14
-requests==2.32.3
+requests==2.32.4
 
 # Configuration
 python-dotenv==1.0.1
