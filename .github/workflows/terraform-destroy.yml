@@ -8,8 +8,8 @@ on:
         required: true
         type: choice
         options:
-        - dev
-        - staging
+          - dev
+          - staging
       confirm_destroy:
         description: 'Type "destroy" to confirm'
         required: true
@@ -30,24 +30,24 @@ jobs:
     name: Validate Destroy Request
     runs-on: ubuntu-latest
     steps:
-    - name: Validate Confirmations
-      run: |
-        if [ "${{ github.event.inputs.confirm_destroy }}" != "destroy" ]; then
-          echo "❌ First confirmation failed. You must type 'destroy'."
-          exit 1
-        fi
+      - name: Validate Confirmations
+        run: |
+          if [ "${{ github.event.inputs.confirm_destroy }}" != "destroy" ]; then
+            echo "❌ First confirmation failed. You must type 'destroy'."
+            exit 1
+          fi
 
-        if [ "${{ github.event.inputs.double_confirm }}" != "${{ github.event.inputs.environment }}" ]; then
-          echo "❌ Second confirmation failed. You must type the environment name."
-          exit 1
-        fi
+          if [ "${{ github.event.inputs.double_confirm }}" != "${{ github.event.inputs.environment }}" ]; then
+            echo "❌ Second confirmation failed. You must type the environment name."
+            exit 1
+          fi
 
-        if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
-          echo "❌ Production environment cannot be destroyed via workflow."
-          exit 1
-        fi
+          if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            echo "❌ Production environment cannot be destroyed via workflow."
+            exit 1
+          fi
 
-        echo "✅ All confirmations validated"
+          echo "✅ All confirmations validated"
 
   destroy:
     name: Terraform Destroy
@@ -56,184 +56,184 @@ jobs:
     environment: ${{ github.event.inputs.environment }}
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.6.0
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
 
-    - name: Azure Login
-      uses: azure/login@v2
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Set Environment Variables
-      run: |
-        echo "TF_VAR_environment=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+      - name: Set Environment Variables
+        run: |
+          echo "TF_VAR_environment=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
 
-        case "${{ github.event.inputs.environment }}" in
-          "dev")
-            echo "TF_VAR_location=East US" >> $GITHUB_ENV
-            echo "TF_VAR_cost_center=development" >> $GITHUB_ENV
-            ;;
-          "staging")
-            echo "TF_VAR_location=East US 2" >> $GITHUB_ENV
-            echo "TF_VAR_cost_center=operations" >> $GITHUB_ENV
-            ;;
-        esac
+          case "${{ github.event.inputs.environment }}" in
+            "dev")
+              echo "TF_VAR_location=East US" >> $GITHUB_ENV
+              echo "TF_VAR_cost_center=development" >> $GITHUB_ENV
+              ;;
+            "staging")
+              echo "TF_VAR_location=East US 2" >> $GITHUB_ENV
+              echo "TF_VAR_cost_center=operations" >> $GITHUB_ENV
+              ;;
+          esac
 
-    - name: Create Backend Configuration
-      run: |
-        cat > backend-config.hcl << EOF
-        resource_group_name  = "rg-terraform-state-${{ github.event.inputs.environment }}-eastus"
-        storage_account_name = "stterraformstate${{ github.event.inputs.environment }}001"
-        container_name       = "tfstate"
-        key                  = "azurepolicy/${{ github.event.inputs.environment }}/terraform.tfstate"
-        EOF
-      working-directory: infrastructure/terraform
+      - name: Create Backend Configuration
+        run: |
+          cat > backend-config.hcl << EOF
+          resource_group_name  = "rg-terraform-state-${{ github.event.inputs.environment }}-eastus"
+          storage_account_name = "stterraformstate${{ github.event.inputs.environment }}001"
+          container_name       = "tfstate"
+          key                  = "azurepolicy/${{ github.event.inputs.environment }}/terraform.tfstate"
+          EOF
+        working-directory: infrastructure/terraform
 
-    - name: Terraform Init
-      run: terraform init -backend-config=backend-config.hcl
-      working-directory: infrastructure/terraform
+      - name: Terraform Init
+        run: terraform init -backend-config=backend-config.hcl
+        working-directory: infrastructure/terraform
 
-    - name: Terraform Plan Destroy
-      id: plan
-      run: |
-        terraform plan -destroy -detailed-exitcode -out=destroy-plan
-        echo "exitcode=$?" >> $GITHUB_OUTPUT
-      working-directory: infrastructure/terraform
+      - name: Terraform Plan Destroy
+        id: plan
+        run: |
+          terraform plan -destroy -detailed-exitcode -out=destroy-plan
+          echo "exitcode=$?" >> $GITHUB_OUTPUT
+        working-directory: infrastructure/terraform
 
-    - name: Upload Destroy Plan
-      uses: actions/upload-artifact@v4
-      with:
-        name: terraform-destroy-plan-${{ github.event.inputs.environment }}
-        path: infrastructure/terraform/destroy-plan
-        retention-days: 7
+      - name: Upload Destroy Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-destroy-plan-${{ github.event.inputs.environment }}
+          path: infrastructure/terraform/destroy-plan
+          retention-days: 7
 
-    - name: Terraform Destroy
-      if: steps.plan.outputs.exitcode == 2
-      run: terraform apply destroy-plan
-      working-directory: infrastructure/terraform
+      - name: Terraform Destroy
+        if: steps.plan.outputs.exitcode == 2
+        run: terraform apply destroy-plan
+        working-directory: infrastructure/terraform
 
-    - name: Verify Destruction
-      if: success()
-      run: |
-        echo "Verifying resource destruction..."
+      - name: Verify Destruction
+        if: success()
+        run: |
+          echo "Verifying resource destruction..."
 
-        # Check if resource group still exists
-        RG_NAME="rg-azurepolicy-${{ github.event.inputs.environment }}-eastus"
-        if az group show --name "$RG_NAME" --output none 2>/dev/null; then
-          echo "⚠️ Resource group $RG_NAME still exists. Manual cleanup may be required."
-        else
-          echo "✅ Resource group $RG_NAME successfully destroyed."
-        fi
+          # Check if resource group still exists
+          RG_NAME="rg-azurepolicy-${{ github.event.inputs.environment }}-eastus"
+          if az group show --name "$RG_NAME" --output none 2>/dev/null; then
+            echo "⚠️ Resource group $RG_NAME still exists. Manual cleanup may be required."
+          else
+            echo "✅ Resource group $RG_NAME successfully destroyed."
+          fi
 
-    - name: Generate Destruction Summary
-      if: success()
-      run: |
-        echo "## 🗑️ Infrastructure Destruction Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Environment Details" >> $GITHUB_STEP_SUMMARY
-        echo "- **Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Destroyed by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Cleanup Status" >> $GITHUB_STEP_SUMMARY
-        echo "- **Status:** ✅ Infrastructure destroyed" >> $GITHUB_STEP_SUMMARY
-        echo "- **Resource Group:** Removed" >> $GITHUB_STEP_SUMMARY
-        echo "- **Virtual Network:** Removed" >> $GITHUB_STEP_SUMMARY
-        echo "- **Function Apps:** Removed" >> $GITHUB_STEP_SUMMARY
-        echo "- **Storage Accounts:** Removed" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Post-Destruction Tasks" >> $GITHUB_STEP_SUMMARY
-        echo "1. Verify no orphaned resources in Azure Portal" >> $GITHUB_STEP_SUMMARY
-        echo "2. Check for any remaining costs" >> $GITHUB_STEP_SUMMARY
-        echo "3. Review backup retention policies" >> $GITHUB_STEP_SUMMARY
+      - name: Generate Destruction Summary
+        if: success()
+        run: |
+          echo "## 🗑️ Infrastructure Destruction Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Environment Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Destroyed by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Cleanup Status" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ✅ Infrastructure destroyed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Resource Group:** Removed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Virtual Network:** Removed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Function Apps:** Removed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Storage Accounts:** Removed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Post-Destruction Tasks" >> $GITHUB_STEP_SUMMARY
+          echo "1. Verify no orphaned resources in Azure Portal" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check for any remaining costs" >> $GITHUB_STEP_SUMMARY
+          echo "3. Review backup retention policies" >> $GITHUB_STEP_SUMMARY
 
-    - name: Create Destruction Issue
-      if: success()
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const title = `🗑️ Infrastructure Destroyed - ${{ github.event.inputs.environment }}`;
-          const body = `
-          ## Infrastructure Destruction Completed
+      - name: Create Destruction Issue
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🗑️ Infrastructure Destroyed - ${{ github.event.inputs.environment }}`;
+            const body = `
+            ## Infrastructure Destruction Completed
 
-          **Environment:** ${{ github.event.inputs.environment }}
-          **Destroyed by:** ${{ github.actor }}
-          **Timestamp:** ${new Date().toISOString()}
+            **Environment:** ${{ github.event.inputs.environment }}
+            **Destroyed by:** ${{ github.actor }}
+            **Timestamp:** ${new Date().toISOString()}
 
-          ### Destruction Summary
-          All infrastructure resources for the ${{ github.event.inputs.environment }} environment have been successfully destroyed.
+            ### Destruction Summary
+            All infrastructure resources for the ${{ github.event.inputs.environment }} environment have been successfully destroyed.
 
-          ### Post-Destruction Checklist
-          - [ ] Verify no orphaned resources in Azure Portal
-          - [ ] Check Azure billing for any remaining costs
-          - [ ] Review backup retention policies
-          - [ ] Update documentation if needed
-          - [ ] Close related infrastructure issues
+            ### Post-Destruction Checklist
+            - [ ] Verify no orphaned resources in Azure Portal
+            - [ ] Check Azure billing for any remaining costs
+            - [ ] Review backup retention policies
+            - [ ] Update documentation if needed
+            - [ ] Close related infrastructure issues
 
-          ### Resources Destroyed
-          - Resource Group: rg-azurepolicy-${{ github.event.inputs.environment }}-eastus
-          - Virtual Network and Subnets
-          - Network Security Groups
-          - App Service Plan
-          - Function Apps
-          - Storage Accounts
-          - Application Insights (if enabled)
-          - Key Vault (if enabled)
+            ### Resources Destroyed
+            - Resource Group: rg-azurepolicy-${{ github.event.inputs.environment }}-eastus
+            - Virtual Network and Subnets
+            - Network Security Groups
+            - App Service Plan
+            - Function Apps
+            - Storage Accounts
+            - Application Insights (if enabled)
+            - Key Vault (if enabled)
 
-          **Workflow Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          `;
+            **Workflow Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
 
-          github.rest.issues.create({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            title: title,
-            body: body,
-            labels: ['infrastructure', 'destruction', 'cleanup', '${{ github.event.inputs.environment }}']
-          });
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['infrastructure', 'destruction', 'cleanup', '${{ github.event.inputs.environment }}']
+            });
 
-    - name: Notify on Failure
-      if: failure()
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const title = `❌ Infrastructure Destruction Failed - ${{ github.event.inputs.environment }}`;
-          const body = `
-          ## Infrastructure Destruction Failed
+      - name: Notify on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `❌ Infrastructure Destruction Failed - ${{ github.event.inputs.environment }}`;
+            const body = `
+            ## Infrastructure Destruction Failed
 
-          **Environment:** ${{ github.event.inputs.environment }}
-          **Triggered by:** ${{ github.actor }}
-          **Timestamp:** ${new Date().toISOString()}
+            **Environment:** ${{ github.event.inputs.environment }}
+            **Triggered by:** ${{ github.actor }}
+            **Timestamp:** ${new Date().toISOString()}
 
-          ### Failure Details
-          The infrastructure destruction process failed. Please check the workflow logs for detailed error information.
+            ### Failure Details
+            The infrastructure destruction process failed. Please check the workflow logs for detailed error information.
 
-          ### Manual Cleanup Required
-          You may need to manually clean up resources in the Azure Portal:
+            ### Manual Cleanup Required
+            You may need to manually clean up resources in the Azure Portal:
 
-          1. Navigate to Resource Group: rg-azurepolicy-${{ github.event.inputs.environment }}-eastus
-          2. Review and delete remaining resources
-          3. Delete the resource group
-          4. Check for orphaned resources in other resource groups
+            1. Navigate to Resource Group: rg-azurepolicy-${{ github.event.inputs.environment }}-eastus
+            2. Review and delete remaining resources
+            3. Delete the resource group
+            4. Check for orphaned resources in other resource groups
 
-          ### Troubleshooting Steps
-          1. Check for resource locks
-          2. Verify deletion permissions
-          3. Look for dependencies preventing deletion
-          4. Check for backup policies preventing deletion
-          5. Review Azure service health
+            ### Troubleshooting Steps
+            1. Check for resource locks
+            2. Verify deletion permissions
+            3. Look for dependencies preventing deletion
+            4. Check for backup policies preventing deletion
+            5. Review Azure service health
 
-          **Workflow Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          `;
+            **Workflow Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
 
-          github.rest.issues.create({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            title: title,
-            body: body,
-            labels: ['infrastructure', 'destruction', 'failure', '${{ github.event.inputs.environment }}']
-          });
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['infrastructure', 'destruction', 'failure', '${{ github.event.inputs.environment }}']
+            });
