@@ -236,7 +236,7 @@ resource "azurerm_storage_account" "flow_logs" {
   account_replication_type = "LRS"
 
   # Security configurations
-  shared_access_key_enabled       = false
+  shared_access_key_enabled       = true # Required for flow logs
   allow_nested_items_to_be_public = false
 
   # SAS expiration policy

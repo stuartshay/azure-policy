@@ -132,3 +132,15 @@ variable "enable_policy_assignments" {
   type        = bool
   default     = true
 }
+
+# App Service Configuration (commented out due to quota limitations)
+# variable "app_service_sku" {
+#   description = "App Service Plan SKU (F1, D1, B1, B2, B3, S1, S2, S3, P1v2, P2v2, P3v2)"
+#   type        = string
+#   default     = "D1"
+
+#   validation {
+#     condition     = contains(["F1", "D1", "B1", "B2", "B3", "S1", "S2", "S3", "P1v2", "P2v2", "P3v2"], var.app_service_sku)
+#     error_message = "App Service SKU must be a valid tier."
+#   }
+# }
