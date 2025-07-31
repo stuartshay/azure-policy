@@ -96,12 +96,12 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.function_name(name="HealthCheck")
 @app.route(route="health", methods=["GET"])
-def health_check(_req: func.HttpRequest) -> func.HttpResponse:
+def health_check(req: func.HttpRequest) -> func.HttpResponse:
     """
     Health check endpoint for monitoring and diagnostics.
 
     Args:
-        _req (func.HttpRequest): The HTTP request object (unused)
+        req (func.HttpRequest): The HTTP request object (unused)
 
     Returns:
         func.HttpResponse: JSON response with health status
@@ -125,12 +125,12 @@ def health_check(_req: func.HttpRequest) -> func.HttpResponse:
 
 @app.function_name(name="Info")
 @app.route(route="info", methods=["GET"])
-def info(_req: func.HttpRequest) -> func.HttpResponse:
+def info(req: func.HttpRequest) -> func.HttpResponse:
     """
     Information endpoint that returns details about the function app.
 
     Args:
-        _req (func.HttpRequest): The HTTP request object (unused)
+        req (func.HttpRequest): The HTTP request object (unused)
 
     Returns:
         func.HttpResponse: JSON response with function app information

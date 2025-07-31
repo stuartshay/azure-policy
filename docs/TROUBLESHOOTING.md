@@ -64,7 +64,7 @@ docker-compose -f .devcontainer/docker-compose.yml build --no-cache
    ```json
    {
      "Values": {
-       "AzureWebJobsStorage": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
+       "AzureWebJobsStorage": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"  # pragma: allowlist secret
      }
    }
    ```
@@ -103,7 +103,7 @@ docker-compose -f .devcontainer/docker-compose.yml build --no-cache
    # Find process using port
    lsof -i :7071
    lsof -i :10000
-   
+
    # Kill process (replace PID)
    kill -9 <PID>
    ```

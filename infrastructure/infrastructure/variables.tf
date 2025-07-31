@@ -1,5 +1,5 @@
-# Azure Policy Infrastructure - Variables
-# This file defines all input variables for the infrastructure
+# Azure Infrastructure - Variables
+# This file defines all input variables for the core infrastructure
 
 # Azure Configuration
 variable "subscription_id" {
@@ -133,21 +133,3 @@ variable "enable_flow_logs" {
   type        = bool
   default     = true
 }
-
-variable "enable_policy_assignments" {
-  description = "Enable Azure Policy assignments"
-  type        = bool
-  default     = true
-}
-
-# App Service Configuration (commented out due to quota limitations)
-# variable "app_service_sku" {
-#   description = "App Service Plan SKU (F1, D1, B1, B2, B3, S1, S2, S3, P1v2, P2v2, P3v2)"
-#   type        = string
-#   default     = "D1"
-
-#   validation {
-#     condition     = contains(["F1", "D1", "B1", "B2", "B3", "S1", "S2", "S3", "P1v2", "P2v2", "P3v2"], var.app_service_sku)
-#     error_message = "App Service SKU must be a valid tier."
-#   }
-# }

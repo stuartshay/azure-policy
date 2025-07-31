@@ -68,12 +68,12 @@ repos:
         exclude: '\.zshrc$'
 
   # Secrets detection
-  # - repo: https://github.com/Yelp/detect-secrets
-  #   rev: v1.5.0
-  #   hooks:
-  #     - id: detect-secrets
-  #       args: ['--baseline', '.secrets.baseline']
-  #       exclude: '\.secrets\.baseline$|package-lock\.json$|\.git/|\.venv/'
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: '\.secrets\.baseline$|package-lock\.json$|\.git/|\.venv/|\.mypy_cache/|__pycache__/|azurite-data/|\.terraform/'
 
   # Documentation and markdown
   # - repo: https://github.com/igorshubovych/markdownlint-cli

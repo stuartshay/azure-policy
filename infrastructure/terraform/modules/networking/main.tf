@@ -227,6 +227,7 @@ resource "azurerm_network_watcher" "main" {
 
 # Flow logs for NSGs (if Network Watcher is enabled)
 resource "azurerm_storage_account" "flow_logs" {
+  #checkov:skip=CKV2_AZURE_40:Shared access key is required for NSG flow logs functionality
   count = var.enable_network_watcher && var.enable_flow_logs ? 1 : 0
 
   name                     = "stflowlogs${var.workload}${var.environment}001"
@@ -236,7 +237,7 @@ resource "azurerm_storage_account" "flow_logs" {
   account_replication_type = "LRS"
 
   # Security configurations
-  shared_access_key_enabled       = false
+  shared_access_key_enabled       = true # Required for flow logs
   allow_nested_items_to_be_public = false
 
   # SAS expiration policy

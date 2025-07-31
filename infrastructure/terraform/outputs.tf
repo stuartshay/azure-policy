@@ -38,26 +38,26 @@ output "nsg_ids" {
   value       = module.networking.nsg_ids
 }
 
-# App Service Outputs
-output "app_service_id" {
-  description = "ID of the App Service"
-  value       = module.app_service.app_service_id
-}
+# App Service Outputs - Commented out due to quota limitations
+# output "app_service_id" {
+#   description = "ID of the App Service"
+#   value       = module.app_service.app_service_id
+# }
 
-output "app_service_name" {
-  description = "Name of the App Service"
-  value       = module.app_service.app_service_name
-}
+# output "app_service_name" {
+#   description = "Name of the App Service"
+#   value       = module.app_service.app_service_name
+# }
 
-output "app_service_default_hostname" {
-  description = "Default hostname of the App Service"
-  value       = module.app_service.app_service_default_hostname
-}
+# output "app_service_default_hostname" {
+#   description = "Default hostname of the App Service"
+#   value       = module.app_service.app_service_default_hostname
+# }
 
-output "app_service_plan_id" {
-  description = "ID of the App Service Plan"
-  value       = module.app_service.app_service_plan_id
-}
+# output "app_service_plan_id" {
+#   description = "ID of the App Service Plan"
+#   value       = module.app_service.app_service_plan_id
+# }
 
 # Policy Outputs
 output "resource_group_naming_policy_id" {

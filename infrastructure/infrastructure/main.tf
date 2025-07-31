@@ -1,5 +1,5 @@
-# Azure Policy Infrastructure - Main Configuration
-# This file defines the core infrastructure for the Azure Policy project
+# Azure Infrastructure - Core Resources
+# This file defines the core infrastructure (networking, resource groups, storage)
 
 terraform {
   required_version = ">= 1.5"
@@ -20,7 +20,7 @@ terraform {
     organization = "azure-policy-cloud"
 
     workspaces {
-      tags = ["azure-policy"]
+      name = "azure-policy-infrastructure"
     }
   }
 }
@@ -73,7 +73,7 @@ locals {
   }
 }
 
-# Resource Group
+# Resource Group for Infrastructure
 resource "azurerm_resource_group" "main" {
   name     = local.resource_group_name
   location = var.location
@@ -82,7 +82,7 @@ resource "azurerm_resource_group" "main" {
 
 # Networking Module
 module "networking" {
-  source = "./modules/networking"
+  source = "../terraform/modules/networking"
 
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
@@ -99,29 +99,4 @@ module "networking" {
   enable_flow_logs       = var.enable_flow_logs
 
   tags = local.common_tags
-}
-
-# App Service Module - Commented out due to quota limitations on BizSpark subscription
-# module "app_service" {
-#   source = "./modules/app-service"
-#
-#   resource_group_name = azurerm_resource_group.main.name
-#   location            = azurerm_resource_group.main.location
-#   environment         = var.environment
-#   workload            = local.workload
-#   sku_name            = var.app_service_sku
-#
-#   tags = local.common_tags
-#
-#   depends_on = [module.networking]
-# }
-
-# Azure Policies Module
-module "policies" {
-  source = "./modules/policies"
-
-  resource_group_id         = azurerm_resource_group.main.id
-  enable_policy_assignments = var.enable_policy_assignments
-
-  depends_on = [azurerm_resource_group.main]
 }
