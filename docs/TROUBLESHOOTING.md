@@ -103,7 +103,7 @@ docker-compose -f .devcontainer/docker-compose.yml build --no-cache
    # Find process using port
    lsof -i :7071
    lsof -i :10000
-   
+
    # Kill process (replace PID)
    kill -9 <PID>
    ```
