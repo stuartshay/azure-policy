@@ -73,7 +73,7 @@ locals {
   }
 }
 
-# Resource Group
+# Resource Group for Infrastructure
 resource "azurerm_resource_group" "main" {
   name     = local.resource_group_name
   location = var.location

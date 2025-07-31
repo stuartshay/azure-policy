@@ -227,6 +227,7 @@ resource "azurerm_network_watcher" "main" {
 
 # Flow logs for NSGs (if Network Watcher is enabled)
 resource "azurerm_storage_account" "flow_logs" {
+  #checkov:skip=CKV2_AZURE_40:Shared access key is required for NSG flow logs functionality
   count = var.enable_network_watcher && var.enable_flow_logs ? 1 : 0
 
   name                     = "stflowlogs${var.workload}${var.environment}001"
