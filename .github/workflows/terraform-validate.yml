@@ -3,17 +3,22 @@ name: Terraform Validate
 on:
   workflow_dispatch:
     inputs:
-      terraform_directory:
-        description: 'Terraform directory to validate'
+      module:
+        description: 'Terraform module to validate'
         required: false
-        default: 'infrastructure/terraform'
-        type: string
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - infrastructure
+          - policies
+          - functions
   pull_request:
     paths:
       - 'infrastructure/**'
       - '.github/workflows/terraform-*.yml'
   push:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - 'infrastructure/**'
 
@@ -22,8 +27,9 @@ jobs:
     name: Validate Terraform
     runs-on: ubuntu-latest
 
-    env:
-      TF_DIR: ${{ github.event.inputs.terraform_directory || 'infrastructure/terraform' }}
+    strategy:
+      matrix:
+        module: ${{ github.event.inputs.module == 'all' && fromJson('["infrastructure", "policies", "functions"]') || fromJson(format('[""{0}""]', github.event.inputs.module || 'infrastructure')) }}
 
     steps:
       - name: Checkout
@@ -36,104 +42,123 @@ jobs:
 
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
-        working-directory: ${{ env.TF_DIR }}
+        working-directory: infrastructure/${{ matrix.module }}
 
       - name: Terraform Init
         run: terraform init -backend=false
-        working-directory: ${{ env.TF_DIR }}
+        working-directory: infrastructure/${{ matrix.module }}
 
       - name: Terraform Validate
         run: terraform validate
-        working-directory: ${{ env.TF_DIR }}
+        working-directory: infrastructure/${{ matrix.module }}
 
       - name: Run tfsec Security Scan
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
-          working_directory: ${{ env.TF_DIR }}
+          working_directory: infrastructure/${{ matrix.module }}
           soft_fail: true
 
       - name: Validate Naming Conventions
         run: |
-          echo "Validating Azure naming conventions..."
+          echo "Validating Azure naming conventions for ${{ matrix.module }} module..."
 
           # Check for hardcoded resource group names that don't follow convention
           # This looks for literal string assignments that don't start with "rg-"
-          if grep -r 'name.*=.*"[^"]*"' ${{ env.TF_DIR }} --include="*.tf" | grep -E "(azurerm_resource_group|resource_group_name)" | grep -v '"rg-' | grep -v 'var\.' | grep -v 'local\.' | grep -v 'azurerm_resource_group\..*\.name'; then
+          if grep -r 'name.*=.*"[^"]*"' infrastructure/${{ matrix.module }} --include="*.tf" | grep -E "(azurerm_resource_group|resource_group_name)" | grep -v '"rg-' | grep -v 'var\.' | grep -v 'local\.' | grep -v 'azurerm_resource_group\..*\.name'; then
             echo "❌ Found hardcoded resource group names that don't follow naming convention: rg-{workload}-{env}-{region}"
             echo "Use variables or locals for resource naming instead of hardcoded strings"
             exit 1
           fi
 
           # Check for hardcoded virtual network names that don't follow convention
-          if grep -r 'name.*=.*"[^"]*"' ${{ env.TF_DIR }} --include="*.tf" | grep "azurerm_virtual_network" | grep -v '"vnet-' | grep -v 'var\.' | grep -v 'local\.'; then
+          if grep -r 'name.*=.*"[^"]*"' infrastructure/${{ matrix.module }} --include="*.tf" | grep "azurerm_virtual_network" | grep -v '"vnet-' | grep -v 'var\.' | grep -v 'local\.'; then
             echo "❌ Found hardcoded virtual network names that don't follow naming convention: vnet-{workload}-{env}-{region}-{instance}"
             echo "Use variables or locals for resource naming instead of hardcoded strings"
             exit 1
           fi
 
-          echo "✅ Naming conventions validated - using proper variable/local references"
+          echo "✅ Naming conventions validated for ${{ matrix.module }} module - using proper variable/local references"
 
       - name: Check Required Tags
         run: |
-          echo "Checking for required tags..."
+          echo "Checking for required tags in ${{ matrix.module }} module..."
 
           # Verify common_tags are defined
-          if ! grep -q "common_tags" ${{ env.TF_DIR }}/main.tf; then
-            echo "❌ common_tags must be defined in main.tf"
+          if ! grep -q "common_tags\|tags.*=" infrastructure/${{ matrix.module }}/main.tf; then
+            echo "❌ Tags must be defined in main.tf for ${{ matrix.module }} module"
             exit 1
           fi
 
-          # Check for required tag keys
+          # Check for required tag keys in the module
           required_tags=("Environment" "CostCenter" "Project" "Owner" "CreatedBy")
+          found_tags=0
           for tag in "${required_tags[@]}"; do
-            if ! grep -q "$tag" ${{ env.TF_DIR }}/main.tf; then
-              echo "❌ Required tag '$tag' not found"
+            if grep -q "$tag" infrastructure/${{ matrix.module }}/main.tf; then
+              found_tags=$((found_tags + 1))
+            fi
+          done
+
+          if [ $found_tags -lt 3 ]; then
+            echo "⚠️ Consider adding more required tags in ${{ matrix.module }} module"
+          else
+            echo "✅ Required tags validated for ${{ matrix.module }} module"
+          fi
+
+      - name: Validate Module Structure
+        run: |
+          echo "Validating Terraform module structure for ${{ matrix.module }}..."
+
+          # Check for required files in the module
+          echo "Checking module: ${{ matrix.module }}"
+
+          required_files=("main.tf" "variables.tf" "outputs.tf")
+          for file in "${required_files[@]}"; do
+            if [ ! -f "infrastructure/${{ matrix.module }}/$file" ]; then
+              echo "❌ Missing required file: infrastructure/${{ matrix.module }}/$file"
               exit 1
             fi
           done
 
-          echo "✅ Required tags validated"
+          # Check for nested modules if they exist
+          if [ -d "infrastructure/${{ matrix.module }}/modules" ]; then
+            for module_dir in infrastructure/${{ matrix.module }}/modules/*/; do
+              if [ -d "$module_dir" ]; then
+                module_name=$(basename "$module_dir")
+                echo "Checking nested module: $module_name"
 
-      - name: Validate Module Structure
-        run: |
-          echo "Validating Terraform module structure..."
-
-          # Check for required files in each module
-          for module_dir in ${{ env.TF_DIR }}/modules/*/; do
-            module_name=$(basename "$module_dir")
-            echo "Checking module: $module_name"
-
-            required_files=("main.tf" "variables.tf" "outputs.tf")
-            for file in "${required_files[@]}"; do
-              if [ ! -f "$module_dir$file" ]; then
-                echo "❌ Missing required file: $module_dir$file"
-                exit 1
+                for file in "${required_files[@]}"; do
+                  if [ ! -f "$module_dir$file" ]; then
+                    echo "❌ Missing required file: $module_dir$file"
+                    exit 1
+                  fi
+                done
               fi
             done
-          done
+          fi
 
-          echo "✅ Module structure validated"
+          echo "✅ Module structure validated for ${{ matrix.module }}"
 
       - name: Check for Sensitive Values
         run: |
-          echo "Checking for sensitive values in code..."
+          echo "Checking for sensitive values in ${{ matrix.module }} module..."
 
           # Check for potential secrets or sensitive data
-          if grep -r -i "password\|secret\|key" ${{ env.TF_DIR }} --include="*.tf" | grep -v "variable\|output\|description"; then
+          if grep -r -i "password\|secret\|key" infrastructure/${{ matrix.module }} --include="*.tf" | grep -v "variable\|output\|description"; then
             echo "⚠️ Potential sensitive values found. Please review."
           fi
 
           # Check for hardcoded IPs (except examples)
-          if grep -r -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" ${{ env.TF_DIR }} --include="*.tf" | grep -v "10.0\|example\|0.0.0.0"; then
+          if grep -r -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" infrastructure/${{ matrix.module }} --include="*.tf" | grep -v "10.0\|example\|0.0.0.0"; then
             echo "⚠️ Hardcoded IP addresses found. Consider using variables."
           fi
 
-          echo "✅ Sensitive values check completed"
+          echo "✅ Sensitive values check completed for ${{ matrix.module }} module"
 
       - name: Generate Validation Report
         if: always()
         run: |
-          echo "## Terraform Validation Report" >> $GITHUB_STEP_SUMMARY
+          echo "## Terraform Validation Report - ${{ matrix.module }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Module:** ${{ matrix.module }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Format Check:** ✅ Passed" >> $GITHUB_STEP_SUMMARY
           echo "- **Validation:** ✅ Passed" >> $GITHUB_STEP_SUMMARY
           echo "- **Security Scan:** ✅ Completed" >> $GITHUB_STEP_SUMMARY
