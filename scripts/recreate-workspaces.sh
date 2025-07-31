@@ -173,18 +173,56 @@ create_workspace_variables() {
 # Function to delete workspace (if it exists)
 delete_workspace() {
     local workspace_name="azure-policy-$1"
-    
+
     echo "Checking if workspace $workspace_name exists..."
-    
+
     curl -s -X DELETE \
         -H "Authorization: Bearer $TF_API_TOKEN" \
         -H "Content-Type: application/vnd.api+json" \
         "https://app.terraform.io/api/v2/organizations/$ORG_NAME/workspaces/$workspace_name" > /dev/null
-    
+
     if [ $? -eq 0 ]; then
         print_status "Workspace $workspace_name deleted (if it existed)"
     fi
-}# Main execution
+}
+
+# Main execution
+echo "🔄 Recreating Terraform Cloud workspaces..."
+echo ""
+
+for workspace in "${WORKSPACES[@]}"; do
+    echo "Processing $workspace workspace..."
+
+    # Delete existing workspace (ignore if it doesn't exist)
+    delete_workspace "$workspace"
+
+    # Wait a moment
+    sleep 2
+
+    # Create new workspace
+    create_workspace "$workspace"
+
+    echo ""
+done
+
+echo "🎉 Workspace recreation completed!"
+echo ""
+echo "Created workspaces:"
+for workspace in "${WORKSPACES[@]}"; do
+    echo "  - azure-policy-$workspace"
+done
+
+echo ""
+echo "Next steps:"
+echo "1. Verify workspaces in Terraform Cloud UI: https://app.terraform.io/app/$ORG_NAME/workspaces"
+echo "2. Connect workspaces to your GitHub repository"
+echo "3. Test GitHub Actions workflows"
+echo ""
+
+print_info "You can now run the GitHub Actions workflows to deploy infrastructure!"
+echo ""
+
+# Main execution
 echo "🔄 Recreating Terraform Cloud workspaces..."
 echo ""
 
