@@ -16,18 +16,13 @@ terraform {
   }
 
   # Terraform Cloud backend for state management
-  # To set up:
-  # 1. Create organization "azure-policy-cloud" at app.terraform.io
-  # 2. Create workspace for each environment (dev, staging, prod)
-  # 3. Add TF_API_TOKEN secret to GitHub repository
-  # Temporarily commented out until organization is confirmed
-  # cloud {
-  #   organization = "azure-policy-cloud"
-  #
-  #   workspaces {
-  #     tags = ["azure-policy"]
-  #   }
-  # }
+  cloud {
+    organization = "azure-policy-cloud"
+
+    workspaces {
+      tags = ["azure-policy"]
+    }
+  }
 }
 
 provider "azurerm" {

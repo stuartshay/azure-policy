@@ -7,7 +7,7 @@ This document outlines the required GitHub repository secrets for the Terraform 
 ### For Local Backend (Current Configuration)
 - `AZURE_CLIENT_ID`: Azure Service Principal client ID
   - Value from your .env: `ARM_CLIENT_ID`
-- `AZURE_CLIENT_SECRET`: Azure Service Principal client secret  
+- `AZURE_CLIENT_SECRET`: Azure Service Principal client secret
   - Value from your .env: `ARM_CLIENT_SECRET`
 - `AZURE_SUBSCRIPTION_ID`: Your Azure subscription ID
   - Value from your .env: `ARM_SUBSCRIPTION_ID`

@@ -17,6 +17,7 @@ __blobstorage__/
 *.tfvars
 *.tfvars.json
 .terraform.tfstate.lock.info
+.terraform.d/
 override.tf
 override.tf.json
 *_override.tf

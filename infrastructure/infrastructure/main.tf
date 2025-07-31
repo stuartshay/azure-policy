@@ -1,5 +1,5 @@
-# Azure Policy Infrastructure - Main Configuration
-# This file defines the core infrastructure for the Azure Policy project
+# Azure Infrastructure - Core Resources
+# This file defines the core infrastructure (networking, resource groups, storage)
 
 terraform {
   required_version = ">= 1.5"
@@ -16,20 +16,17 @@ terraform {
   }
 
   # Terraform Cloud backend for state management
-  # To set up:
-  # 1. Create organization "azure-policy-cloud" at app.terraform.io
-  # 2. Create workspace for each environment (dev, staging, prod)
-  # 3. Add TF_API_TOKEN secret to GitHub repository
   cloud {
     organization = "azure-policy-cloud"
 
     workspaces {
-      tags = ["azure-policy"]
+      name = "azure-policy-infrastructure"
     }
   }
 }
 
 provider "azurerm" {
+  subscription_id = var.subscription_id
   features {
     resource_group {
       prevent_deletion_if_contains_resources = false
@@ -85,7 +82,7 @@ resource "azurerm_resource_group" "main" {
 
 # Networking Module
 module "networking" {
-  source = "./modules/networking"
+  source = "../terraform/modules/networking"
 
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
@@ -102,28 +99,4 @@ module "networking" {
   enable_flow_logs       = var.enable_flow_logs
 
   tags = local.common_tags
-}
-
-# App Service Module
-module "app_service" {
-  source = "./modules/app-service"
-
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-  environment         = var.environment
-  workload            = local.workload
-
-  tags = local.common_tags
-
-  depends_on = [module.networking]
-}
-
-# Azure Policies Module
-module "policies" {
-  source = "./modules/policies"
-
-  resource_group_id         = azurerm_resource_group.main.id
-  enable_policy_assignments = var.enable_policy_assignments
-
-  depends_on = [azurerm_resource_group.main]
 }
