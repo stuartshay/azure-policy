@@ -9,7 +9,7 @@ This document describes the Terraform Cloud setup validation and key findings fo
 - **Organization**: `azure-policy-cloud`
 - **Workspaces**:
   - `azure-policy-infrastructure` - Core infrastructure resources
-  - `azure-policy-functions` - Azure Functions resources  
+  - `azure-policy-functions` - Azure Functions resources
   - `azure-policy-policies` - Policy definitions and assignments
 
 ### Authentication Setup
@@ -52,7 +52,7 @@ Error: could not configure AzureCli Authorizer: exec: "az": executable file not 
 **Solution**: Configure workspace to use Service Principal authentication
 - Set environment variables in Terraform Cloud workspace:
   - `ARM_CLIENT_ID`
-  - `ARM_CLIENT_SECRET` 
+  - `ARM_CLIENT_SECRET`
   - `ARM_SUBSCRIPTION_ID`
   - `ARM_TENANT_ID`
 

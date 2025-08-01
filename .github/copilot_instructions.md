@@ -455,7 +455,7 @@ terraform plan
 
 **Key Terraform Cloud Setup Points:**
 - **Organization**: `azure-policy-cloud`
-- **Workspaces**: 
+- **Workspaces**:
   - `azure-policy-infrastructure` (uses `infrastructure/infrastructure/`)
   - `azure-policy-functions` (uses `infrastructure/functions/`)
   - `azure-policy-policies` (uses `infrastructure/policies/`)
