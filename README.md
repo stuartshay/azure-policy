@@ -4,27 +4,62 @@ This repository contains tools and examples for Azure Policy management and Azur
 
 ## Repository Structure
 
+### Core Directories
 - **`policies/`** - Azure Policy definitions and examples
 - **`scripts/`** - Azure CLI scripts for policy management
 - **`functions/basic/`** - Azure Functions with HTTP triggers (Python 3.13)
+- **`infrastructure/`** - Terraform infrastructure as code
+- **`tests/`** - Comprehensive testing framework (81% coverage)
+  - `policies/` - Policy validation and fragment testing
+  - `integration/` - Azure CLI integration tests
+  - `infrastructure/` - Infrastructure testing
+  - `utils/` - Testing utilities and helpers
+
+### Configuration & Documentation
+- **`docs/`** - Complete project documentation
+  - `TESTING.md` - Testing framework guide
+  - `TROUBLESHOOTING.md` - Common issues and solutions
+  - `REQUIREMENTS.md` - Dependency management guide
+  - And 15+ other specialized guides
+- **`requirements/`** - Centralized dependency management
+  - `base.txt` - Core dependencies
+  - `dev.txt` - Development tools
+  - `functions.txt` - Azure Functions runtime
+  - `test.txt` - Testing framework dependencies
 - **`.devcontainer/`** - Complete development environment setup
 - **`.vscode/`** - VS Code configuration and recommended extensions
+- **`.github/`** - GitHub workflows and project guidelines
+
+### Configuration Files
+- **`pytest.ini`** - Testing configuration with coverage settings
+- **`run-tests.sh`** - Test runner with multiple execution modes
+- **`.pre-commit-config.yaml`** - Code quality and validation hooks
 
 ## Features
 
 ### Azure Policy Tools
 
-- Policy definitions and examples
+- Policy definitions and examples with validation testing
 - Azure CLI scripts for policy management
 - Compliance reporting tools
+- Policy fragment testing and validation
 
 ### Azure Functions
 
 - Python 3.13 with Azure Functions v4
 - HTTP triggers with "Hello World" example
 - Health check and info endpoints
-- Comprehensive testing with pytest
+- Comprehensive testing with pytest (81% coverage)
 - Local development with Azurite storage emulator
+
+### Testing Framework
+
+- **Comprehensive Coverage**: 81% code coverage across all components
+- **Policy Testing**: Validation for complete policies and fragments
+- **Integration Testing**: Azure CLI and cloud service integration
+- **Infrastructure Testing**: Terraform and resource validation
+- **Multiple Test Modes**: Smoke tests, full tests, coverage reports
+- **Test Runner**: Simple `./run-tests.sh` script with category options
 
 ### Development Environment
 
@@ -35,6 +70,7 @@ This repository contains tools and examples for Azure Policy management and Azur
 - **GitHub CLI**: For repository and pull request management
 - **Azurite**: Local Azure Storage emulator
 - **VS Code Extensions**: Recommended extensions for optimal development experience
+- **Pre-commit Hooks**: Automated code quality and validation
 
 ## Quick Start
 
@@ -133,6 +169,7 @@ This project uses a centralized requirements management system to avoid version 
 - **`requirements/base.txt`** - Core dependencies (Azure SDK, utilities)
 - **`requirements/dev.txt`** - Development tools (includes base.txt)
 - **`requirements/functions.txt`** - Minimal Azure Functions runtime dependencies
+- **`requirements/test.txt`** - Testing framework dependencies (pytest, coverage, mocking)
 - **`requirements.txt`** - Main development requirements (includes dev.txt)
 
 ### Installing Dependencies
@@ -144,6 +181,9 @@ pip install -r requirements.txt
 # Install only function runtime dependencies
 cd functions/basic
 pip install -r requirements.txt
+
+# Install only testing dependencies
+pip install -r requirements/test.txt
 ```
 
 ### Adding New Dependencies
@@ -151,6 +191,7 @@ pip install -r requirements.txt
 1. **Core dependencies** (needed everywhere): Add to `requirements/base.txt`
 2. **Development tools** (testing, linting): Add to `requirements/dev.txt`
 3. **Function-specific runtime**: Add to `requirements/functions.txt`
+4. **Testing framework**: Add to `requirements/test.txt`
 
 See `requirements/README.md` for detailed documentation.
 
@@ -159,15 +200,25 @@ See `requirements/README.md` for detailed documentation.
 ### Azure Policy Development
 
 1. Create or modify policy definitions in `policies/`
-2. Use scripts in `scripts/` to deploy and manage policies
-3. Test policy compliance and remediation
+2. Validate policies: `./run-tests.sh policies`
+3. Use scripts in `scripts/` to deploy and manage policies
+4. Run integration tests: `./run-tests.sh integration`
+5. Test policy compliance and remediation
 
 ### Azure Functions Development
 
 1. Modify functions in `functions/basic/function_app.py`
-2. Run tests: `python -m pytest tests/ -v`
-3. Format code: `black .`
+2. Run tests: `./run-tests.sh` or `python -m pytest tests/ -v`
+3. Format code: `black .` (automatic with pre-commit hooks)
 4. Test locally with `func start`
+5. Validate with coverage: `./run-tests.sh coverage`
+
+### Testing Workflow
+
+1. **Smoke tests**: `./run-tests.sh smoke` - Quick validation
+2. **Full tests**: `./run-tests.sh` - Complete test suite with coverage
+3. **Category tests**: `./run-tests.sh [policies|integration|infrastructure]`
+4. **Coverage analysis**: Check `htmlcov/index.html` after running coverage tests
 
 ### VS Code Integration
 
@@ -177,12 +228,23 @@ The repository includes comprehensive VS Code configuration:
 - **Tasks**: Pre-configured tasks for common operations
 - **Debugging**: Launch configurations for Azure Functions
 - **Settings**: Optimized settings for Python and Azure development
+- **Testing**: Integrated pytest runner with coverage support
 
 ## Available Scripts
 
 ### Environment Setup
 
 - `start-functions.sh` - Verify and setup Azure Functions development environment
+- `run-tests.sh` - Comprehensive test runner with multiple execution modes
+
+### Testing Scripts
+
+- `./run-tests.sh` - Run all tests with coverage
+- `./run-tests.sh smoke` - Quick smoke tests for fast validation
+- `./run-tests.sh policies` - Policy validation tests only
+- `./run-tests.sh integration` - Azure CLI integration tests only
+- `./run-tests.sh infrastructure` - Infrastructure tests only
+- `./run-tests.sh coverage` - Generate detailed coverage reports
 
 ### DevContainer Testing
 
@@ -191,7 +253,7 @@ The repository includes comprehensive VS Code configuration:
 - `debug-devcontainer.sh` - Comprehensive diagnostic and debugging tool
 - `validate-requirements.sh` - Validate Python requirements setup
 
-See `DEVCONTAINER_TESTING.md` for detailed usage and troubleshooting guide.
+See `docs/DEVCONTAINER_TESTING.md` for detailed usage and troubleshooting guide.
 
 ### Policy Management (`scripts/`)
 
@@ -208,14 +270,57 @@ See `DEVCONTAINER_TESTING.md` for detailed usage and troubleshooting guide.
 - **Start Azure Functions** - Launch function app locally
 - **Start Azurite** - Start Azure Storage emulator
 - **Install Python Dependencies** - Install/update packages
-- **Run Tests** - Execute unit tests
+- **Run Tests** - Execute unit tests with pytest
 - **Format Code** - Format with Black
 - **Lint Code** - Run pylint
 
 ## Testing
 
+This project includes a comprehensive testing framework with **81% code coverage** and multiple test categories:
+
+### Quick Testing
+
 ```bash
-# Run Azure Functions tests
+# Run all tests with the test runner
+./run-tests.sh
+
+# Run smoke tests only (fast validation)
+./run-tests.sh smoke
+
+# Run with coverage report
+./run-tests.sh coverage
+```
+
+### Detailed Testing
+
+```bash
+# Run policy validation tests
+./run-tests.sh policies
+
+# Run Azure CLI integration tests
+./run-tests.sh integration
+
+# Run infrastructure tests
+./run-tests.sh infrastructure
+
+# Run specific test files
+python -m pytest tests/policies/test_policy_validation.py -v
+
+# Run with detailed coverage
+python -m pytest tests/ --cov=. --cov-report=html --cov-report=term
+```
+
+### Test Categories
+
+- **Policy Tests**: Validate policy definitions and fragments
+- **Integration Tests**: Azure CLI and cloud service integration
+- **Infrastructure Tests**: Terraform and resource validation
+- **Utility Tests**: Helper functions and common utilities
+
+### Azure Functions Testing
+
+```bash
+# Run Azure Functions tests specifically
 cd functions/basic
 python -m pytest tests/ -v
 
@@ -223,12 +328,31 @@ python -m pytest tests/ -v
 python -m pytest tests/ --cov=. --cov-report=html
 ```
 
+See `docs/TESTING.md` for comprehensive testing documentation and troubleshooting.
+
 ## Documentation
 
+### Component Documentation
 - **Azure Policy**: See `policies/README.md`
 - **Azure Functions**: See `functions/basic/README.md`
 - **Scripts**: See `scripts/README.md`
-- **Troubleshooting**: See `TROUBLESHOOTING.md`
+- **Testing**: See `docs/TESTING.md` - Comprehensive testing framework guide
+- **Requirements**: See `docs/REQUIREMENTS.md` - Dependency management
+- **Troubleshooting**: See `docs/TROUBLESHOOTING.md` - Common issues and solutions
+
+### Setup & Configuration Guides
+- **DevContainer**: See `docs/DEVCONTAINER_TESTING.md`
+- **Azure Secrets**: See `docs/AZURE_SECRETS_SETUP.md` 
+- **GitHub Secrets**: See `docs/GITHUB_SECRETS_SETUP.md`
+- **Terraform Cloud**: See `docs/TERRAFORM_CLOUD_SETUP.md`
+- **Infrastructure**: See `docs/INFRASTRUCTURE.md`
+
+### Development Guides
+- **Pre-commit Integration**: See `docs/PRE_COMMIT_INTEGRATION.md`
+- **Functions Development**: See `docs/FUNCTIONS.md`
+- **Policy Development**: See `docs/POLICIES.md`
+
+See `docs/README.md` for a complete documentation index.
 
 ## Resources
 
