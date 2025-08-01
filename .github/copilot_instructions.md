@@ -427,19 +427,52 @@ pre-commit run black --all-files              # Python formatting
 
 #### Terraform Cloud Connectivity Test
 ```bash
+# ALWAYS check directory first
+pwd
+# Expected: /home/vagrant/git/azure-policy (project root)
+
 # Load environment variables
 source .env
 
+# Navigate to CORRECT infrastructure directory (important!)
+cd infrastructure/infrastructure  # NOT infrastructure/terraform!
+pwd
+# Expected: /home/vagrant/git/azure-policy/infrastructure/infrastructure
+
+# Verify workspace configuration
+terraform workspace show
+# Expected: azure-policy-infrastructure
+
 # Test Terraform initialization (with backend)
-cd infrastructure/infrastructure
 terraform init
 
 # Validate configuration
 terraform validate
 
-# Plan changes (dry run)
+# Plan changes (dry run) - requires Azure Service Principal setup in workspace
 terraform plan
 ```
+
+**Key Terraform Cloud Setup Points:**
+- **Organization**: `azure-policy-cloud`
+- **Workspaces**:
+  - `azure-policy-infrastructure` (uses `infrastructure/infrastructure/`)
+  - `azure-policy-functions` (uses `infrastructure/functions/`)
+  - `azure-policy-policies` (uses `infrastructure/policies/`)
+- **Authentication**: Service Principal required in workspace environment variables
+- **Directory**: Use `infrastructure/infrastructure/` NOT `infrastructure/terraform/`
+
+**If terraform plan fails with Azure CLI error:**
+1. Go to Terraform Cloud workspace settings
+2. Add environment variables (mark ARM_CLIENT_SECRET as sensitive):
+   ```
+   ARM_CLIENT_ID=<from .env file>
+   ARM_CLIENT_SECRET=<from .env file>
+   ARM_SUBSCRIPTION_ID=<from .env file>
+   ARM_TENANT_ID=<from .env file>
+   ```
+
+See `docs/TERRAFORM_CLOUD_VALIDATION.md` for complete setup guide.
 
 #### Azure Functions Local Testing
 ```bash
