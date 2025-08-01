@@ -171,29 +171,69 @@ def function_handler(req: func.HttpRequest) -> func.HttpResponse:
 
 ## Testing Guidelines
 
-### 1. Test Coverage
+### 1. Test Coverage and Strategy
 
-- **Rule**: Maintain minimum 80% test coverage
+- **Rule**: Maintain minimum 80% test coverage for functions, validate all policy files
 - **Tools**: Use pytest for testing, coverage.py for coverage reporting
-- **Types**: Unit tests, integration tests, and functional tests
+- **Types**: Unit tests, integration tests, policy validation tests, and infrastructure tests
+- **Command**: Use `./run-tests.sh` for comprehensive testing workflows
 
-### 2. Test Structure
+### 2. Policy Testing Framework
 
-- **Rule**: Mirror source code structure in test directories
-- **Naming**: Prefix test files with `test_`
-- **Organization**: Group related tests in test classes
+- **Location**: `tests/` directory with organized subdirectories
+- **Policy validation**: Test JSON syntax, structure, and Azure compliance
+- **Fragment support**: Handle both complete policies and modular policy components
+- **Azure CLI integration**: Simulate and validate Azure CLI policy operations
+- **Naming validation**: Enforce consistent policy file naming conventions
 
-### 3. Test Data
+### 3. Test Structure and Organization
 
-- **Rule**: Use fixtures for reusable test data
-- **Implementation**: Create `conftest.py` for shared fixtures
+```
+tests/
+├── __init__.py                    # Package initialization
+├── conftest.py                   # Shared fixtures and utilities
+├── policies/                     # Azure Policy validation tests
+│   ├── test_policy_validation.py    # Structure and syntax validation
+│   ├── test_existing_policies.py    # Tests for specific policy files
+│   └── test_policy_fragments.py     # Modular policy component tests
+├── integration/                  # Integration and Azure CLI tests
+│   └── test_azure_cli_integration.py # CLI simulation and live tests
+├── infrastructure/              # Infrastructure testing (future)
+└── utils/                      # Test utilities and helpers
+```
+
+### 4. Testing Commands and Workflows
+
+```bash
+# Quick validation
+./run-tests.sh smoke              # Fast syntax validation
+
+# Comprehensive testing
+./run-tests.sh all                # Run all tests
+./run-tests.sh policy             # Policy validation only
+./run-tests.sh integration        # Integration tests only
+./run-tests.sh coverage           # Tests with coverage report
+
+# Specific validation
+./run-tests.sh validate policies/storage-naming.json
+
+# Generate reports
+./run-tests.sh report             # Comprehensive HTML report
+```
+
+### 5. Test Data and Fixtures
+
+- **Rule**: Use fixtures for reusable test data in `conftest.py`
+- **Policy helpers**: Use `PolicyTestHelper` for validation logic
+- **Mock data**: Provide sample policies and Azure resource structures
 - **Isolation**: Each test should be independent and isolated
 
-### 4. Mock External Dependencies
+### 6. Mock External Dependencies
 
 - **Rule**: Mock all external API calls and Azure services
-- **Tools**: Use unittest.mock or pytest-mock
-- **Rationale**: Ensures tests run consistently without external dependencies
+- **Azure CLI**: Simulate commands without requiring authentication
+- **Live tests**: Optional live tests marked with `@pytest.mark.live`
+- **Tools**: Use unittest.mock, pytest-mock, and responses for HTTP mocking
 
 ## Security Guidelines
 
@@ -517,7 +557,14 @@ cd functions/basic && pwd && func start --python
 # ALWAYS VERIFY LOCATION FIRST
 pwd                          # Check current directory
 
-# Start Azure Functions locally
+# Testing commands
+./run-tests.sh smoke         # Quick validation
+./run-tests.sh policy        # Policy validation tests
+./run-tests.sh integration   # Integration tests
+./run-tests.sh coverage      # Tests with coverage report
+./run-tests.sh validate policies/policy-name.json  # Validate specific policy
+
+# Azure Functions development
 cd functions/basic && pwd && func start
 
 # Run tests
