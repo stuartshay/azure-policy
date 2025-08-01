@@ -20,7 +20,7 @@ terraform {
     organization = "azure-policy-cloud"
 
     workspaces {
-      tags = ["azure-policy"]
+      name = "azure-policy-infrastructure"
     }
   }
 }
