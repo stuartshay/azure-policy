@@ -17,19 +17,36 @@ This document defines the coding standards, architectural principles, and develo
 
 ## General Principles
 
-### 1. Cloud-First Development
+### 1. Directory Awareness - Always Check Location First
+
+- **Rule**: ALWAYS run `pwd` before executing any commands or operations
+- **Rationale**: Prevents accidental operations in wrong directories, ensures context awareness
+- **Implementation**: Make `pwd` your first command in any terminal session or operation
+- **Example**:
+```bash
+# ALWAYS start with location check
+pwd
+# Expected: /home/vagrant/git/azure-policy (project root)
+
+# Then proceed with operations
+cd functions/basic
+pwd
+# Expected: /home/vagrant/git/azure-policy/functions/basic
+```
+
+### 2. Cloud-First Development
 
 - **Rule**: All solutions must be designed for Azure cloud deployment
 - **Rationale**: Ensures scalability, reliability, and leverages Azure-native services
 - **Implementation**: Use Azure services (Functions, Storage, Policy) over custom implementations
 
-### 2. Security by Design
+### 3. Security by Design
 
 - **Rule**: Security considerations must be implemented from the start, not added later
 - **Rationale**: Prevents vulnerabilities and ensures compliance
 - **Implementation**: Use managed identities, least privilege access, secure configurations
 
-### 3. Infrastructure as Code
+### 4. Infrastructure as Code
 
 - **Rule**: All infrastructure must be defined and managed through code
 - **Rationale**: Ensures consistency, repeatability, and version control
@@ -264,11 +281,60 @@ def function_handler(req: func.HttpRequest) -> func.HttpResponse:
 - **Tools**: Python 3.13, Azure CLI, Azure Functions Core Tools
 - **Configuration**: VS Code with recommended extensions
 
+#### Current Environment Setup
+- **Python**: 3.13.5 (venv environment)
+- **Azure CLI**: 2.75.0
+- **Terraform**: 1.12.2
+- **Azure Functions Core Tools**: 4.1.0
+- **Node.js**: 24.4.1 (for additional tooling)
+- **jq**: 1.6 (JSON processing)
+
+#### Pre-commit Hooks Configuration
+- **actionlint**: v1.7.7 (GitHub Actions validation)
+- **black**: 25.1.0 (Python formatting)
+- **isort**: 6.0.1 (Import organization)
+- **flake8**: 7.1.1 (Python linting)
+- **shellcheck**: v0.10.0.1 (Shell script validation)
+- **terraform**: v1.96.1 (Terraform validation and formatting)
+- **checkov**: Security scanning for Terraform
+- **bandit**: 1.7.10 (Python security analysis)
+
 ### 2. Local Development
 
 - **Storage**: Use Azurite for local Azure Storage emulation
 - **Functions**: Use Azure Functions Core Tools for local testing
 - **Policies**: Test with Azure CLI in development subscriptions
+
+#### Azure Functions Setup
+```bash
+# Function app structure
+functions/basic/
+├── function_app.py          # Main function definitions
+├── host.json               # Function host configuration
+├── local.settings.json     # Local development settings
+├── requirements.txt        # Python dependencies
+├── .venv/                 # Virtual environment
+└── tests/                 # Unit tests
+```
+
+#### Environment Configuration (.env)
+```bash
+# Terraform Cloud
+TF_API_TOKEN=<your_terraform_cloud_token>
+TF_CLOUD_ORGANIZATION=azure-policy-cloud
+
+# Azure Service Principal
+ARM_CLIENT_ID=<service_principal_id>
+ARM_CLIENT_SECRET=<service_principal_secret>
+ARM_SUBSCRIPTION_ID=<subscription_id>
+ARM_TENANT_ID=<tenant_id>
+
+# Project Configuration
+TF_VAR_environment=dev
+TF_VAR_location="East US"
+TF_VAR_owner=platform-team
+TF_VAR_cost_center=development
+```
 
 ### 3. Deployment Environments
 
@@ -276,11 +342,121 @@ def function_handler(req: func.HttpRequest) -> func.HttpResponse:
 - **Isolation**: Use separate Azure subscriptions or resource groups
 - **Promotion**: Automated deployment through approved changes
 
+#### Terraform Cloud Configuration
+- **Organization**: azure-policy-cloud
+- **Backend**: Terraform Cloud for state management
+- **Modules**: infrastructure, functions, policies
+- **Workspaces**: Separate workspaces per module and environment
+
+#### Infrastructure Structure
+```
+infrastructure/
+├── infrastructure/         # Core resources (networking, RG, storage)
+├── functions/             # Azure Functions resources
+├── policies/              # Azure Policy definitions
+└── terraform/            # Main Terraform configuration
+    └── modules/          # Reusable Terraform modules
+        ├── networking/   # Virtual networks, subnets, NSGs
+        └── policies/     # Policy definitions and assignments
+```
+
 ### 4. Monitoring and Logging
 
 - **Rule**: Implement comprehensive monitoring
 - **Tools**: Application Insights for functions, Azure Monitor for policies
 - **Alerts**: Set up alerts for errors and performance issues
+
+#### GitHub Actions Workflows
+- **terraform-validate.yml**: Validates all Terraform configurations
+- **terraform-apply.yml**: Deploys infrastructure changes
+- **terraform-destroy.yml**: Safely destroys development environments
+- **docs-structure-check.yml**: Validates documentation organization
+
+### 5. Environment Validation
+
+#### Quick Environment Check
+```bash
+# Run all pre-commit hooks
+pre-commit run --all-files
+
+# Validate specific components
+pre-commit run actionlint --all-files          # GitHub Actions
+pre-commit run terraform_validate --all-files  # Terraform
+pre-commit run black --all-files              # Python formatting
+```
+
+#### Terraform Cloud Connectivity Test
+```bash
+# Load environment variables
+source .env
+
+# Test Terraform initialization (with backend)
+cd infrastructure/infrastructure
+terraform init
+
+# Validate configuration
+terraform validate
+
+# Plan changes (dry run)
+terraform plan
+```
+
+#### Azure Functions Local Testing
+```bash
+# Start Azurite (Azure Storage emulator)
+azurite --silent --location azurite-data
+
+# Start Azure Functions locally
+cd functions/basic
+source .venv/bin/activate
+func start --python
+
+# Test health endpoint
+curl http://localhost:7071/api/health
+```
+
+### 6. Troubleshooting
+
+#### Common Issues and Solutions
+
+**Terraform Cloud Authentication**
+```bash
+# If terraform init fails with token errors
+export TF_API_TOKEN="your_token_here"
+terraform login  # Alternative authentication method
+```
+
+**Python Environment Issues**
+```bash
+# Recreate virtual environment
+cd functions/basic
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+**Pre-commit Hook Failures**
+```bash
+# Update all hooks to latest versions
+pre-commit autoupdate
+
+# Clear and reinstall hooks
+pre-commit clean
+pre-commit install
+```
+
+**Azure CLI Authentication**
+```bash
+# Check current authentication status
+az account show
+
+# Login if needed
+az login
+
+# Set default subscription
+az account set --subscription "your-subscription-id"
+```
 
 ## Compliance and Governance
 
@@ -306,23 +482,62 @@ def function_handler(req: func.HttpRequest) -> func.HttpResponse:
 
 ## Quick Reference
 
+### Environment Validation Commands
+
+```bash
+# ALWAYS START WITH LOCATION CHECK
+pwd                                   # Verify current directory location
+
+# Complete environment validation
+pre-commit run --all-files
+
+# Individual component checks
+terraform --version                    # Terraform v1.12.2
+az --version                          # Azure CLI 2.75.0
+func --version                        # Functions Core Tools 4.1.0
+python3 --version                     # Python 3.10.12
+
+# Load environment variables
+source .env
+
+# Test Azure connectivity
+az account show
+
+# Test Terraform Cloud connectivity
+cd infrastructure/infrastructure && pwd && terraform init
+
+# Start local development environment
+azurite --silent --location azurite-data &
+cd functions/basic && pwd && func start --python
+```
+
 ### Common Commands
 
 ```bash
+# ALWAYS VERIFY LOCATION FIRST
+pwd                          # Check current directory
+
 # Start Azure Functions locally
-cd functions/basic && func start
+cd functions/basic && pwd && func start
 
 # Run tests
-python -m pytest tests/ -v
+pwd && python -m pytest tests/ -v
 
 # Format code
-black .
+pwd && black .
 
 # Lint code
-pylint function_app.py
+pwd && pylint function_app.py
 
 # Deploy policy
-az policy definition create --name "policy-name" --rules policy.json
+pwd && az policy definition create --name "policy-name" --rules policy.json
+
+# Terraform operations (from infrastructure modules)
+cd infrastructure/infrastructure && pwd
+terraform init      # Initialize with Terraform Cloud backend
+terraform plan       # Preview changes
+terraform apply      # Apply changes
+terraform destroy    # Destroy resources (dev only)
 ```
 
 ### VS Code Tasks
@@ -331,12 +546,175 @@ az policy definition create --name "policy-name" --rules policy.json
 - **Run Tests**: Executes pytest with coverage
 - **Format Code**: Runs Black formatter
 - **Lint Code**: Runs pylint analysis
+- **Install Python Dependencies**: Installs requirements in virtual environment
+- **Start Azurite**: Starts Azure Storage emulator
 
 ### Environment Variables
 
-- `AZURE_SUBSCRIPTION_ID`: Target subscription for deployments
-- `AZURE_TENANT_ID`: Azure tenant identifier
-- `AZURE_CLIENT_ID`: Service principal client ID (CI/CD only)
+#### Required for Development
+- `TF_API_TOKEN`: Terraform Cloud API token
+- `ARM_CLIENT_ID`: Azure Service Principal client ID
+- `ARM_CLIENT_SECRET`: Azure Service Principal secret
+- `ARM_SUBSCRIPTION_ID`: Target subscription for deployments
+- `ARM_TENANT_ID`: Azure tenant identifier
+
+#### Project Configuration
+- `TF_VAR_environment`: Deployment environment (dev/staging/prod)
+- `TF_VAR_location`: Azure region ("East US")
+- `TF_VAR_owner`: Resource owner (platform-team)
+- `TF_VAR_cost_center`: Cost center for billing (development)
+
+#### Local Development Settings
+- `AZURE_WebJobsStorage`: Azurite connection string
+- `FUNCTIONS_WORKER_RUNTIME`: python
+- `AzureWebJobsFeatureFlags`: EnableWorkerIndexing
+
+### GitHub Actions Integration
+
+#### Workflow Triggers
+- **terraform-validate.yml**: On PR/push to infrastructure files
+- **terraform-apply.yml**: Manual deployment workflow
+- **terraform-destroy.yml**: Manual cleanup workflow
+- **docs-structure-check.yml**: On markdown file changes
+
+#### Required GitHub Secrets
+- `TF_API_TOKEN`: Terraform Cloud token
+- `AZURE_SUBSCRIPTION_ID`: Target Azure subscription
+- `AZURE_LOCATION`: Default deployment region
+- `AZURE_CLIENT_ID`: Service Principal ID (for automated deployments)
+- `AZURE_CLIENT_SECRET`: Service Principal secret
+
+### Pre-commit Hook Status
+
+Current hooks configured and passing:
+- ✅ General file formatting (trailing whitespace, EOF, YAML/JSON validation)
+- ✅ Python formatting (black, isort, flake8)
+- ✅ PowerShell analysis (PSScriptAnalyzer when available)
+- ✅ Shell script linting (shellcheck)
+- ✅ Documentation structure enforcement
+- ✅ Azure Policy JSON validation
+- ✅ Terraform formatting and validation (fmt, validate, docs, tflint, checkov)
+- ✅ GitHub Actions linting (actionlint v1.7.7)
+- ✅ Python security scanning (bandit)
+
+---
+
+## Environment Validation Checklist
+
+### 🎯 **CRITICAL: Always Check Directory Location First**
+
+**Before ANY operation, ALWAYS run:**
+```bash
+pwd
+# Should return: /home/vagrant/git/azure-policy (for project root operations)
+```
+
+### ✅ **Local Environment Setup**
+
+Use this checklist to ensure your development environment is properly configured:
+
+#### Core Tools
+- [ ] **Python 3.13.5** with virtual environment in `functions/basic/.venv`
+- [ ] **Azure CLI 2.75.0** authenticated with `az account show`
+- [ ] **Terraform 1.12.2** with Terraform Cloud credentials
+- [ ] **Azure Functions Core Tools 4.1.0** for local testing
+- [ ] **Node.js 24.4.1** and **jq 1.6** for additional tooling
+
+#### Configuration Files
+- [ ] **.env file** with all required tokens and variables
+- [ ] **local.settings.json** in functions/basic with Azurite configuration
+- [ ] **~/.terraform.d/credentials.tfrc.json** for Terraform Cloud authentication
+- [ ] **.pre-commit-config.yaml** with all hooks configured
+
+#### Pre-commit Hooks Status
+Run `pre-commit run --all-files` to verify all hooks pass:
+- [ ] **General file formatting** (whitespace, EOF, YAML/JSON)
+- [ ] **Python formatting** (black, isort, flake8)
+- [ ] **Shell script linting** (shellcheck)
+- [ ] **Terraform validation** (fmt, validate, docs, tflint, checkov)
+- [ ] **GitHub Actions linting** (actionlint v1.7.7)
+- [ ] **Security scanning** (bandit)
+- [ ] **Documentation structure** enforcement
+- [ ] **Azure Policy JSON** validation
+
+#### Connectivity Tests
+- [ ] **Azure authentication**: `az account show` returns subscription details
+- [ ] **Terraform Cloud**: `terraform init` succeeds in infrastructure modules
+- [ ] **GitHub**: Actions workflows validate without errors
+- [ ] **Python environment**: All dependencies installed and importable
+
+#### Local Development Services
+- [ ] **Azurite** starts successfully with `azurite --silent --location azurite-data`
+- [ ] **Azure Functions** starts with `func start --python` in functions/basic
+- [ ] **Health endpoint** responds at `http://localhost:7071/api/health`
+
+### 🔧 **Troubleshooting Quick Fixes**
+
+#### Directory Location Issues (Most Common Problem)
+```bash
+# ALWAYS check where you are first
+pwd
+
+# Navigate to project root if needed
+cd /home/vagrant/git/azure-policy
+pwd  # Verify you're in the right place
+
+# Common correct locations:
+# Project root: /home/vagrant/git/azure-policy
+# Functions: /home/vagrant/git/azure-policy/functions/basic
+# Infrastructure: /home/vagrant/git/azure-policy/infrastructure/infrastructure
+```
+
+#### If Pre-commit Hooks Fail
+```bash
+pwd  # Verify you're in project root
+pre-commit clean && pre-commit install
+pre-commit autoupdate
+```
+
+#### If Terraform Init Fails
+```bash
+pwd  # Should be in infrastructure/infrastructure
+source ../../.env  # Load from project root
+export TF_API_TOKEN="$TF_API_TOKEN"
+terraform login  # Alternative method
+```
+
+#### If Python Environment Issues
+```bash
+cd /home/vagrant/git/azure-policy/functions/basic
+pwd  # Verify location
+rm -rf .venv && python3 -m venv .venv
+source .venv/bin/activate && pip install -r requirements.txt
+```
+
+#### If Azure CLI Authentication Fails
+```bash
+pwd  # Check location first
+az login
+az account set --subscription "$ARM_SUBSCRIPTION_ID"
+```
+
+### 📊 **Project Health Dashboard**
+
+| Component | Status | Command to Check |
+|-----------|--------|------------------|
+| Pre-commit Hooks | ✅ All Passing | `pre-commit run --all-files` |
+| Python Environment | ✅ Active | `python --version` |
+| Azure CLI | ✅ Authenticated | `az account show` |
+| Terraform Cloud | ✅ Connected | `terraform init` |
+| GitHub Actions | ✅ Valid | `pre-commit run actionlint --all-files` |
+| Function App | ✅ Ready | `func start --python` |
+| Azurite | ✅ Running | `curl http://localhost:10000` |
+
+### 🚀 **Ready for Development**
+
+Once all items above are checked, your environment is ready for:
+- Azure Functions development and testing
+- Azure Policy creation and validation
+- Terraform infrastructure deployment
+- GitHub Actions workflow execution
+- Full CI/CD pipeline functionality
 
 ---
 
