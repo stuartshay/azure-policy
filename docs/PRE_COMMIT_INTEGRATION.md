@@ -8,7 +8,7 @@ Our setup leverages the existing comprehensive validation instead of duplicating
 
 ### Local Pre-commit Hooks (`.pre-commit-config.yaml`)
 - **Terraform formatting** - `terraform_fmt`
-- **Terraform validation** - `terraform_validate` 
+- **Terraform validation** - `terraform_validate`
 - **Documentation generation** - `terraform_docs`
 - **Security scanning** - `terraform_checkov`
 - **TFLint analysis** - `terraform_tflint`
@@ -45,7 +45,7 @@ Our setup leverages the existing comprehensive validation instead of duplicating
 
 **Pre-commit Hook Results:**
 - ✅ terraform_validate: Passed
-- ✅ terraform_fmt: Passed  
+- ✅ terraform_fmt: Passed
 - ✅ terraform_docs: Passed
 - ❌ terraform_checkov: 6 failed checks (security improvements needed)
 

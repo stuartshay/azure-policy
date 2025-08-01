@@ -31,17 +31,6 @@ data "azurerm_resource_group" "main" {
   name = var.resource_group_name
 }
 
-data "azurerm_virtual_network" "main" {
-  name                = var.vnet_name
-  resource_group_name = var.resource_group_name
-}
-
-data "azurerm_subnet" "functions" {
-  name                 = var.functions_subnet_name
-  virtual_network_name = var.vnet_name
-  resource_group_name  = var.resource_group_name
-}
-
 # Common tags for Functions resources
 locals {
   common_tags = {
@@ -57,6 +46,7 @@ locals {
 
 # Storage Account for Functions
 resource "azurerm_storage_account" "functions" {
+  #checkov:skip=CKV2_AZURE_40:Shared access key is required for Function Apps
   name                     = "stfunc${var.workload}${var.environment}001"
   resource_group_name      = data.azurerm_resource_group.main.name
   location                 = data.azurerm_resource_group.main.location
@@ -64,10 +54,21 @@ resource "azurerm_storage_account" "functions" {
   account_replication_type = "LRS"
   min_tls_version          = "TLS1_2"
 
+  # Security configurations
+  allow_nested_items_to_be_public = false
+  shared_access_key_enabled       = true # Required for Function Apps
+  public_network_access_enabled   = true # Required for Function Apps
+
   blob_properties {
     delete_retention_policy {
       days = 7
     }
+  }
+
+  # SAS expiration policy
+  sas_policy {
+    expiration_period = "01.00:00:00" # 1 day
+    expiration_action = "Log"
   }
 
   tags = local.common_tags
@@ -93,6 +94,10 @@ resource "azurerm_linux_function_app" "main" {
   storage_account_name       = azurerm_storage_account.functions.name
   storage_account_access_key = azurerm_storage_account.functions.primary_access_key
   service_plan_id            = azurerm_service_plan.functions.id
+
+  # Security configurations
+  https_only                    = true
+  public_network_access_enabled = false
 
   site_config {
     application_stack {

@@ -40,16 +40,6 @@ variable "resource_group_name" {
   type        = string
 }
 
-variable "vnet_name" {
-  description = "Name of the existing virtual network"
-  type        = string
-}
-
-variable "functions_subnet_name" {
-  description = "Name of the subnet for Functions"
-  type        = string
-  default     = "snet-functions-azpolicy-dev-eastus-001"
-}
 
 # Functions Configuration
 variable "functions_sku_name" {

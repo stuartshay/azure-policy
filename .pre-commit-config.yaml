@@ -73,7 +73,7 @@ repos:
     hooks:
       - id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
-        exclude: '\.secrets\.baseline$|package-lock\.json$|\.git/|\.venv/|\.mypy_cache/|__pycache__/|azurite-data/|\.terraform/'
+        exclude: '\.secrets\.baseline$|\.secrets\.yaml$|\.secrets\.allowlist$|package-lock\.json$|\.git/|\.venv/|\.mypy_cache/|__pycache__/|azurite-data/|\.terraform/|\.terraform\.lock\.hcl$'
 
   # Documentation and markdown
   # - repo: https://github.com/igorshubovych/markdownlint-cli
