@@ -342,7 +342,7 @@ See `docs/TESTING.md` for comprehensive testing documentation and troubleshootin
 
 ### Setup & Configuration Guides
 - **DevContainer**: See `docs/DEVCONTAINER_TESTING.md`
-- **Azure Secrets**: See `docs/AZURE_SECRETS_SETUP.md` 
+- **Azure Secrets**: See `docs/AZURE_SECRETS_SETUP.md`
 - **GitHub Secrets**: See `docs/GITHUB_SECRETS_SETUP.md`
 - **Terraform Cloud**: See `docs/TERRAFORM_CLOUD_SETUP.md`
 - **Infrastructure**: See `docs/INFRASTRUCTURE.md`
