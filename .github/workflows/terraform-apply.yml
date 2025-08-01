@@ -147,14 +147,10 @@ jobs:
               fi
               ;;
           esac
-
-          if [ "${{ steps.outputs.outputs_available }}" != "true" ]; then
-            echo "⚠️ No outputs available - infrastructure may not be deployed yet"
-          fi
         working-directory: infrastructure/${{ github.event.inputs.module }}
 
       - name: Generate Deployment Summary
-        if: steps.apply.outputs.applied == 'true' || (steps.plan.outputs.exitcode == 0 && steps.outputs.outputs_available == 'true')
+        if: steps.apply.outputs.applied == 'true' || steps.plan.outputs.exitcode == 0
         run: |
           if [ "${{ steps.apply.outputs.applied }}" == "true" ]; then
             echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
@@ -168,22 +164,33 @@ jobs:
             echo "- **Status:** ✅ ${{ github.event.inputs.module }} module deployed successfully" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
 
-            if [ "${{ steps.outputs.outputs_available }}" == "true" ]; then
-              echo "### Deployed Resources" >> $GITHUB_STEP_SUMMARY
-              case "${{ github.event.inputs.module }}" in
-                "infrastructure")
-                  echo "- **Resource Group:** ${{ steps.outputs.resource_group_name }}" >> $GITHUB_STEP_SUMMARY
-                  echo "- **Virtual Network:** ${{ steps.outputs.vnet_name }}" >> $GITHUB_STEP_SUMMARY
-                  ;;
-                "functions")
-                  echo "- **Function App:** ${{ steps.outputs.function_app_name }}" >> $GITHUB_STEP_SUMMARY
-                  echo "- **App Service Plan:** ${{ steps.outputs.app_service_plan_name }}" >> $GITHUB_STEP_SUMMARY
-                  ;;
-                "policies")
-                  echo "- **Policy Set:** ${{ steps.outputs.policy_set_id }}" >> $GITHUB_STEP_SUMMARY
-                  ;;
-              esac
-            fi
+            # Get outputs if available
+            outputs_available="false"
+            case "${{ github.event.inputs.module }}" in
+              "infrastructure")
+                if terraform output resource_group_name >/dev/null 2>&1; then
+                  echo "### Deployed Resources" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Resource Group:** $(terraform output -raw resource_group_name)" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Virtual Network:** $(terraform output -raw vnet_name)" >> $GITHUB_STEP_SUMMARY
+                  outputs_available="true"
+                fi
+                ;;
+              "functions")
+                if terraform output function_app_name >/dev/null 2>&1; then
+                  echo "### Deployed Resources" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Function App:** $(terraform output -raw function_app_name)" >> $GITHUB_STEP_SUMMARY
+                  echo "- **App Service Plan:** $(terraform output -raw app_service_plan_name)" >> $GITHUB_STEP_SUMMARY
+                  outputs_available="true"
+                fi
+                ;;
+              "policies")
+                if terraform output policy_set_id >/dev/null 2>&1; then
+                  echo "### Deployed Resources" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Policy Set:** $(terraform output -raw policy_set_id)" >> $GITHUB_STEP_SUMMARY
+                  outputs_available="true"
+                fi
+                ;;
+            esac
           else
             echo "## 📋 Infrastructure Status" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -201,9 +208,10 @@ jobs:
           echo "2. Test deployed services" >> $GITHUB_STEP_SUMMARY
           echo "3. Configure monitoring alerts" >> $GITHUB_STEP_SUMMARY
           echo "4. Review cost management dashboard" >> $GITHUB_STEP_SUMMARY
+        working-directory: infrastructure/${{ github.event.inputs.module }}
 
       - name: Create Success Issue
-        if: steps.apply.outputs.applied == 'true' || (steps.plan.outputs.exitcode == 0 && steps.outputs.outputs_available == 'true')
+        if: steps.apply.outputs.applied == 'true' || steps.plan.outputs.exitcode == 0
         uses: actions/github-script@v7
         with:
           script: |

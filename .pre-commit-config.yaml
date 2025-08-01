@@ -156,6 +156,12 @@ repos:
           - --args=--framework terraform
           - --args=--config-file=/home/vagrant/git/azure-policy/.checkov.yaml
 
+  # GitHub Actions linting
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7 # Use the latest version
+    hooks:
+      - id: actionlint
+
   # Security and dependency scanning
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.10
