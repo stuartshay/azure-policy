@@ -80,7 +80,6 @@ coverage.xml
 .hypothesis/
 
 # IDEs
-.vscode/settings.json
 .idea/
 *.swp
 *.swo

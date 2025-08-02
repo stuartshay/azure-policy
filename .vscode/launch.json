@@ -45,6 +45,79 @@
       "python": "${workspaceFolder}/functions/basic/.venv/bin/python"
     },
     {
+      "name": "Python: Debug All Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "tests",
+        "-v",
+        "--tb=short"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/functions/basic/.venv/bin/python"
+    },
+    {
+      "name": "Python: Debug Current Test File",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "${file}",
+        "-v",
+        "--tb=short"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/functions/basic/.venv/bin/python"
+    },
+    {
+      "name": "Python: Debug Policy Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "tests/policies",
+        "-v",
+        "-m",
+        "policy"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/functions/basic/.venv/bin/python"
+    },
+    {
+      "name": "Python: Debug Integration Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "tests/integration",
+        "-v",
+        "-m",
+        "integration"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/functions/basic/.venv/bin/python"
+    },
+    {
+      "name": "Python: Debug Tests with Coverage",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "tests",
+        "-v",
+        "--cov=.",
+        "--cov-report=term-missing"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/functions/basic/.venv/bin/python"
+    },
+    {
       "name": "Attach to Python Functions",
       "type": "debugpy",
       "request": "attach",
