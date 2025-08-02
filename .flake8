@@ -1,0 +1,33 @@
+[flake8]
+max-line-length = 120
+extend-ignore =
+    # E203: whitespace before ':' (conflicts with black)
+    E203,
+    # W503: line break before binary operator (conflicts with black)
+    W503,
+    # F401: imported but unused (allow in test files for fixtures)
+    F401,
+    # F841: local variable assigned but never used (common in tests)
+    F841
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    .tox,
+    htmlcov,
+    .pytest_cache,
+    azurite-data,
+    functions/basic/.venv,
+    functions/basic/__pycache__
+per-file-ignores =
+    # Allow unused imports in test files and __init__.py files
+    tests/*:F401,F841
+    */__init__.py:F401
+    # Allow long lines in configuration files
+    *.py:E501
+max-complexity = 10
