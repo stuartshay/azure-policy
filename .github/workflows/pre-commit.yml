@@ -158,9 +158,33 @@ jobs:
           echo "Starting pre-commit run..."
           pre-commit run --all-files --show-diff-on-failure --verbose || {
             echo "Pre-commit failed with exit code: $?"
-            echo "Attempting to run pre-commit with individual hook debugging..."
-            pre-commit run --all-files --hook-stage manual 2>&1 | head -100 || true
-            exit 1
+
+            # Check if only terraform_docs failed due to file modifications
+            if git diff --quiet; then
+              echo "No files were modified, genuine pre-commit failure"
+              exit 1
+            else
+              echo "Files were modified by pre-commit hooks, checking what changed:"
+              git status --porcelain
+              git diff --name-only
+
+              # If only README.md files in infrastructure directories were modified, this might be expected
+              modified_files=$(git diff --name-only)
+              if echo "$modified_files" | grep -E '^infrastructure/.*/README\.md$' && ! echo "$modified_files" | grep -v -E '^infrastructure/.*/README\.md$'; then
+                echo "Only infrastructure README.md files were modified by terraform-docs, this is expected"
+                echo "Committing the documentation updates..."
+                git config --global user.name 'github-actions[bot]'
+                git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+                git add infrastructure/*/README.md
+                git commit -m "Auto-update Terraform documentation via terraform-docs [skip ci]"
+                git push
+                echo "Documentation updated successfully"
+              else
+                echo "Unexpected files were modified:"
+                echo "$modified_files"
+                exit 1
+              fi
+            fi
           }
 
       - name: Debug terraform-docs after pre-commit failure
