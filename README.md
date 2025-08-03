@@ -1,8 +1,127 @@
-# terraform-docs
+# Azure Policy & Functions Development Environment
 
-[![Build Status](https://github.com/terraform-docs/terraform-docs/workflows/ci/badge.svg)](https://github.com/terraform-docs/terraform-docs/actions) [![GoDoc](https://pkg.go.dev/badge/github.com/terraform-docs/terraform-docs)](https://pkg.go.dev/github.com/terraform-docs/terraform-docs) [![Go Report Card](https://goreportcard.com/badge/github.com/terraform-docs/terraform-docs)](https://goreportcard.com/report/github.com/terraform-docs/terraform-docs) [![Codecov Report](https://codecov.io/gh/terraform-docs/terraform-docs/branch/master/graph/badge.svg)](https://codecov.io/gh/terraform-docs/terraform-docs) [![License](https://img.shields.io/github/license/terraform-docs/terraform-docs)](https://github.com/terraform-docs/terraform-docs/blob/master/LICENSE) [![Latest release](https://img.shields.io/github/v/release/terraform-docs/terraform-docs)](https://github.com/terraform-docs/terraform-docs/releases)
+This repository contains tools and examples for Azure Policy management and Azure Functions development, with a complete DevContainer setup for streamlined development.
 
-![terraform-docs-teaser](./images/terraform-docs-teaser.png)
+## Repository Structure
+
+- **`policies/`** - Azure Policy definitions and examples
+- **`scripts/`** - Azure CLI scripts for policy management
+- **`functions/basic/`** - Azure Functions with HTTP triggers (Python 3.13)
+- **`.devcontainer/`** - Complete development environment setup
+- **`.vscode/`** - VS Code configuration and recommended extensions
+
+## Features
+
+### Azure Policy Tools
+
+- Policy definitions and examples
+- Azure CLI scripts for policy management
+- Compliance reporting tools
+
+### Azure Functions Development
+
+- HTTP-triggered Functions (Python 3.13)
+- Local development with Azure Functions Core Tools
+- Azurite storage emulator for local testing
+- Pre-configured debugging setup
+
+### DevContainer Environment
+
+- **Ubuntu 22.04** base with essential tools
+- **Python 3.13** with development packages
+- **Azure CLI** and **Azure Functions Core Tools**
+- **PowerShell Core** with Azure modules
+- **Terraform** and infrastructure tools
+- **Pre-commit hooks** for code quality
+
+## Quick Start
+
+### Using DevContainer (Recommended)
+
+1. Open in VS Code with DevContainer extension
+2. VS Code will automatically build and open the container
+3. All tools and dependencies are pre-installed
+
+### Manual Setup
+
+```bash
+# Install dependencies
+./install.sh
+
+# Start local development
+./start-functions.sh
+
+# Run tests
+./run-tests.sh
+```
+
+## Development Workflow
+
+### Azure Functions
+
+```bash
+# Navigate to functions directory
+cd functions/basic
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Start functions locally
+func start --python
+```
+
+### Azure Policy Management
+
+```bash
+# List existing policies
+./scripts/01-list-policies.sh
+
+# Create policy assignment
+./scripts/04-create-assignment.sh
+
+# Generate compliance report
+./scripts/05-compliance-report.sh
+```
+
+### Testing
+
+```bash
+# Run all tests
+python -m pytest tests/ -v
+
+# Run with coverage
+python -m pytest tests/ -v --cov=. --cov-report=html:htmlcov
+```
+
+## Environment Variables
+
+Create a `.env` file with:
+
+```bash
+AZURE_SUBSCRIPTION_ID=your-subscription-id
+AZURE_TENANT_ID=your-tenant-id
+AZURE_CLIENT_ID=your-client-id
+AZURE_CLIENT_SECRET=your-client-secret
+```
+
+## Documentation
+
+- [Functions Setup](docs/FUNCTIONS.md)
+- [Policy Management](docs/POLICIES.md)  
+- [Testing Guide](docs/TESTING.md)
+- [Infrastructure](docs/INFRASTRUCTURE.md)
+- [DevContainer Setup](docs/DEVCONTAINER_SETUP.md)
+
+## Contributing
+
+1. Use the provided DevContainer for consistent development environment
+2. Follow the pre-commit hooks for code quality
+3. Add tests for new functionality
+4. Update documentation as needed
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## What is terraform-docs
 
