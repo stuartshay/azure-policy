@@ -162,6 +162,7 @@ repos:
           - --hook-config=--path-to-file=README.md
           - --hook-config=--add-to-existing-file=true
           - --hook-config=--create-file-if-not-exist=true
+        files: ^infrastructure/.*\.tf$
       - id: terraform_tflint
         args:
           - --args=--only=terraform_deprecated_interpolation
