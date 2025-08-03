@@ -11,6 +11,7 @@ This repository contains tools and examples for Azure Policy management and Azur
 - **`scripts/`** - Azure CLI scripts for policy management
 - **`functions/basic/`** - Azure Functions with HTTP triggers (Python 3.13)
 - **`infrastructure/`** - Terraform infrastructure as code
+- **`notebooks/`** - Jupyter Notebooks for interactive Azure environment validation and analysis
 - **`tests/`** - Comprehensive testing framework (81% coverage)
   - `policies/` - Policy validation and fragment testing
   - `integration/` - Azure CLI integration tests
