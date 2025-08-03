@@ -28,13 +28,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq shellcheck
 
-      - name: Install PowerShell
+      - name: Install PowerShell modules
         run: |
           # Install PowerShell Core
           wget -q https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
           sudo dpkg -i packages-microsoft-prod.deb
           sudo apt-get update
           sudo apt-get install -y powershell
+          # Install PSScriptAnalyzer module for PowerShell analysis
+          pwsh -Command "Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser"
 
       - name: Install Azure CLI
         run: |
@@ -65,16 +67,35 @@ jobs:
         run: |
           pip install pre-commit
 
-      - name: Fix Checkov configuration path
+      - name: Validate configuration files
         run: |
-          # Update the hardcoded path in pre-commit config to use GitHub workspace
-          sed -i 's|/home/vagrant/git/azure-policy/.checkov.yaml|${{ github.workspace }}/.checkov.yaml|g' .pre-commit-config.yaml
+          echo "Validating configuration files..."
+          echo "Current working directory: $(pwd)"
+          echo "Checkov config exists: $(test -f .checkov.yaml && echo 'YES' || echo 'NO')"
+          echo "Pre-commit config exists: $(test -f .pre-commit-config.yaml && echo 'YES' || echo 'NO')"
+          echo "Validating pre-commit config syntax..."
+          pre-commit validate-config
+          echo "Configuration validation completed."
 
       - name: Install pre-commit hooks
         run: |
           pre-commit install --install-hooks
 
+      - name: Verify tool installations
+        run: |
+          echo "Verifying tool installations..."
+          echo "Python version: $(python --version)"
+          echo "PowerShell version: $(pwsh --version || echo 'PowerShell not available')"
+          echo "Azure CLI version: $(az --version | head -1 || echo 'Azure CLI not available')"
+          echo "Terraform version: $(terraform --version | head -1 || echo 'Terraform not available')"
+          echo "TFLint version: $(tflint --version || echo 'TFLint not available')"
+          echo "Checkov version: $(checkov --version || echo 'Checkov not available')"
+          echo "PSScriptAnalyzer available: $(pwsh -Command 'Get-Module -ListAvailable PSScriptAnalyzer | Select-Object -First 1' || echo 'Not available')"
+          echo "Tool verification completed."
+
       - name: Run pre-commit on all files
+        id: precommit
+        continue-on-error: true
         run: |
           echo "Running pre-commit checks on all files..."
           pre-commit run --all-files --show-diff-on-failure
@@ -84,7 +105,7 @@ jobs:
         run: |
           echo "## Pre-commit Check Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [ $? -eq 0 ]; then
+          if [ "${{ steps.precommit.outcome }}" == "success" ]; then
             echo "✅ **All pre-commit checks passed successfully!**" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ **Some pre-commit checks failed. Please review the output above.**" >> $GITHUB_STEP_SUMMARY
@@ -112,3 +133,9 @@ jobs:
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Check pre-commit results
+        if: steps.precommit.outcome == 'failure'
+        run: |
+          echo "Pre-commit checks failed. Please fix the issues and try again."
+          exit 1
