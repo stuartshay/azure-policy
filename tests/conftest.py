@@ -75,7 +75,10 @@ def temp_policy_file(sample_policy_json):
 def mock_azure_resource():
     """Mock Azure resource for testing policy evaluation."""
     return {
-        "id": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Storage/storageAccounts/teststorage",
+        "id": (
+            "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/"
+            "providers/Microsoft.Storage/storageAccounts/teststorage"
+        ),
         "name": "teststorage",
         "type": "Microsoft.Storage/storageAccounts",
         "location": "eastus",

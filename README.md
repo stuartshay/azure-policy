@@ -114,6 +114,36 @@ The functions will be available at:
 - Health Check: `http://localhost:7071/api/health`
 - Info: `http://localhost:7071/api/info`
 
+### Environment Validation with Jupyter Notebooks
+
+This repository includes Jupyter Notebooks for interactive Azure environment validation and analysis:
+
+```bash
+# Start Jupyter Lab
+./scripts/start-jupyter.sh
+
+# Or manually start Jupyter Lab
+jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
+```
+
+**Key Notebooks:**
+- **`notebooks/environment_validation.ipynb`** - Comprehensive Azure environment validation
+  - ✅ Azure authentication verification
+  - 📊 Subscription access validation
+  - 🔍 Resource quota checking for East US and East US 2
+  - 💰 Cost estimation for Elastic Premium SKUs
+  - 🚦 Deployment readiness assessment
+  - 📈 Interactive cost visualization and analysis
+
+**Features:**
+- Interactive Azure SDK integration
+- Real-time quota and resource checking
+- Cost analysis with charts and visualizations
+- Deployment readiness validation
+- Export validation reports to JSON
+
+Access Jupyter Lab at: `http://localhost:8888` (when running locally)
+
 ## Manual Setup (Alternative)
 
 If you prefer not to use DevContainer:
@@ -235,6 +265,7 @@ The repository includes comprehensive VS Code configuration:
 ### Environment Setup
 
 - `start-functions.sh` - Verify and setup Azure Functions development environment
+- `start-jupyter.sh` - Start Jupyter Lab for interactive Azure environment validation
 - `run-tests.sh` - Comprehensive test runner with multiple execution modes
 
 ### Testing Scripts

@@ -1,0 +1,60 @@
+{
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "terminal.integrated.profiles.linux": {
+        "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+        },
+        "zsh": {
+            "path": "zsh",
+            "icon": "terminal"
+        },
+        "fish": {
+            "path": "fish",
+            "icon": "terminal"
+        }
+    },
+    "python.defaultInterpreterPath": "./functions/basic/.venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "azureFunctions.deploySubpath": "functions/basic",
+    "azureFunctions.pythonVenv": ".venv",
+    "azureFunctions.projectLanguage": "Python",
+    "azureFunctions.projectRuntime": "~4",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "editor.formatOnSave": true,
+    "python.formatting.provider": "black",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "files.associations": {
+        "*.json": "jsonc"
+    },
+    "terminal.integrated.env.linux": {
+        "PATH": "${env:PATH}:/usr/bin:/usr/local/bin:/bin",
+        "DOCKER_HOST": "unix:///var/run/docker.sock"
+    },
+    "terraform.languageServer": {
+        "external": true,
+        "pathToBinary": "",
+        "args": [],
+        "maxNumberOfProblems": 100,
+        "trace.server": "off"
+    },
+    "mcp.servers.terraform.env": {
+        "PATH": "/usr/bin:/usr/local/bin:/bin:${env:PATH}",
+        "DOCKER_HOST": "unix:///var/run/docker.sock"
+    },
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestArgs": [
+        "tests",
+        "-v",
+        "--tb=short",
+        "--strict-config",
+        "--strict-markers"
+    ],
+    "python.testing.cwd": "${workspaceFolder}",
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
+    "testExplorer.useNativeTesting": true,
+    "python.testing.pytestPath": "pytest"
+}
