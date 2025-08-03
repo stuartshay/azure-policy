@@ -64,6 +64,16 @@ jobs:
         run: |
           pip install checkov
 
+      - name: Install terraform-docs
+        run: |
+          # Install terraform-docs for automatic documentation generation
+          curl -sSLo terraform-docs.tar.gz "https://github.com/terraform-docs/terraform-docs/releases/download/v0.17.0/terraform-docs-v0.17.0-linux-amd64.tar.gz"
+          tar -xzf terraform-docs.tar.gz
+          sudo mv terraform-docs /usr/local/bin/
+          rm terraform-docs.tar.gz
+          # Verify installation
+          terraform-docs --version
+
       - name: Cache pre-commit environments
         uses: actions/cache@v4
         with:
