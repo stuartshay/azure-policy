@@ -11,7 +11,7 @@ __blobstorage__/
 
 # Terraform
 **/.terraform/
-**/.terraform.lock.hcl
+# Note: .terraform.lock.hcl files should be tracked to ensure consistent provider versions
 *.tfstate
 *.tfstate.*
 *.tfvars

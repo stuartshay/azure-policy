@@ -62,7 +62,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.6.0
+          terraform_version: 1.12.2
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Init
@@ -73,7 +73,7 @@ jobs:
         id: plan
         run: |
           terraform plan -detailed-exitcode -out=tfplan
-          echo "exitcode=$?" >> $GITHUB_OUTPUT
+          echo "exitcode=$?" >> "$GITHUB_OUTPUT"
         working-directory: infrastructure/${{ github.event.inputs.module }}
 
       - name: Upload Plan Artifact
@@ -88,21 +88,23 @@ jobs:
         if: steps.plan.outputs.exitcode == 2
         run: |
           terraform apply tfplan
-          echo "applied=true" >> $GITHUB_OUTPUT
+          echo "applied=true" >> "$GITHUB_OUTPUT"
         working-directory: infrastructure/${{ github.event.inputs.module }}
 
       - name: No Changes Detected
         if: steps.plan.outputs.exitcode == 0
         run: |
           echo "✅ No changes detected - ${{ github.event.inputs.module }} module is up to date"
-          echo "## 📋 Terraform Plan Result" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** No changes detected" >> $GITHUB_STEP_SUMMARY
-          echo "**Module:** ${{ github.event.inputs.module }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Location:** ${{ env.TF_VAR_location }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The current infrastructure matches the desired state. No resources need to be created, modified, or destroyed." >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## 📋 Terraform Plan Result"
+            echo ""
+            echo "**Status:** No changes detected"
+            echo "**Module:** ${{ github.event.inputs.module }}"
+            echo "**Environment:** ${{ github.event.inputs.environment }}"
+            echo "**Location:** ${{ env.TF_VAR_location }}"
+            echo ""
+            echo "The current infrastructure matches the desired state. No resources need to be created, modified, or destroyed."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Debug Plan and Apply Status
         run: |
@@ -122,28 +124,36 @@ jobs:
         if: steps.plan.outputs.exitcode == 0 || (steps.plan.outputs.exitcode == 2 && steps.apply.outputs.applied == 'true')
         run: |
           # Check if outputs exist before trying to read them
-          echo "outputs_available=false" >> $GITHUB_OUTPUT
+          {
+            echo "outputs_available=false"
+          } >> "$GITHUB_OUTPUT"
 
           # Try to get common outputs based on module type
           case "${{ github.event.inputs.module }}" in
             "infrastructure")
               if terraform output resource_group_name >/dev/null 2>&1; then
-                echo "resource_group_name=$(terraform output -raw resource_group_name)" >> $GITHUB_OUTPUT
-                echo "vnet_name=$(terraform output -raw vnet_name)" >> $GITHUB_OUTPUT
-                echo "outputs_available=true" >> $GITHUB_OUTPUT
+                {
+                  echo "resource_group_name=$(terraform output -raw resource_group_name)"
+                  echo "vnet_name=$(terraform output -raw vnet_name)"
+                  echo "outputs_available=true"
+                } >> "$GITHUB_OUTPUT"
               fi
               ;;
             "functions")
               if terraform output function_app_name >/dev/null 2>&1; then
-                echo "function_app_name=$(terraform output -raw function_app_name)" >> $GITHUB_OUTPUT
-                echo "app_service_plan_name=$(terraform output -raw app_service_plan_name)" >> $GITHUB_OUTPUT
-                echo "outputs_available=true" >> $GITHUB_OUTPUT
+                {
+                  echo "function_app_name=$(terraform output -raw function_app_name)"
+                  echo "app_service_plan_name=$(terraform output -raw app_service_plan_name)"
+                  echo "outputs_available=true"
+                } >> "$GITHUB_OUTPUT"
               fi
               ;;
             "policies")
               if terraform output policy_set_id >/dev/null 2>&1; then
-                echo "policy_set_id=$(terraform output -raw policy_set_id)" >> $GITHUB_OUTPUT
-                echo "outputs_available=true" >> $GITHUB_OUTPUT
+                {
+                  echo "policy_set_id=$(terraform output -raw policy_set_id)"
+                  echo "outputs_available=true"
+                } >> "$GITHUB_OUTPUT"
               fi
               ;;
           esac
@@ -153,61 +163,69 @@ jobs:
         if: steps.apply.outputs.applied == 'true' || steps.plan.outputs.exitcode == 0
         run: |
           if [ "${{ steps.apply.outputs.applied }}" == "true" ]; then
-            echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Environment Details" >> $GITHUB_STEP_SUMMARY
-            echo "- **Module:** ${{ github.event.inputs.module }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Location:** ${{ env.TF_VAR_location }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
-            echo "- **Status:** ✅ ${{ github.event.inputs.module }} module deployed successfully" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
+            {
+              echo "## 🚀 Deployment Summary"
+              echo ""
+              echo "### Environment Details"
+              echo "- **Module:** ${{ github.event.inputs.module }}"
+              echo "- **Environment:** ${{ github.event.inputs.environment }}"
+              echo "- **Location:** ${{ env.TF_VAR_location }}"
+              echo "- **Triggered by:** ${{ github.actor }}"
+              echo "- **Timestamp:** $(date)"
+              echo "- **Status:** ✅ ${{ github.event.inputs.module }} module deployed successfully"
+              echo ""
+            } >> "$GITHUB_STEP_SUMMARY"
 
             # Get outputs if available
-            outputs_available="false"
             case "${{ github.event.inputs.module }}" in
               "infrastructure")
                 if terraform output resource_group_name >/dev/null 2>&1; then
-                  echo "### Deployed Resources" >> $GITHUB_STEP_SUMMARY
-                  echo "- **Resource Group:** $(terraform output -raw resource_group_name)" >> $GITHUB_STEP_SUMMARY
-                  echo "- **Virtual Network:** $(terraform output -raw vnet_name)" >> $GITHUB_STEP_SUMMARY
-                  outputs_available="true"
+                  {
+                    echo "### Deployed Resources"
+                    echo "- **Resource Group:** $(terraform output -raw resource_group_name)"
+                    echo "- **Virtual Network:** $(terraform output -raw vnet_name)"
+                  } >> "$GITHUB_STEP_SUMMARY"
                 fi
                 ;;
               "functions")
                 if terraform output function_app_name >/dev/null 2>&1; then
-                  echo "### Deployed Resources" >> $GITHUB_STEP_SUMMARY
-                  echo "- **Function App:** $(terraform output -raw function_app_name)" >> $GITHUB_STEP_SUMMARY
-                  echo "- **App Service Plan:** $(terraform output -raw app_service_plan_name)" >> $GITHUB_STEP_SUMMARY
-                  outputs_available="true"
+                  {
+                    echo "### Deployed Resources"
+                    echo "- **Function App:** $(terraform output -raw function_app_name)"
+                    echo "- **App Service Plan:** $(terraform output -raw app_service_plan_name)"
+                  } >> "$GITHUB_STEP_SUMMARY"
                 fi
                 ;;
               "policies")
                 if terraform output policy_set_id >/dev/null 2>&1; then
-                  echo "### Deployed Resources" >> $GITHUB_STEP_SUMMARY
-                  echo "- **Policy Set:** $(terraform output -raw policy_set_id)" >> $GITHUB_STEP_SUMMARY
-                  outputs_available="true"
+                  {
+                    echo "### Deployed Resources"
+                    echo "- **Policy Set:** $(terraform output -raw policy_set_id)"
+                  } >> "$GITHUB_STEP_SUMMARY"
                 fi
                 ;;
             esac
           else
-            echo "## 📋 Infrastructure Status" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Environment Details" >> $GITHUB_STEP_SUMMARY
-            echo "- **Module:** ${{ github.event.inputs.module }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Location:** ${{ env.TF_VAR_location }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
-            echo "- **Status:** ✅ No changes needed - ${{ github.event.inputs.module }} module is up to date" >> $GITHUB_STEP_SUMMARY
+            {
+              echo "## 📋 Infrastructure Status"
+              echo ""
+              echo "### Environment Details"
+              echo "- **Module:** ${{ github.event.inputs.module }}"
+              echo "- **Environment:** ${{ github.event.inputs.environment }}"
+              echo "- **Location:** ${{ env.TF_VAR_location }}"
+              echo "- **Triggered by:** ${{ github.actor }}"
+              echo "- **Timestamp:** $(date)"
+              echo "- **Status:** ✅ No changes needed - ${{ github.event.inputs.module }} module is up to date"
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "1. Verify resources in Azure Portal" >> $GITHUB_STEP_SUMMARY
-          echo "2. Test deployed services" >> $GITHUB_STEP_SUMMARY
-          echo "3. Configure monitoring alerts" >> $GITHUB_STEP_SUMMARY
-          echo "4. Review cost management dashboard" >> $GITHUB_STEP_SUMMARY
+          {
+            echo ""
+            echo "### Next Steps"
+            echo "1. Verify resources in Azure Portal"
+            echo "2. Test deployed services"
+            echo "3. Configure monitoring alerts"
+            echo "4. Review cost management dashboard"
+          } >> "$GITHUB_STEP_SUMMARY"
         working-directory: infrastructure/${{ github.event.inputs.module }}
 
       - name: Create Success Issue

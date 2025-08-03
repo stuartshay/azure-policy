@@ -48,21 +48,21 @@ repos:
     rev: 0.8.1
     hooks:
       - id: nbstripout
-        files: ".ipynb$"
+        files: '.ipynb$'
 
   # Jupyter notebook linting
   - repo: https://github.com/nbQA-dev/nbQA
     rev: 1.9.1
     hooks:
       - id: nbqa-black
-        args: ["--line-length=88"]
+        args: ['--line-length=88']
       - id: nbqa-isort
-        args: ["--profile=black", "--filter-files"]
+        args: ['--profile=black', '--filter-files']
       - id: nbqa-flake8
         args:
           [
-            "--extend-ignore=E203,E501,F401,F541,W293,C901,F821,E226,E741,C401,F811,Q000,D100",
-            "--max-line-length=120",
+            '--extend-ignore=E203,E501,F401,F541,W293,C901,F821,E226,E741,C401,F811,Q000,D100',
+            '--max-line-length=120',
           ]
         additional_dependencies:
           - flake8-docstrings
@@ -118,7 +118,7 @@ repos:
         args:
           [
             '-c',
-            'for file in "$@"; do if [[ "$file" =~ \.md$ ]] && [[ ! "$file" =~ ^docs/ ]] && [[ ! "$file" =~ ^README\.md$ ]] && [[ ! "$file" =~ ^CHANGELOG\.md$ ]] && [[ ! "$file" =~ ^CONTRIBUTING\.md$ ]] && [[ ! "$file" =~ ^LICENSE\.md$ ]] && [[ ! "$file" =~ ^\.cline/ ]] && [[ ! "$file" =~ ^\.github/copilot_instructions\.md$ ]] && [[ ! "$file" =~ ^\.github/chatmodes/ ]] && [[ ! "$file" =~ /site-packages/ ]] && [[ ! "$file" =~ /\.venv/ ]] && [[ ! "$file" =~ modules/.*README\.md$ ]]; then echo "❌ Markdown file $file should be in docs/ folder. Please move it: mv $file docs/$(basename $file)"; exit 1; fi; done',
+            'for file in "$@"; do if [[ "$file" =~ \.md$ ]] && [[ ! "$file" =~ ^docs/ ]] && [[ ! "$file" =~ ^README\.md$ ]] && [[ ! "$file" =~ ^CHANGELOG\.md$ ]] && [[ ! "$file" =~ ^CONTRIBUTING\.md$ ]] && [[ ! "$file" =~ ^LICENSE\.md$ ]] && [[ ! "$file" =~ ^\.cline/ ]] && [[ ! "$file" =~ ^\.github/copilot_instructions\.md$ ]] && [[ ! "$file" =~ ^\.github/chatmodes/ ]] && [[ ! "$file" =~ /site-packages/ ]] && [[ ! "$file" =~ /\.venv/ ]] && [[ ! "$file" =~ modules/.*README\.md$ ]] && [[ ! "$file" =~ infrastructure/.*/README\.md$ ]]; then echo "❌ Markdown file $file should be in docs/ folder. Please move it: mv $file docs/$(basename $file)"; exit 1; fi; done',
             '--',
           ]
         language: system
@@ -179,7 +179,7 @@ repos:
       - id: terraform_checkov
         args:
           - --args=--framework terraform
-          - --args=--config-file=/home/vagrant/git/azure-policy/.checkov.yaml
+          - --args=--config-file=.checkov.yaml
 
   # GitHub Actions linting
   - repo: https://github.com/rhysd/actionlint

@@ -1,0 +1,231 @@
+name: Pre-commit
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  pre-commit:
+    name: Pre-commit Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          update-environment: true
+
+      - name: Create python symlink
+        run: |
+          # Ensure python command is available (some hooks expect 'python' not 'python3')
+          sudo ln -sf "$(which python3)" /usr/local/bin/python || true
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq shellcheck
+
+      - name: Install PowerShell modules
+        run: |
+          # Install PowerShell Core
+          wget -q https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
+          sudo dpkg -i packages-microsoft-prod.deb
+          sudo apt-get update
+          sudo apt-get install -y powershell
+          # Install PSScriptAnalyzer module for PowerShell analysis
+          pwsh -Command "Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted"
+          pwsh -Command "Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser -Verbose"
+          # Verify PSScriptAnalyzer installation
+          pwsh -Command "Get-Module -ListAvailable PSScriptAnalyzer"
+
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.2
+
+      - name: Install TFLint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+      - name: Install Checkov
+        run: |
+          pip install checkov
+
+      - name: Install terraform-docs
+        run: |
+          # Install terraform-docs for automatic documentation generation
+          curl -sSLo terraform-docs.tar.gz "https://github.com/terraform-docs/terraform-docs/releases/download/v0.17.0/terraform-docs-v0.17.0-linux-amd64.tar.gz"
+          tar -xzf terraform-docs.tar.gz
+          sudo mv terraform-docs /usr/local/bin/
+          rm terraform-docs.tar.gz
+          # Verify installation
+          terraform-docs --version
+          echo "terraform-docs installed successfully"
+
+      - name: Initialize Terraform modules for documentation
+        run: |
+          echo "Initializing Terraform modules for documentation generation..."
+          # Find all directories containing Terraform files
+          for dir in infrastructure/functions infrastructure/policies infrastructure/infrastructure infrastructure/terraform/modules/*/; do
+            if [[ -d "$dir" && (-f "$dir/main.tf" || -f "$dir/variables.tf" || -f "$dir/outputs.tf") ]]; then
+              echo "Initializing $dir"
+              cd "$dir"
+              terraform init -backend=false -upgrade=false
+              # Remove .terraform directory but keep .terraform.lock.hcl
+              rm -rf .terraform/ 2>/dev/null || true
+              cd - > /dev/null
+            fi
+          done
+
+      - name: Debug terraform-docs before pre-commit
+        run: |
+          echo "Current terraform-docs status before pre-commit:"
+          find infrastructure/ -name "README.md" -exec echo "=== {} ===" \; -exec head -5 {} \;
+          echo "Terraform provider versions after init:"
+          find infrastructure/ -name ".terraform.lock.hcl" -exec echo "=== {} ===" \; -exec head -10 {} \; || echo "No lock files found"
+
+      - name: Cache pre-commit environments
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            pre-commit-${{ runner.os }}-
+
+      - name: Install pre-commit
+        run: |
+          pip install --upgrade pip
+          pip install pre-commit
+          # Verify pre-commit installation
+          pre-commit --version
+
+      - name: Validate configuration files
+        run: |
+          echo "Validating configuration files..."
+          echo "Current working directory: $(pwd)"
+          echo "Checkov config exists: $(test -f .checkov.yaml && echo 'YES' || echo 'NO')"
+          echo "Pre-commit config exists: $(test -f .pre-commit-config.yaml && echo 'YES' || echo 'NO')"
+          echo "Validating pre-commit config syntax..."
+          pre-commit validate-config
+          echo "Configuration validation completed."
+
+      - name: Install pre-commit hooks
+        run: |
+          pre-commit install --install-hooks
+
+      - name: Verify tool installations
+        run: |
+          echo "Verifying tool installations..."
+          echo "Python version: $(python --version 2>/dev/null || echo 'python not available')"
+          echo "Python3 version: $(python3 --version 2>/dev/null || echo 'python3 not available')"
+          echo "Python path: $(which python 2>/dev/null || echo 'python not found')"
+          echo "Python3 path: $(which python3 2>/dev/null || echo 'python3 not found')"
+          echo "PowerShell version: $(pwsh --version 2>/dev/null || echo 'PowerShell not available')"
+          echo "Azure CLI version: $(az --version 2>/dev/null | head -1 || echo 'Azure CLI not available')"
+          echo "Terraform version: $(terraform --version 2>/dev/null | head -1 || echo 'Terraform not available')"
+          echo "TFLint version: $(tflint --version 2>/dev/null || echo 'TFLint not available')"
+          echo "Checkov version: $(checkov --version 2>/dev/null || echo 'Checkov not available')"
+          echo "jq version: $(jq --version 2>/dev/null || echo 'jq not available')"
+          echo "shellcheck version: $(shellcheck --version 2>/dev/null | head -1 || echo 'shellcheck not available')"
+          echo "PSScriptAnalyzer check:"
+          pwsh -Command "Get-Module -ListAvailable PSScriptAnalyzer | Select-Object Name,Version | Format-Table -AutoSize" 2>/dev/null || echo 'PSScriptAnalyzer not available'
+          echo "Pre-commit version: $(pre-commit --version)"
+          echo "Tool verification completed."
+
+      - name: Run pre-commit on all files
+        id: precommit
+        continue-on-error: true
+        run: |
+          echo "Running pre-commit checks on all files..."
+          echo "Working directory: $(pwd)"
+          echo "Files in directory:"
+          find . -maxdepth 1 -type f | head -10 || true
+          echo "Pre-commit config validation:"
+          pre-commit validate-config
+          echo "Starting pre-commit run..."
+          pre-commit run --all-files --show-diff-on-failure --verbose || {
+            echo "Pre-commit failed with exit code: $?"
+
+            # Check if files were modified by terraform-docs
+            if ! git diff --quiet; then
+              modified_files=$(git diff --name-only)
+              echo "Files were modified during pre-commit:"
+              echo "$modified_files"
+
+              # Check if only infrastructure README.md files were modified
+              if echo "$modified_files" | grep -E '^infrastructure/.*/README\.md$' > /dev/null && ! echo "$modified_files" | grep -v -E '^infrastructure/.*/README\.md$' > /dev/null; then
+                echo "Only infrastructure README.md files were modified by terraform-docs"
+                echo "This indicates terraform-docs updated documentation due to environment differences"
+                echo "The changes need to be committed manually to resolve this"
+                git diff
+                exit 1
+              fi
+            fi
+
+            echo "Pre-commit failed with genuine errors"
+            exit 1
+          }
+
+      - name: Debug terraform-docs after pre-commit failure
+        if: failure()
+        run: |
+          echo "Files modified during pre-commit run:"
+          git status --porcelain
+          echo "Detailed diff of any changes:"
+          git diff
+          echo "Terraform-docs version and config check:"
+          terraform-docs --version
+          find infrastructure/ -name ".terraform-docs.yml" -exec echo "=== {} ===" \; -exec cat {} \;
+
+      - name: Generate summary report
+        if: always()
+        run: |
+          {
+            echo "## Pre-commit Check Results"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${{ steps.precommit.outcome }}" == "success" ]; then
+            echo "✅ **All pre-commit checks passed successfully!**" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ **Some pre-commit checks failed. Please review the output above.**" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          {
+            echo ""
+            echo "### Checks performed:"
+            echo "- File formatting (trailing whitespace, end of files)"
+            echo "- YAML, JSON, TOML, XML validation"
+            echo "- Python code formatting (Black, isort)"
+            echo "- Python linting (flake8)"
+            echo "- Jupyter notebook cleaning and linting"
+            echo "- PowerShell script analysis"
+            echo "- Shell script linting (shellcheck)"
+            echo "- Azure Policy JSON validation"
+            echo "- Bicep template validation"
+            echo "- Terraform formatting and validation"
+            echo "- GitHub Actions workflow linting"
+            echo "- Security scanning (bandit)"
+            echo ""
+            echo "**Timestamp:** $(date)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Check pre-commit results
+        if: steps.precommit.outcome == 'failure'
+        run: |
+          echo "Pre-commit checks failed. Please fix the issues and try again."
+          exit 1

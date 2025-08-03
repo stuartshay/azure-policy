@@ -75,7 +75,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.6.0
+          terraform_version: 1.12.2
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Init
@@ -86,7 +86,7 @@ jobs:
         id: plan
         run: |
           terraform plan -destroy -detailed-exitcode -out=destroy-plan
-          echo "exitcode=$?" >> $GITHUB_OUTPUT
+          echo "exitcode=$?" >> "$GITHUB_OUTPUT"
         working-directory: infrastructure/${{ github.event.inputs.module }}
 
       - name: Upload Destroy Plan
@@ -114,42 +114,52 @@ jobs:
       - name: Generate Destruction Summary
         if: success()
         run: |
-          echo "## 🗑️ Infrastructure Destruction Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Environment Details" >> $GITHUB_STEP_SUMMARY
-          echo "- **Module:** ${{ github.event.inputs.module }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Destroyed by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Cleanup Status" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status:** ✅ ${{ github.event.inputs.module }} module destroyed" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## 🗑️ Infrastructure Destruction Summary"
+            echo ""
+            echo "### Environment Details"
+            echo "- **Module:** ${{ github.event.inputs.module }}"
+            echo "- **Environment:** ${{ github.event.inputs.environment }}"
+            echo "- **Destroyed by:** ${{ github.actor }}"
+            echo "- **Timestamp:** $(date)"
+            echo ""
+            echo "### Cleanup Status"
+            echo "- **Status:** ✅ ${{ github.event.inputs.module }} module destroyed"
+          } >> "$GITHUB_STEP_SUMMARY"
 
           # Module-specific cleanup status
           case "${{ github.event.inputs.module }}" in
             "infrastructure")
-              echo "- **Resource Group:** Removed" >> $GITHUB_STEP_SUMMARY
-              echo "- **Virtual Network:** Removed" >> $GITHUB_STEP_SUMMARY
-              echo "- **Network Security Groups:** Removed" >> $GITHUB_STEP_SUMMARY
-              echo "- **Storage Accounts:** Removed" >> $GITHUB_STEP_SUMMARY
+              {
+                echo "- **Resource Group:** Removed"
+                echo "- **Virtual Network:** Removed"
+                echo "- **Network Security Groups:** Removed"
+                echo "- **Storage Accounts:** Removed"
+              } >> "$GITHUB_STEP_SUMMARY"
               ;;
             "functions")
-              echo "- **Function Apps:** Removed" >> $GITHUB_STEP_SUMMARY
-              echo "- **App Service Plan:** Removed" >> $GITHUB_STEP_SUMMARY
-              echo "- **Application Insights:** Removed" >> $GITHUB_STEP_SUMMARY
+              {
+                echo "- **Function Apps:** Removed"
+                echo "- **App Service Plan:** Removed"
+                echo "- **Application Insights:** Removed"
+              } >> "$GITHUB_STEP_SUMMARY"
               ;;
             "policies")
-              echo "- **Azure Policies:** Removed" >> $GITHUB_STEP_SUMMARY
-              echo "- **Policy Assignments:** Removed" >> $GITHUB_STEP_SUMMARY
-              echo "- **Policy Initiatives:** Removed" >> $GITHUB_STEP_SUMMARY
+              {
+                echo "- **Azure Policies:** Removed"
+                echo "- **Policy Assignments:** Removed"
+                echo "- **Policy Initiatives:** Removed"
+              } >> "$GITHUB_STEP_SUMMARY"
               ;;
           esac
 
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Post-Destruction Tasks" >> $GITHUB_STEP_SUMMARY
-          echo "1. Verify no orphaned resources in Azure Portal" >> $GITHUB_STEP_SUMMARY
-          echo "2. Check for any remaining costs" >> $GITHUB_STEP_SUMMARY
-          echo "3. Review backup retention policies" >> $GITHUB_STEP_SUMMARY
+          {
+            echo ""
+            echo "### Post-Destruction Tasks"
+            echo "1. Verify no orphaned resources in Azure Portal"
+            echo "2. Check for any remaining costs"
+            echo "3. Review backup retention policies"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create Destruction Issue
         if: success()

@@ -1,6 +1,9 @@
 # Git Attributes Configuration
 # This file defines rules for file handling in the repository
 
+# Set default line ending behavior for all files
+* text=auto eol=lf
+
 # Documentation files should be placed in docs/ folder
 # This is enforced through pre-commit hooks and CI/CD workflows
 
@@ -11,16 +14,31 @@
 *.yml text eol=lf
 *.yaml text eol=lf
 
-# Script files
+# Script files - All use LF for consistency across platforms
 *.sh text eol=lf
-*.ps1 text eol=crlf
+*.ps1 text eol=lf
+*.psm1 text eol=lf
+*.psd1 text eol=lf
 *.py text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
 
 # Configuration files
 *.tf text eol=lf
 *.tfvars text eol=lf
+*.hcl text eol=lf
 *.toml text eol=lf
 *.ini text eol=lf
+*.cfg text eol=lf
+*.conf text eol=lf
+
+# GitHub Actions workflows
+.github/workflows/* text eol=lf
+
+# Documentation
+*.rst text eol=lf
+LICENSE text eol=lf
+README text eol=lf
 
 # Binary files
 *.png binary
@@ -29,6 +47,16 @@
 *.gif binary
 *.ico binary
 *.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+
+# Python bytecode
+*.pyc binary
 
 # Language-specific attributes
 *.py diff=python
@@ -39,8 +67,3 @@
 terraform.tfstate linguist-generated=true
 terraform.tfstate.backup linguist-generated=true
 *.tfplan linguist-generated=true
-
-# Archive detection override
-*.zip binary
-*.tar binary
-*.gz binary
