@@ -73,6 +73,14 @@ jobs:
           rm terraform-docs.tar.gz
           # Verify installation
           terraform-docs --version
+          echo "terraform-docs installed successfully"
+
+      - name: Debug terraform-docs before pre-commit
+        run: |
+          echo "Current terraform-docs status before pre-commit:"
+          find infrastructure/ -name "README.md" -exec echo "=== {} ===" \; -exec head -5 {} \;
+          echo "Terraform provider versions:"
+          find infrastructure/ -name ".terraform.lock.hcl" -exec echo "=== {} ===" \; -exec head -10 {} \; || echo "No lock files found"
 
       - name: Cache pre-commit environments
         uses: actions/cache@v4
@@ -139,6 +147,17 @@ jobs:
             pre-commit run --all-files --hook-stage manual 2>&1 | head -100 || true
             exit 1
           }
+
+      - name: Debug terraform-docs after pre-commit failure
+        if: failure()
+        run: |
+          echo "Files modified during pre-commit run:"
+          git status --porcelain
+          echo "Detailed diff of any changes:"
+          git diff
+          echo "Terraform-docs version and config check:"
+          terraform-docs --version
+          find infrastructure/ -name ".terraform-docs.yml" -exec echo "=== {} ===" \; -exec cat {} \;
 
       - name: Generate summary report
         if: always()
