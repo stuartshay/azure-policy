@@ -157,14 +157,16 @@ jobs:
       - name: Generate Validation Report
         if: always()
         run: |
-          echo "## Terraform Validation Report - ${{ matrix.module }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Module:** ${{ matrix.module }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Format Check:** ✅ Passed" >> $GITHUB_STEP_SUMMARY
-          echo "- **Validation:** ✅ Passed" >> $GITHUB_STEP_SUMMARY
-          echo "- **Security Scan:** ✅ Completed" >> $GITHUB_STEP_SUMMARY
-          echo "- **Naming Conventions:** ✅ Validated" >> $GITHUB_STEP_SUMMARY
-          echo "- **Required Tags:** ✅ Validated" >> $GITHUB_STEP_SUMMARY
-          echo "- **Module Structure:** ✅ Validated" >> $GITHUB_STEP_SUMMARY
-          echo "- **Sensitive Values:** ✅ Checked" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Terraform Validation Report - ${{ matrix.module }}"
+            echo "- **Module:** ${{ matrix.module }}"
+            echo "- **Format Check:** ✅ Passed"
+            echo "- **Validation:** ✅ Passed"
+            echo "- **Security Scan:** ✅ Completed"
+            echo "- **Naming Conventions:** ✅ Validated"
+            echo "- **Required Tags:** ✅ Validated"
+            echo "- **Module Structure:** ✅ Validated"
+            echo "- **Sensitive Values:** ✅ Checked"
+            echo ""
+            echo "**Timestamp:** $(date)"
+          } >> "$GITHUB_STEP_SUMMARY"

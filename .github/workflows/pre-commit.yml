@@ -27,7 +27,7 @@ jobs:
       - name: Create python symlink
         run: |
           # Ensure python command is available (some hooks expect 'python' not 'python3')
-          sudo ln -sf $(which python3) /usr/local/bin/python || true
+          sudo ln -sf "$(which python3)" /usr/local/bin/python || true
 
       - name: Install system dependencies
         run: |
@@ -118,7 +118,8 @@ jobs:
         run: |
           echo "Running pre-commit checks on all files..."
           echo "Working directory: $(pwd)"
-          echo "Files in directory: $(ls -la | head -10)"
+          echo "Files in directory:"
+          find . -maxdepth 1 -type f | head -10 || true
           echo "Pre-commit config validation:"
           pre-commit validate-config
           echo "Starting pre-commit run..."
@@ -132,29 +133,35 @@ jobs:
       - name: Generate summary report
         if: always()
         run: |
-          echo "## Pre-commit Check Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Pre-commit Check Results"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
           if [ "${{ steps.precommit.outcome }}" == "success" ]; then
-            echo "✅ **All pre-commit checks passed successfully!**" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **All pre-commit checks passed successfully!**" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "❌ **Some pre-commit checks failed. Please review the output above.**" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Some pre-commit checks failed. Please review the output above.**" >> "$GITHUB_STEP_SUMMARY"
           fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Checks performed:" >> $GITHUB_STEP_SUMMARY
-          echo "- File formatting (trailing whitespace, end of files)" >> $GITHUB_STEP_SUMMARY
-          echo "- YAML, JSON, TOML, XML validation" >> $GITHUB_STEP_SUMMARY
-          echo "- Python code formatting (Black, isort)" >> $GITHUB_STEP_SUMMARY
-          echo "- Python linting (flake8)" >> $GITHUB_STEP_SUMMARY
-          echo "- Jupyter notebook cleaning and linting" >> $GITHUB_STEP_SUMMARY
-          echo "- PowerShell script analysis" >> $GITHUB_STEP_SUMMARY
-          echo "- Shell script linting (shellcheck)" >> $GITHUB_STEP_SUMMARY
-          echo "- Azure Policy JSON validation" >> $GITHUB_STEP_SUMMARY
-          echo "- Bicep template validation" >> $GITHUB_STEP_SUMMARY
-          echo "- Terraform formatting and validation" >> $GITHUB_STEP_SUMMARY
-          echo "- GitHub Actions workflow linting" >> $GITHUB_STEP_SUMMARY
-          echo "- Security scanning (bandit)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+
+          {
+            echo ""
+            echo "### Checks performed:"
+            echo "- File formatting (trailing whitespace, end of files)"
+            echo "- YAML, JSON, TOML, XML validation"
+            echo "- Python code formatting (Black, isort)"
+            echo "- Python linting (flake8)"
+            echo "- Jupyter notebook cleaning and linting"
+            echo "- PowerShell script analysis"
+            echo "- Shell script linting (shellcheck)"
+            echo "- Azure Policy JSON validation"
+            echo "- Bicep template validation"
+            echo "- Terraform formatting and validation"
+            echo "- GitHub Actions workflow linting"
+            echo "- Security scanning (bandit)"
+            echo ""
+            echo "**Timestamp:** $(date)"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload pre-commit cache
         if: always()
