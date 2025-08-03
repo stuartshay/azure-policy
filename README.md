@@ -73,6 +73,7 @@ This repository contains tools and examples for Azure Policy management and Azur
 - **Azurite**: Local Azure Storage emulator
 - **VS Code Extensions**: Recommended extensions for optimal development experience
 - **Pre-commit Hooks**: Automated code quality and validation
+- **CI/CD Pipeline**: Robust GitHub Actions workflow with comprehensive error handling
 
 ## Quick Start
 
@@ -386,6 +387,59 @@ See `docs/TESTING.md` for comprehensive testing documentation and troubleshootin
 - **Policy Development**: See `docs/POLICIES.md`
 
 See `docs/README.md` for a complete documentation index.
+
+## Pre-commit Workflow
+
+This repository includes a comprehensive pre-commit workflow that runs automatically on every commit and pull request, ensuring code quality and consistency across all development environments.
+
+### Code Quality Checks
+
+The pre-commit workflow performs extensive validation:
+
+- **File Formatting**: Trailing whitespace, end-of-file fixes, line ending consistency
+- **Language Validation**: YAML, JSON, TOML, XML syntax validation
+- **Python Code Quality**: Black formatting, isort imports, flake8 linting
+- **Jupyter Notebooks**: Output clearing and code formatting
+- **PowerShell Analysis**: PSScriptAnalyzer for PowerShell scripts
+- **Shell Script Linting**: shellcheck for bash/shell scripts
+- **Azure-Specific Validation**: Policy JSON validation, Bicep template validation
+- **Infrastructure as Code**: Terraform formatting, validation, and security scanning
+- **GitHub Actions**: Workflow file linting
+- **Security Scanning**: bandit for Python security issues
+
+### CI/CD Integration
+
+The GitHub Actions workflow provides:
+
+- **Multi-Environment Compatibility**: Works across local development and CI environments
+- **Comprehensive Tool Installation**: Automated setup of Python, PowerShell, Azure CLI, Terraform, and more
+- **Enhanced Error Reporting**: Detailed debugging output for quick issue identification
+- **Robust Error Handling**: Graceful handling of tool installation and execution failures
+- **Caching**: Optimized pre-commit environment caching for faster execution
+
+### Local Development
+
+Pre-commit hooks run automatically on every commit:
+
+```bash
+# Install pre-commit hooks (done automatically in DevContainer)
+pre-commit install
+
+# Run pre-commit checks manually
+pre-commit run --all-files
+
+# Run specific hooks
+pre-commit run black --all-files
+pre-commit run terraform_fmt --all-files
+```
+
+### Configuration Files
+
+- **`.pre-commit-config.yaml`**: Complete hook configuration with environment-agnostic paths
+- **`.checkov.yaml`**: Security scanning configuration optimized for development environments
+- **`.github/workflows/pre-commit.yml`**: CI/CD workflow with enhanced debugging and error handling
+
+The workflow ensures consistent code quality whether you're developing locally or contributing via pull requests.
 
 ## Resources
 
