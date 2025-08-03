@@ -1,0 +1,114 @@
+name: Pre-commit
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  pre-commit:
+    name: Pre-commit Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq shellcheck
+
+      - name: Install PowerShell
+        run: |
+          # Install PowerShell Core
+          wget -q https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
+          sudo dpkg -i packages-microsoft-prod.deb
+          sudo apt-get update
+          sudo apt-get install -y powershell
+
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Install TFLint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+      - name: Install Checkov
+        run: |
+          pip install checkov
+
+      - name: Cache pre-commit environments
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            pre-commit-${{ runner.os }}-
+
+      - name: Install pre-commit
+        run: |
+          pip install pre-commit
+
+      - name: Fix Checkov configuration path
+        run: |
+          # Update the hardcoded path in pre-commit config to use GitHub workspace
+          sed -i 's|/home/vagrant/git/azure-policy/.checkov.yaml|${{ github.workspace }}/.checkov.yaml|g' .pre-commit-config.yaml
+
+      - name: Install pre-commit hooks
+        run: |
+          pre-commit install --install-hooks
+
+      - name: Run pre-commit on all files
+        run: |
+          echo "Running pre-commit checks on all files..."
+          pre-commit run --all-files --show-diff-on-failure
+
+      - name: Generate summary report
+        if: always()
+        run: |
+          echo "## Pre-commit Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ $? -eq 0 ]; then
+            echo "✅ **All pre-commit checks passed successfully!**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Some pre-commit checks failed. Please review the output above.**" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Checks performed:" >> $GITHUB_STEP_SUMMARY
+          echo "- File formatting (trailing whitespace, end of files)" >> $GITHUB_STEP_SUMMARY
+          echo "- YAML, JSON, TOML, XML validation" >> $GITHUB_STEP_SUMMARY
+          echo "- Python code formatting (Black, isort)" >> $GITHUB_STEP_SUMMARY
+          echo "- Python linting (flake8)" >> $GITHUB_STEP_SUMMARY
+          echo "- Jupyter notebook cleaning and linting" >> $GITHUB_STEP_SUMMARY
+          echo "- PowerShell script analysis" >> $GITHUB_STEP_SUMMARY
+          echo "- Shell script linting (shellcheck)" >> $GITHUB_STEP_SUMMARY
+          echo "- Azure Policy JSON validation" >> $GITHUB_STEP_SUMMARY
+          echo "- Bicep template validation" >> $GITHUB_STEP_SUMMARY
+          echo "- Terraform formatting and validation" >> $GITHUB_STEP_SUMMARY
+          echo "- GitHub Actions workflow linting" >> $GITHUB_STEP_SUMMARY
+          echo "- Security scanning (bandit)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload pre-commit cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
