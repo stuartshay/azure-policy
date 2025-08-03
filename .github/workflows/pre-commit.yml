@@ -22,6 +22,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+          update-environment: true
+
+      - name: Create python symlink
+        run: |
+          # Ensure python command is available (some hooks expect 'python' not 'python3')
+          sudo ln -sf $(which python3) /usr/local/bin/python || true
 
       - name: Install system dependencies
         run: |
@@ -36,7 +42,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y powershell
           # Install PSScriptAnalyzer module for PowerShell analysis
-          pwsh -Command "Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser"
+          pwsh -Command "Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted"
+          pwsh -Command "Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser -Verbose"
+          # Verify PSScriptAnalyzer installation
+          pwsh -Command "Get-Module -ListAvailable PSScriptAnalyzer"
 
       - name: Install Azure CLI
         run: |
@@ -65,7 +74,10 @@ jobs:
 
       - name: Install pre-commit
         run: |
+          pip install --upgrade pip
           pip install pre-commit
+          # Verify pre-commit installation
+          pre-commit --version
 
       - name: Validate configuration files
         run: |
@@ -84,13 +96,20 @@ jobs:
       - name: Verify tool installations
         run: |
           echo "Verifying tool installations..."
-          echo "Python version: $(python --version)"
-          echo "PowerShell version: $(pwsh --version || echo 'PowerShell not available')"
-          echo "Azure CLI version: $(az --version | head -1 || echo 'Azure CLI not available')"
-          echo "Terraform version: $(terraform --version | head -1 || echo 'Terraform not available')"
-          echo "TFLint version: $(tflint --version || echo 'TFLint not available')"
-          echo "Checkov version: $(checkov --version || echo 'Checkov not available')"
-          echo "PSScriptAnalyzer available: $(pwsh -Command 'Get-Module -ListAvailable PSScriptAnalyzer | Select-Object -First 1' || echo 'Not available')"
+          echo "Python version: $(python --version 2>/dev/null || echo 'python not available')"
+          echo "Python3 version: $(python3 --version 2>/dev/null || echo 'python3 not available')"
+          echo "Python path: $(which python 2>/dev/null || echo 'python not found')"
+          echo "Python3 path: $(which python3 2>/dev/null || echo 'python3 not found')"
+          echo "PowerShell version: $(pwsh --version 2>/dev/null || echo 'PowerShell not available')"
+          echo "Azure CLI version: $(az --version 2>/dev/null | head -1 || echo 'Azure CLI not available')"
+          echo "Terraform version: $(terraform --version 2>/dev/null | head -1 || echo 'Terraform not available')"
+          echo "TFLint version: $(tflint --version 2>/dev/null || echo 'TFLint not available')"
+          echo "Checkov version: $(checkov --version 2>/dev/null || echo 'Checkov not available')"
+          echo "jq version: $(jq --version 2>/dev/null || echo 'jq not available')"
+          echo "shellcheck version: $(shellcheck --version 2>/dev/null | head -1 || echo 'shellcheck not available')"
+          echo "PSScriptAnalyzer check:"
+          pwsh -Command "Get-Module -ListAvailable PSScriptAnalyzer | Select-Object Name,Version | Format-Table -AutoSize" 2>/dev/null || echo 'PSScriptAnalyzer not available'
+          echo "Pre-commit version: $(pre-commit --version)"
           echo "Tool verification completed."
 
       - name: Run pre-commit on all files
@@ -98,7 +117,17 @@ jobs:
         continue-on-error: true
         run: |
           echo "Running pre-commit checks on all files..."
-          pre-commit run --all-files --show-diff-on-failure
+          echo "Working directory: $(pwd)"
+          echo "Files in directory: $(ls -la | head -10)"
+          echo "Pre-commit config validation:"
+          pre-commit validate-config
+          echo "Starting pre-commit run..."
+          pre-commit run --all-files --show-diff-on-failure --verbose || {
+            echo "Pre-commit failed with exit code: $?"
+            echo "Attempting to run pre-commit with individual hook debugging..."
+            pre-commit run --all-files --hook-stage manual 2>&1 | head -100 || true
+            exit 1
+          }
 
       - name: Generate summary report
         if: always()
