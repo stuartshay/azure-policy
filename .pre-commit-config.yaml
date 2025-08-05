@@ -4,7 +4,7 @@
 repos:
   # General file formatting and checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
         exclude: '\.md$'
@@ -38,7 +38,7 @@ repos:
         args: ['--profile=black', '--line-length=88']
 
   - repo: https://github.com/pycqa/flake8
-    rev: 7.1.1
+    rev: 7.3.0
     hooks:
       - id: flake8
         args: ['--max-line-length=120', '--extend-ignore=E203,W503,F401,F841']
@@ -153,7 +153,7 @@ repos:
 
   # Terraform formatting and validation
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.96.1
+    rev: v1.99.5
     hooks:
       - id: terraform_fmt
       - id: terraform_validate
@@ -190,7 +190,7 @@ repos:
 
   # Security and dependency scanning
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.10
+    rev: 1.8.6
     hooks:
       - id: bandit
         args:
