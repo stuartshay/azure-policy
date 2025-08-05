@@ -33,7 +33,7 @@ endif
 .PHONY: help setup clean install install-dev install-functions \
 	test test-all test-smoke test-policy test-integration test-infrastructure test-coverage test-live \
 	format format-check lint lint-python lint-shell lint-terraform \
-	pre-commit pre-commit-install pre-commit-run \
+	pre-commit pre-commit-install pre-commit-update pre-commit-run \
 	functions functions-start functions-stop functions-logs \
 	devcontainer devcontainer-build devcontainer-test devcontainer-rebuild devcontainer-debug \
 	azure azure-login azure-logout azure-policies azure-assignments \
@@ -188,6 +188,12 @@ pre-commit-install: ## Install pre-commit hooks
 	pre-commit install
 	pre-commit install-hooks
 	@echo "$(GREEN)Pre-commit hooks installed$(RESET)"
+
+pre-commit-update: ## Update pre-commit hooks to latest versions
+	@echo "$(YELLOW)Updating pre-commit hooks...$(RESET)"
+	pre-commit autoupdate
+	pre-commit install
+	@echo "$(GREEN)Pre-commit hooks updated$(RESET)"
 
 pre-commit-run: pre-commit ## Alias for pre-commit
 
