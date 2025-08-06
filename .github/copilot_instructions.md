@@ -435,9 +435,9 @@ pwd
 source .env
 
 # Navigate to CORRECT infrastructure directory (important!)
-cd infrastructure/infrastructure  # NOT infrastructure/terraform!
+cd infrastructure/core  # NOT infrastructure/terraform!
 pwd
-# Expected: /home/vagrant/git/azure-policy/infrastructure/infrastructure
+# Expected: /home/vagrant/git/azure-policy/infrastructure/core
 
 # Verify workspace configuration
 terraform workspace show
@@ -456,7 +456,7 @@ terraform plan
 **Key Terraform Cloud Setup Points:**
 - **Organization**: `azure-policy-cloud`
 - **Workspaces**:
-  - `azure-policy-infrastructure` (uses `infrastructure/infrastructure/`)
+  - `azure-policy-core` (uses `infrastructure/core/`)
   - `azure-policy-functions` (uses `infrastructure/functions/`)
   - `azure-policy-policies` (uses `infrastructure/policies/`)
 - **Authentication**: Service Principal required in workspace environment variables
@@ -742,7 +742,7 @@ pwd  # Verify you're in the right place
 # Common correct locations:
 # Project root: /home/vagrant/git/azure-policy
 # Functions: /home/vagrant/git/azure-policy/functions/basic
-# Infrastructure: /home/vagrant/git/azure-policy/infrastructure/infrastructure
+# Infrastructure: /home/vagrant/git/azure-policy/infrastructure/core
 ```
 
 #### If Pre-commit Hooks Fail
@@ -754,7 +754,7 @@ pre-commit autoupdate
 
 #### If Terraform Init Fails
 ```bash
-pwd  # Should be in infrastructure/infrastructure
+pwd  # Should be in infrastructure/core
 source ../../.env  # Load from project root
 export TF_API_TOKEN="$TF_API_TOKEN"
 terraform login  # Alternative method

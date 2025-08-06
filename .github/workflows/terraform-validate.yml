@@ -10,7 +10,7 @@ on:
         type: choice
         options:
           - all
-          - infrastructure
+          - core
           - policies
           - functions
   pull_request:
@@ -29,7 +29,7 @@ jobs:
 
     strategy:
       matrix:
-        module: ${{ github.event.inputs.module == 'all' && fromJson('["infrastructure", "policies", "functions"]') || fromJson(format('[""{0}""]', github.event.inputs.module || 'infrastructure')) }}
+        module: ${{ github.event.inputs.module == 'all' && fromJson('["core", "policies", "functions"]') || fromJson(format('["{0}"]', github.event.inputs.module || 'core')) }}
 
     steps:
       - name: Checkout

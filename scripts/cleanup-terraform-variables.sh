@@ -8,7 +8,7 @@ source .env
 
 # Terraform Cloud API settings
 ORG_NAME="azure-policy-cloud"
-WORKSPACE_NAME="azure-policy-infrastructure"
+WORKSPACE_NAME="azure-policy-core"
 API_URL="https://app.terraform.io/api/v2"
 
 # Colors for output

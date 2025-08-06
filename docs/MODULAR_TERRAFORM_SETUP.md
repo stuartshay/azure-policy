@@ -18,7 +18,7 @@ infrastructure/
 │   ├── variables.tf
 │   ├── outputs.tf
 │   └── modules/
-├── infrastructure/      # NEW: Core infrastructure workflow
+├── core/               # NEW: Core infrastructure workflow
 │   ├── main.tf
 │   ├── variables.tf
 │   └── outputs.tf
@@ -38,7 +38,7 @@ The following workspaces have been created in the `azure-policy-cloud` organizat
 
 | Workspace Name | Purpose | Working Directory |
 |----------------|---------|-------------------|
-| `azure-policy-infrastructure` | Core infrastructure deployment | `infrastructure/infrastructure` |
+| `azure-policy-core` | Core infrastructure deployment | `infrastructure/core` |
 | `azure-policy-policies` | Policy definitions and assignments | `infrastructure/policies` |
 | `azure-policy-functions` | Azure Functions deployment | `infrastructure/functions` |
 
@@ -75,7 +75,7 @@ The following workspaces have been created in the `azure-policy-cloud` organizat
 
 ### Deploy Infrastructure Only
 ```bash
-cd infrastructure/infrastructure
+cd infrastructure/core
 terraform plan
 terraform apply
 ```

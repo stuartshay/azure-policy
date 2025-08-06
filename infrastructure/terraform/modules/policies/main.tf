@@ -19,6 +19,13 @@ resource "azurerm_policy_definition" "resource_group_naming" {
   display_name = "Resource Group Naming Convention"
   description  = "Enforces naming convention for resource groups"
 
+  metadata = jsonencode(merge(
+    {
+      category = "General"
+    },
+    var.tags
+  ))
+
   policy_rule = jsonencode({
     if = {
       allOf = [
@@ -38,10 +45,6 @@ resource "azurerm_policy_definition" "resource_group_naming" {
       effect = "deny"
     }
   })
-
-  metadata = jsonencode({
-    category = "General"
-  })
 }
 
 # Policy Definition for Storage Naming
@@ -51,6 +54,13 @@ resource "azurerm_policy_definition" "storage_naming" {
   mode         = "All"
   display_name = "Storage Account Naming Convention"
   description  = "Enforces naming convention for storage accounts"
+
+  metadata = jsonencode(merge(
+    {
+      category = "Storage"
+    },
+    var.tags
+  ))
 
   policy_rule = jsonencode({
     if = {
@@ -70,10 +80,6 @@ resource "azurerm_policy_definition" "storage_naming" {
     then = {
       effect = "deny"
     }
-  })
-
-  metadata = jsonencode({
-    category = "Storage"
   })
 }
 

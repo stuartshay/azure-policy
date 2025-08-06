@@ -8,7 +8,7 @@ This document describes the Terraform Cloud setup validation and key findings fo
 ### Organization and Workspaces
 - **Organization**: `azure-policy-cloud`
 - **Workspaces**:
-  - `azure-policy-infrastructure` - Core infrastructure resources
+  - `azure-policy-core` - Core infrastructure resources
   - `azure-policy-functions` - Azure Functions resources
   - `azure-policy-policies` - Policy definitions and assignments
 
@@ -22,8 +22,8 @@ This document describes the Terraform Cloud setup validation and key findings fo
 ### Infrastructure Layouts
 The project has two infrastructure directories:
 
-1. **`infrastructure/infrastructure/`** - ✅ **ACTIVE**
-   - Used by Terraform Cloud workspace `azure-policy-infrastructure`
+1. **`infrastructure/core/`** - ✅ **ACTIVE**
+   - Used by Terraform Cloud workspace `azure-policy-core`
    - Contains core infrastructure resources
    - Properly configured for remote execution
 
@@ -113,7 +113,7 @@ terraform plan
 
 ## Terraform Cloud URLs
 - **Organization**: https://app.terraform.io/app/azure-policy-cloud
-- **Infrastructure Workspace**: https://app.terraform.io/app/azure-policy-cloud/azure-policy-infrastructure
+- **Infrastructure Workspace**: https://app.terraform.io/app/azure-policy-cloud/azure-policy-core
 - **Functions Workspace**: https://app.terraform.io/app/azure-policy-cloud/azure-policy-functions
 - **Policies Workspace**: https://app.terraform.io/app/azure-policy-cloud/azure-policy-policies
 
@@ -140,7 +140,7 @@ ARM_TENANT_ID=<azure_tenant_id>
 
 ## Status
 - **Authentication**: ✅ Working (API token, CLI config)
-- **Workspace Selection**: ✅ Working (azure-policy-infrastructure)
+- **Workspace Selection**: ✅ Working (azure-policy-core)
 - **Configuration Upload**: ✅ Working
 - **Azure Provider**: ❌ Needs Service Principal setup
 - **Resource Planning**: ❌ Blocked by authentication

@@ -20,7 +20,8 @@
     "GitHub.vscode-pull-request-github",
     "GitHub.copilot",
     "GitHub.copilot-chat",
-    "saoudrizwan.claude-dev"
+    "saoudrizwan.claude-dev",
+    "xargsuk.checkov-prismaless"
   ],
   "unwantedRecommendations": []
 }
