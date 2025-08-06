@@ -15,6 +15,26 @@ variable "resource_group_name" {
   default     = "rg-azpolicy-dev-eastus"
 }
 
+# Environment Configuration
+variable "environment" {
+  description = "Environment name (dev, staging, prod)"
+  type        = string
+  default     = "dev"
+}
+
+# Tagging Configuration
+variable "cost_center" {
+  description = "Cost center for billing"
+  type        = string
+  default     = "engineering"
+}
+
+variable "owner" {
+  description = "Owner of the resources"
+  type        = string
+  default     = "platform-team"
+}
+
 # Policy Configuration
 variable "enable_policy_assignments" {
   description = "Enable Azure Policy assignments"

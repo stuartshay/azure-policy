@@ -8,3 +8,9 @@ variable "enable_policy_assignments" {
   type        = bool
   default     = true
 }
+
+variable "tags" {
+  description = "A map of tags to apply to resources"
+  type        = map(string)
+  default     = {}
+}
