@@ -8,7 +8,7 @@ on:
         required: true
         type: choice
         options:
-          - infrastructure
+          - core
           - policies
           - functions
       environment:
@@ -130,7 +130,7 @@ jobs:
 
           # Try to get common outputs based on module type
           case "${{ github.event.inputs.module }}" in
-            "infrastructure")
+            "core")
               if terraform output resource_group_name >/dev/null 2>&1; then
                 {
                   echo "resource_group_name=$(terraform output -raw resource_group_name)"
@@ -178,7 +178,7 @@ jobs:
 
             # Get outputs if available
             case "${{ github.event.inputs.module }}" in
-              "infrastructure")
+              "core")
                 if terraform output resource_group_name >/dev/null 2>&1; then
                   {
                     echo "### Deployed Resources"

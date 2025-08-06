@@ -8,7 +8,7 @@ on:
         required: true
         type: choice
         options:
-          - infrastructure
+          - core
           - policies
           - functions
       environment:
@@ -129,7 +129,7 @@ jobs:
 
           # Module-specific cleanup status
           case "${{ github.event.inputs.module }}" in
-            "infrastructure")
+            "core")
               {
                 echo "- **Resource Group:** Removed"
                 echo "- **Virtual Network:** Removed"
