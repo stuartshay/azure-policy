@@ -180,7 +180,6 @@ repos:
       - id: terraform_checkov
         args:
           - --args=--framework terraform
-          - --args=--config-file=.checkov.yaml
 
   # GitHub Actions linting
   - repo: https://github.com/rhysd/actionlint
