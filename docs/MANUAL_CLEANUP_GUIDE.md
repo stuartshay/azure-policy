@@ -42,7 +42,7 @@ az functionapp list --query "[?contains(name, 'azpolicy')]" -o table
 1. Go to [Terraform Cloud](https://app.terraform.io/)
 2. Navigate to your organization: `azure-policy-cloud`
 3. For each workspace:
-   - `azure-policy-infrastructure`
+   - `azure-policy-core`
    - `azure-policy-policies`
    - `azure-policy-functions`
 
@@ -59,7 +59,7 @@ az functionapp list --query "[?contains(name, 'azpolicy')]" -o table
 curl -X DELETE \
   -H "Authorization: Bearer $TF_API_TOKEN" \
   -H "Content-Type: application/vnd.api+json" \
-  https://app.terraform.io/api/v2/organizations/azure-policy-cloud/workspaces/azure-policy-infrastructure
+  https://app.terraform.io/api/v2/organizations/azure-policy-cloud/workspaces/azure-policy-core
 
 curl -X DELETE \
   -H "Authorization: Bearer $TF_API_TOKEN" \
@@ -86,7 +86,7 @@ curl -X DELETE \
        "data": {
          "type": "workspaces",
          "attributes": {
-           "name": "azure-policy-infrastructure",
+           "name": "azure-policy-core",
            "terraform-version": "1.6.0",
            "working-directory": "infrastructure/infrastructure"
          }

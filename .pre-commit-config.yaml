@@ -179,7 +179,8 @@ repos:
           - --args=--only=terraform_standard_module_structure
       - id: terraform_checkov
         args:
-          - --args=--framework terraform
+          - --args=--framework=terraform
+          - --args=--config-file=${PWD}/.checkov.yaml
 
   # GitHub Actions linting
   - repo: https://github.com/rhysd/actionlint
