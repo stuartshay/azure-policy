@@ -50,3 +50,18 @@ output "location" {
   description = "Azure location"
   value       = var.location
 }
+
+output "storage_account_id" {
+  description = "ID of the storage account for logs"
+  value       = module.networking.flow_logs_storage_account_id
+}
+
+output "storage_account_name" {
+  description = "Name of the storage account for logs"
+  value       = module.networking.flow_logs_storage_account_name
+}
+
+output "storage_account_primary_blob_endpoint" {
+  description = "Primary blob endpoint of the storage account"
+  value       = module.networking.flow_logs_storage_account_primary_blob_endpoint
+}

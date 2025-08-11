@@ -37,7 +37,8 @@ endif
 	functions functions-start functions-stop functions-logs \
 	devcontainer devcontainer-build devcontainer-test devcontainer-rebuild devcontainer-debug \
 	azure azure-login azure-logout azure-policies azure-assignments \
-	terraform terraform-init terraform-plan terraform-apply terraform-destroy \
+	terraform terraform-login terraform-init terraform-plan terraform-apply terraform-destroy \
+	terraform-validate terraform-fmt terraform-output \
 	docs docs-generate docs-serve \
 	security security-scan security-secrets \
 	ci ci-setup ci-test \
@@ -253,21 +254,176 @@ azure-assignments: ## List policy assignments
 
 ##@ Terraform
 
-terraform-init: ## Initialize Terraform
+# Helper function to load .env and export Terraform token
+define load-terraform-env
+	@if [ -f .env ]; then \
+		echo "$(BLUE)Loading Terraform Cloud token from .env...$(RESET)"; \
+		export $$(grep -E '^TF_API_TOKEN=' .env | xargs) && \
+		export TF_TOKEN_app_terraform_io="$$TF_API_TOKEN" && \
+		export $$(grep -E '^ARM_' .env | xargs); \
+	else \
+		echo "$(RED)Warning: .env file not found. Please copy .env.template to .env and add your tokens.$(RESET)"; \
+		exit 1; \
+	fi
+endef
+
+terraform-login: ## Configure Terraform Cloud authentication from .env
+	@echo "$(YELLOW)Configuring Terraform Cloud authentication...$(RESET)"
+	@if [ -f .env ]; then \
+		. ./.env && \
+		export TF_TOKEN_app_terraform_io="$$TF_API_TOKEN" && \
+		echo "$(GREEN)Terraform Cloud token loaded from .env$(RESET)" && \
+		echo "Organization: $$(grep TF_CLOUD_ORGANIZATION .env | cut -d'=' -f2)" && \
+		echo "Token: $${TF_TOKEN_app_terraform_io:0:20}..." && \
+		echo "" && \
+		echo "$(GREEN)Authentication configured. You can now run terraform commands.$(RESET)"; \
+	else \
+		echo "$(RED)Error: .env file not found. Please copy .env.template to .env and add your tokens.$(RESET)"; \
+		exit 1; \
+	fi
+
+terraform-init: ## Initialize Terraform (main workspace)
 	@echo "$(YELLOW)Initializing Terraform...$(RESET)"
-	cd $(INFRASTRUCTURE_PATH) && terraform init
+	@if [ -f .env ]; then \
+		set -a && . ./.env && set +a && \
+		export TF_TOKEN_app_terraform_io="$$TF_API_TOKEN" && \
+		cd $(INFRASTRUCTURE_PATH)/terraform && terraform init; \
+	else \
+		echo "$(RED)Error: .env file not found. Please copy .env.template to .env and add your tokens.$(RESET)"; \
+		exit 1; \
+	fi
 
-terraform-plan: ## Plan Terraform changes
+terraform-plan: ## Plan Terraform changes (main workspace)
 	@echo "$(YELLOW)Planning Terraform changes...$(RESET)"
-	cd $(INFRASTRUCTURE_PATH) && terraform plan
+	@if [ -f .env ]; then \
+		set -a && . ./.env && set +a && \
+		export TF_TOKEN_app_terraform_io="$$TF_API_TOKEN" && \
+		cd $(INFRASTRUCTURE_PATH)/terraform && terraform plan; \
+	else \
+		echo "$(RED)Error: .env file not found. Please copy .env.template to .env and add your tokens.$(RESET)"; \
+		exit 1; \
+	fi
 
-terraform-apply: ## Apply Terraform changes
+terraform-apply: ## Apply Terraform changes (main workspace)
 	@echo "$(YELLOW)Applying Terraform changes...$(RESET)"
-	cd $(INFRASTRUCTURE_PATH) && terraform apply
+	@if [ -f .env ]; then \
+		set -a && . ./.env && set +a && \
+		export TF_TOKEN_app_terraform_io="$$TF_API_TOKEN" && \
+		cd $(INFRASTRUCTURE_PATH)/terraform && terraform apply; \
+	else \
+		echo "$(RED)Error: .env file not found. Please copy .env.template to .env and add your tokens.$(RESET)"; \
+		exit 1; \
+	fi
 
-terraform-destroy: ## Destroy Terraform resources
+terraform-destroy: ## Destroy Terraform resources (main workspace)
 	@echo "$(RED)Destroying Terraform resources...$(RESET)"
-	cd $(INFRASTRUCTURE_PATH) && terraform destroy
+	@if [ -f .env ]; then \
+		set -a && . ./.env && set +a && \
+		export TF_TOKEN_app_terraform_io="$$TF_API_TOKEN" && \
+		cd $(INFRASTRUCTURE_PATH)/terraform && terraform destroy; \
+	else \
+		echo "$(RED)Error: .env file not found. Please copy .env.template to .env and add your tokens.$(RESET)"; \
+		exit 1; \
+	fi
+
+terraform-validate: ## Validate Terraform configuration
+	@echo "$(YELLOW)Validating Terraform configuration...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/terraform && terraform validate
+
+terraform-fmt: ## Format Terraform files
+	@echo "$(YELLOW)Formatting Terraform files...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/terraform && terraform fmt -recursive
+
+terraform-output: ## Show Terraform outputs (main workspace)
+	@echo "$(YELLOW)Terraform outputs:$(RESET)"
+	@if [ -f .env ]; then \
+		set -a && . ./.env && set +a && \
+		export TF_TOKEN_app_terraform_io="$$TF_API_TOKEN" && \
+		cd $(INFRASTRUCTURE_PATH)/terraform && terraform output; \
+	else \
+		echo "$(RED)Error: .env file not found. Please copy .env.template to .env and add your tokens.$(RESET)"; \
+		exit 1; \
+	fi
+
+##@ Terraform Workspaces
+
+terraform-core-init: ## Initialize Core workspace
+	@echo "$(YELLOW)Initializing Core workspace...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/core && $(MAKE) init
+
+terraform-core-plan: ## Plan Core workspace changes
+	@echo "$(YELLOW)Planning Core workspace changes...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/core && $(MAKE) plan
+
+terraform-core-apply: ## Apply Core workspace changes
+	@echo "$(YELLOW)Applying Core workspace changes...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/core && $(MAKE) apply
+
+terraform-core-destroy: ## Destroy Core workspace resources
+	@echo "$(RED)Destroying Core workspace resources...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/core && $(MAKE) destroy
+
+terraform-functions-init: ## Initialize Functions workspace
+	@echo "$(YELLOW)Initializing Functions workspace...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/functions && $(MAKE) init
+
+terraform-functions-plan: ## Plan Functions workspace changes
+	@echo "$(YELLOW)Planning Functions workspace changes...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/functions && $(MAKE) plan
+
+terraform-functions-apply: ## Apply Functions workspace changes
+	@echo "$(YELLOW)Applying Functions workspace changes...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/functions && $(MAKE) apply
+
+terraform-functions-destroy: ## Destroy Functions workspace resources
+	@echo "$(RED)Destroying Functions workspace resources...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/functions && $(MAKE) destroy
+
+terraform-policies-init: ## Initialize Policies workspace
+	@echo "$(YELLOW)Initializing Policies workspace...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/policies && $(MAKE) init
+
+terraform-policies-plan: ## Plan Policies workspace changes
+	@echo "$(YELLOW)Planning Policies workspace changes...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/policies && $(MAKE) plan
+
+terraform-policies-apply: ## Apply Policies workspace changes
+	@echo "$(YELLOW)Applying Policies workspace changes...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/policies && $(MAKE) apply
+
+terraform-policies-destroy: ## Destroy Policies workspace resources
+	@echo "$(RED)Destroying Policies workspace resources...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/policies && $(MAKE) destroy
+
+terraform-all-init: ## Initialize all Terraform workspaces
+	@echo "$(YELLOW)Initializing all Terraform workspaces...$(RESET)"
+	@$(MAKE) terraform-core-init
+	@$(MAKE) terraform-functions-init
+	@$(MAKE) terraform-policies-init
+	@echo "$(GREEN)All workspaces initialized$(RESET)"
+
+terraform-all-plan: ## Plan changes for all workspaces
+	@echo "$(YELLOW)Planning changes for all workspaces...$(RESET)"
+	@$(MAKE) terraform-core-plan
+	@$(MAKE) terraform-functions-plan
+	@$(MAKE) terraform-policies-plan
+	@echo "$(GREEN)All workspace plans completed$(RESET)"
+
+terraform-workspaces: ## Show all Terraform workspaces
+	@echo "$(GREEN)Available Terraform Workspaces:$(RESET)"
+	@echo "  $(BLUE)core$(RESET)      - Core infrastructure (networking, resource groups)"
+	@echo "  $(BLUE)functions$(RESET) - Azure Functions infrastructure"
+	@echo "  $(BLUE)policies$(RESET)  - Azure Policy definitions and assignments"
+	@echo ""
+	@echo "$(YELLOW)Use workspace-specific commands:$(RESET)"
+	@echo "  make terraform-core-init      # Initialize core workspace"
+	@echo "  make terraform-functions-plan # Plan functions workspace"
+	@echo "  make terraform-policies-apply # Apply policies workspace"
+	@echo ""
+	@echo "$(YELLOW)Or work directly in the workspace directory:$(RESET)"
+	@echo "  cd infrastructure/core && make init"
+	@echo "  cd infrastructure/functions && make plan"
+	@echo "  cd infrastructure/policies && make apply"
 
 ##@ Documentation
 

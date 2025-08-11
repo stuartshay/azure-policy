@@ -46,7 +46,7 @@ data "azurerm_resource_group" "main" {
 
 # Azure Policies Module
 module "policies" {
-  source = "../terraform/modules/policies"
+  source = "git::https://github.com/stuartshay/azure-policy.git//infrastructure/terraform/modules/policies?ref=88f58f3"
 
   resource_group_id         = data.azurerm_resource_group.main.id
   enable_policy_assignments = var.enable_policy_assignments

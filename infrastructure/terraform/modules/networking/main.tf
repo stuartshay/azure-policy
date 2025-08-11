@@ -225,9 +225,9 @@ resource "azurerm_network_watcher" "main" {
   tags = var.tags
 }
 
-# Flow logs for NSGs (if Network Watcher is enabled)
+# Flow logs storage account (for VNet flow logs)
 resource "azurerm_storage_account" "flow_logs" {
-  #checkov:skip=CKV2_AZURE_40:Shared access key is required for NSG flow logs functionality
+  #checkov:skip=CKV2_AZURE_40:Shared access key is required for VNet flow logs functionality
   count = var.enable_network_watcher && var.enable_flow_logs ? 1 : 0
 
   name                     = "stflowlogs${var.workload}${var.environment}001"
@@ -256,16 +256,19 @@ resource "azurerm_storage_account" "flow_logs" {
   tags = var.tags
 }
 
-resource "azurerm_network_watcher_flow_log" "main" {
-  for_each = var.enable_network_watcher && var.enable_flow_logs ? var.subnet_config : {}
+# VNet Flow Logs (replaces NSG flow logs - future-proof for NSG flow log retirement in Sept 2027)
+resource "azurerm_network_watcher_flow_log" "vnet" {
+  count = var.enable_network_watcher && var.enable_flow_logs ? 1 : 0
 
   network_watcher_name = azurerm_network_watcher.main[0].name
   resource_group_name  = var.resource_group_name
-  name                 = "fl-${each.key}-${var.environment}"
+  name                 = "fl-vnet-${var.workload}-${var.environment}"
 
-  network_security_group_id = azurerm_network_security_group.main[each.key].id
-  storage_account_id        = azurerm_storage_account.flow_logs[0].id
-  enabled                   = true
+  # Target the VNet instead of individual NSGs
+  target_resource_id = azurerm_virtual_network.main.id
+  storage_account_id = azurerm_storage_account.flow_logs[0].id
+  enabled            = true
+  version            = 2 # VNet flow logs use version 2
 
   retention_policy {
     enabled = true
@@ -283,4 +286,40 @@ resource "azurerm_network_watcher_flow_log" "main" {
   }
 
   tags = var.tags
+}
+
+# Legacy NSG Flow Logs (deprecated - will be removed after VNet flow logs are validated)
+# These will be retired on September 30, 2027. New NSG flow logs cannot be created after June 30, 2025.
+# Note: This resource is being phased out in favor of VNet flow logs
+resource "azurerm_network_watcher_flow_log" "nsg_legacy" {
+  for_each = var.enable_legacy_nsg_flow_logs && var.enable_network_watcher && var.enable_flow_logs ? var.subnet_config : {}
+
+  network_watcher_name = azurerm_network_watcher.main[0].name
+  resource_group_name  = var.resource_group_name
+  name                 = "fl-nsg-${each.key}-${var.environment}-legacy"
+
+  target_resource_id = azurerm_network_security_group.main[each.key].id
+  storage_account_id = azurerm_storage_account.flow_logs[0].id
+  enabled            = true
+
+  retention_policy {
+    enabled = true
+    days    = var.flow_log_retention_days
+  }
+
+  dynamic "traffic_analytics" {
+    for_each = var.enable_traffic_analytics && var.log_analytics_workspace_id != null ? [1] : []
+    content {
+      enabled               = true
+      workspace_id          = var.log_analytics_workspace_id
+      workspace_region      = var.location
+      workspace_resource_id = var.log_analytics_workspace_resource_id
+    }
+  }
+
+  tags = merge(var.tags, {
+    "Deprecated"     = "true"
+    "RetirementDate" = "2027-09-30"
+    "ReplacedBy"     = "VNet Flow Logs"
+  })
 }

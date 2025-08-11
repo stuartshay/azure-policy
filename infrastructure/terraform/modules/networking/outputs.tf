@@ -116,11 +116,22 @@ output "flow_logs_storage_account_primary_blob_endpoint" {
   value       = var.enable_network_watcher && var.enable_flow_logs ? azurerm_storage_account.flow_logs[0].primary_blob_endpoint : null
 }
 
-# Flow Log Outputs (if enabled)
-output "flow_log_ids" {
-  description = "Map of flow log names to their IDs (if enabled)"
-  value = var.enable_network_watcher && var.enable_flow_logs ? {
-    for flow_log_name, flow_log in azurerm_network_watcher_flow_log.main : flow_log_name => flow_log.id
+# VNet Flow Log Outputs (if enabled)
+output "vnet_flow_log_id" {
+  description = "ID of the VNet flow log (if enabled)"
+  value       = var.enable_network_watcher && var.enable_flow_logs ? azurerm_network_watcher_flow_log.vnet[0].id : null
+}
+
+output "vnet_flow_log_name" {
+  description = "Name of the VNet flow log (if enabled)"
+  value       = var.enable_network_watcher && var.enable_flow_logs ? azurerm_network_watcher_flow_log.vnet[0].name : null
+}
+
+# Legacy NSG Flow Log Outputs (deprecated - if enabled)
+output "legacy_nsg_flow_log_ids" {
+  description = "Map of legacy NSG flow log names to their IDs (deprecated - if enabled)"
+  value = var.enable_legacy_nsg_flow_logs && var.enable_network_watcher && var.enable_flow_logs ? {
+    for flow_log_name, flow_log in azurerm_network_watcher_flow_log.nsg_legacy : flow_log_name => flow_log.id
   } : {}
 }
 
