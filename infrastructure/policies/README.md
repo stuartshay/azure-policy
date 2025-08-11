@@ -16,7 +16,7 @@
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_policies"></a> [policies](#module\_policies) | ../terraform/modules/policies | n/a |
+| <a name="module_policies"></a> [policies](#module\_policies) | git::https://github.com/stuartshay/azure-policy.git//infrastructure/terraform/modules/policies | 88f58f3 |
 
 ## Resources
 

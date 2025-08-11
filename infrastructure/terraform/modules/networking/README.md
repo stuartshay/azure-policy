@@ -103,7 +103,8 @@ No modules.
 | [azurerm_network_security_rule.allow_https_outbound](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_security_rule) | resource |
 | [azurerm_network_security_rule.deny_http_inbound](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_security_rule) | resource |
 | [azurerm_network_watcher.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_watcher) | resource |
-| [azurerm_network_watcher_flow_log.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_watcher_flow_log) | resource |
+| [azurerm_network_watcher_flow_log.nsg_legacy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_watcher_flow_log) | resource |
+| [azurerm_network_watcher_flow_log.vnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_watcher_flow_log) | resource |
 | [azurerm_route.default](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route) | resource |
 | [azurerm_route_table.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/route_table) | resource |
 | [azurerm_storage_account.flow_logs](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account) | resource |
@@ -117,7 +118,8 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_enable_custom_routes"></a> [enable\_custom\_routes](#input\_enable\_custom\_routes) | Enable custom route table and routes | `bool` | `false` | no |
-| <a name="input_enable_flow_logs"></a> [enable\_flow\_logs](#input\_enable\_flow\_logs) | Enable NSG flow logs (requires Network Watcher) | `bool` | `false` | no |
+| <a name="input_enable_flow_logs"></a> [enable\_flow\_logs](#input\_enable\_flow\_logs) | Enable VNet flow logs (requires Network Watcher) | `bool` | `false` | no |
+| <a name="input_enable_legacy_nsg_flow_logs"></a> [enable\_legacy\_nsg\_flow\_logs](#input\_enable\_legacy\_nsg\_flow\_logs) | Enable legacy NSG flow logs alongside VNet flow logs (deprecated - will be retired Sept 30, 2027) | `bool` | `false` | no |
 | <a name="input_enable_network_watcher"></a> [enable\_network\_watcher](#input\_enable\_network\_watcher) | Enable Network Watcher for monitoring and diagnostics | `bool` | `false` | no |
 | <a name="input_enable_traffic_analytics"></a> [enable\_traffic\_analytics](#input\_enable\_traffic\_analytics) | Enable traffic analytics for flow logs | `bool` | `false` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, staging, prod) | `string` | n/a | yes |
@@ -139,12 +141,12 @@ No modules.
 | <a name="output_app_service_subnet_id"></a> [app\_service\_subnet\_id](#output\_app\_service\_subnet\_id) | ID of the App Service subnet (if exists) |
 | <a name="output_app_service_subnet_name"></a> [app\_service\_subnet\_name](#output\_app\_service\_subnet\_name) | Name of the App Service subnet (if exists) |
 | <a name="output_connectivity_info"></a> [connectivity\_info](#output\_connectivity\_info) | Information for connecting other resources to the network |
-| <a name="output_flow_log_ids"></a> [flow\_log\_ids](#output\_flow\_log\_ids) | Map of flow log names to their IDs (if enabled) |
 | <a name="output_flow_logs_storage_account_id"></a> [flow\_logs\_storage\_account\_id](#output\_flow\_logs\_storage\_account\_id) | ID of the flow logs storage account (if enabled) |
 | <a name="output_flow_logs_storage_account_name"></a> [flow\_logs\_storage\_account\_name](#output\_flow\_logs\_storage\_account\_name) | Name of the flow logs storage account (if enabled) |
 | <a name="output_flow_logs_storage_account_primary_blob_endpoint"></a> [flow\_logs\_storage\_account\_primary\_blob\_endpoint](#output\_flow\_logs\_storage\_account\_primary\_blob\_endpoint) | Primary blob endpoint of the flow logs storage account (if enabled) |
 | <a name="output_functions_subnet_id"></a> [functions\_subnet\_id](#output\_functions\_subnet\_id) | ID of the Functions subnet (if exists) |
 | <a name="output_functions_subnet_name"></a> [functions\_subnet\_name](#output\_functions\_subnet\_name) | Name of the Functions subnet (if exists) |
+| <a name="output_legacy_nsg_flow_log_ids"></a> [legacy\_nsg\_flow\_log\_ids](#output\_legacy\_nsg\_flow\_log\_ids) | Map of legacy NSG flow log names to their IDs (deprecated - if enabled) |
 | <a name="output_network_watcher_id"></a> [network\_watcher\_id](#output\_network\_watcher\_id) | ID of the Network Watcher (if enabled) |
 | <a name="output_network_watcher_name"></a> [network\_watcher\_name](#output\_network\_watcher\_name) | Name of the Network Watcher (if enabled) |
 | <a name="output_networking_summary"></a> [networking\_summary](#output\_networking\_summary) | Summary of networking configuration |
@@ -164,6 +166,8 @@ No modules.
 | <a name="output_subnet_route_table_associations"></a> [subnet\_route\_table\_associations](#output\_subnet\_route\_table\_associations) | Map of subnet names to their route table association IDs (if enabled) |
 | <a name="output_subnet_service_endpoints"></a> [subnet\_service\_endpoints](#output\_subnet\_service\_endpoints) | Map of subnet names to their service endpoints |
 | <a name="output_vnet_address_space"></a> [vnet\_address\_space](#output\_vnet\_address\_space) | Address space of the virtual network |
+| <a name="output_vnet_flow_log_id"></a> [vnet\_flow\_log\_id](#output\_vnet\_flow\_log\_id) | ID of the VNet flow log (if enabled) |
+| <a name="output_vnet_flow_log_name"></a> [vnet\_flow\_log\_name](#output\_vnet\_flow\_log\_name) | Name of the VNet flow log (if enabled) |
 | <a name="output_vnet_id"></a> [vnet\_id](#output\_vnet\_id) | ID of the created virtual network |
 | <a name="output_vnet_location"></a> [vnet\_location](#output\_vnet\_location) | Location of the virtual network |
 | <a name="output_vnet_name"></a> [vnet\_name](#output\_vnet\_name) | Name of the created virtual network |

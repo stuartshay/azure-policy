@@ -67,7 +67,7 @@ variable "vnet_address_space" {
 }
 
 variable "subnet_config" {
-  description = "Configuration for subnets"
+  description = "Configuration for core subnets only"
   type = map(object({
     address_prefixes  = list(string)
     service_endpoints = optional(list(string), [])
@@ -84,23 +84,6 @@ variable "subnet_config" {
     default = {
       address_prefixes  = ["10.0.1.0/24"]
       service_endpoints = []
-    }
-    appservice = {
-      address_prefixes  = ["10.0.2.0/24"]
-      service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault"]
-      delegation = {
-        name = "app-service-delegation"
-        service_delegation = {
-          name = "Microsoft.Web/serverFarms"
-          actions = [
-            "Microsoft.Network/virtualNetworks/subnets/action"
-          ]
-        }
-      }
-    }
-    functions = {
-      address_prefixes  = ["10.0.3.0/24"]
-      service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault"]
     }
     privateendpoints = {
       address_prefixes  = ["10.0.4.0/24"]

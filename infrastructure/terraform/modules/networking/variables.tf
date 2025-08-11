@@ -110,7 +110,13 @@ variable "enable_network_watcher" {
 }
 
 variable "enable_flow_logs" {
-  description = "Enable NSG flow logs (requires Network Watcher)"
+  description = "Enable VNet flow logs (requires Network Watcher)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_legacy_nsg_flow_logs" {
+  description = "Enable legacy NSG flow logs alongside VNet flow logs (deprecated - will be retired Sept 30, 2027)"
   type        = bool
   default     = false
 }
