@@ -18,7 +18,7 @@
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_networking"></a> [networking](#module\_networking) | github.com/stuartshay/azure-policy//infrastructure/terraform/modules/networking | 40bee534c1b346bf93af0deff784aa069af4e3d3 |
+| <a name="module_networking"></a> [networking](#module\_networking) | github.com/stuartshay/azure-policy//infrastructure/terraform/modules/networking | v0.1.0 |
 
 ## Resources
 

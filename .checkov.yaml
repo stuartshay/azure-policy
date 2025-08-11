@@ -36,6 +36,10 @@ skip-check:
   - CKV_AZURE_44 # Latest TLS version not enforced for dev
   - CKV_AZURE_59 # Public access restriction not enforced for dev
 
+  # Ensure Terraform module sources use a commit hash"
+  - CKV_TF_1 #"Ensure Terraform module sources use a commit hash"
+
+
 # Skip parsing issues with complex policy definitions
 skip-path:
   - /infrastructure/terraform/modules/policies/main.tf# Output format

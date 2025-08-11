@@ -21,7 +21,8 @@
     "GitHub.copilot",
     "GitHub.copilot-chat",
     "saoudrizwan.claude-dev",
-    "xargsuk.checkov-prismaless"
+    "xargsuk.checkov-prismaless",
+    "hashicorp.terraform"
   ],
   "unwantedRecommendations": []
 }
