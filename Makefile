@@ -395,6 +395,41 @@ terraform-policies-destroy: ## Destroy Policies workspace resources
 	@echo "$(RED)Destroying Policies workspace resources...$(RESET)"
 	@cd $(INFRASTRUCTURE_PATH)/policies && $(MAKE) destroy
 
+##@ Module Management
+
+module-verify: ## Verify module is ready for publishing
+	@echo "$(YELLOW)Verifying networking module for publishing...$(RESET)"
+	./scripts/verify-module-ready.sh
+
+module-publish-help: ## Show module publishing instructions
+	@echo "$(GREEN)=== Module Publishing Instructions ===$(RESET)"
+	@echo ""
+	@echo "1. $(YELLOW)Verify module readiness:$(RESET)"
+	@echo "   make module-verify"
+	@echo ""
+	@echo "2. $(YELLOW)Publish manually in Terraform Cloud:$(RESET)"
+	@echo "   • Go to: https://app.terraform.io/app/azure-policy-cloud/registry"
+	@echo "   • Click 'Publish' > 'Module'"
+	@echo "   • Repository: stuartshay/azure-policy"
+	@echo "   • Module Name: networking"
+	@echo "   • Provider: azurerm"
+	@echo "   • Module Directory: infrastructure/terraform/modules/networking"
+	@echo "   • Publishing Type: Tag"
+	@echo ""
+	@echo "3. $(YELLOW)Switch to registry source:$(RESET)"
+	@echo "   make module-switch-to-registry"
+	@echo ""
+
+module-switch-to-registry: ## Switch core infrastructure to use registry module
+	@echo "$(YELLOW)Switching to Terraform Cloud registry module...$(RESET)"
+	./scripts/switch-to-registry-module.sh 0.1.0
+
+module-tag: ## Create and push a new module version tag
+	@read -p "Enter version (e.g., 0.1.1): " VERSION && \
+	git tag -a "v$$VERSION" -m "Release v$$VERSION: networking module" && \
+	git push origin "v$$VERSION" && \
+	echo "$(GREEN)Tagged and pushed v$$VERSION$(RESET)"
+
 terraform-all-init: ## Initialize all Terraform workspaces
 	@echo "$(YELLOW)Initializing all Terraform workspaces...$(RESET)"
 	@$(MAKE) terraform-core-init
