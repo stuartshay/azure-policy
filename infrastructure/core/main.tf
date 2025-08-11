@@ -87,8 +87,8 @@ module "networking" {
   # source  = "azure-policy-cloud/networking/azurerm"
   # version = "0.1.0"  # Static version required - variables not allowed
 
-  # Temporary GitHub source until module is published to registry
-  source = "github.com/stuartshay/azure-policy//infrastructure/terraform/modules/networking?ref=40bee534c1b346bf93af0deff784aa069af4e3d3"
+  # GitHub source with semantic versioning
+  source = "github.com/stuartshay/azure-policy//infrastructure/terraform/modules/networking?ref=v0.1.0"
 
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
