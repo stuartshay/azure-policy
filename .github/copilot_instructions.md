@@ -52,6 +52,56 @@ pwd
 - **Rationale**: Ensures consistency, repeatability, and version control
 - **Implementation**: Use ARM templates, Bicep, or Terraform for infrastructure definitions
 
+### 5. Use Makefile for Terraform Cloud Operations
+
+- **Rule**: ALWAYS use Makefile commands for Terraform operations with Terraform Cloud
+- **Rationale**: Makefile handles environment variable loading, authentication, and workspace management automatically
+- **Implementation**: Use `make terraform-*` commands instead of direct `terraform` commands
+- **Benefits**:
+  - Automatic `.env` file loading for authentication
+  - Workspace-specific commands for modular infrastructure
+  - Consistent environment setup across team members
+  - Built-in error handling and validation
+
+**Examples**:
+```bash
+# ✅ PREFERRED: Use Makefile (handles authentication automatically)
+make terraform-login                  # Configure Terraform Cloud from .env
+make terraform-core-plan             # Plan core infrastructure changes
+make terraform-workspaces            # Show all available workspaces
+
+# ❌ AVOID: Direct terraform commands (requires manual .env loading)
+cd infrastructure/core && source ../../.env && terraform init
+```
+
+### 6. Always Use Pre-commit Hooks for Code Quality
+
+- **Rule**: ALWAYS run pre-commit hooks before committing code changes
+- **Rationale**: Ensures consistent code quality, prevents common issues, and enforces project standards
+- **Implementation**: Use `make pre-commit` or `pre-commit run --all-files` before every commit
+- **Benefits**:
+  - Automatic code formatting (Black, isort)
+  - Linting and validation (flake8, pylint, shellcheck)
+  - Security scanning (bandit, checkov)
+  - Terraform validation and formatting
+  - GitHub Actions validation
+  - Documentation structure enforcement
+
+**Examples**:
+```bash
+# ✅ PREFERRED: Use Makefile (recommended workflow)
+make pre-commit                      # Run all pre-commit hooks
+
+# ✅ ALTERNATIVE: Direct pre-commit commands
+pre-commit run --all-files          # Run all hooks on all files
+pre-commit run black --all-files    # Run specific hook
+
+# 🔄 WORKFLOW: Always validate before committing
+pwd && make pre-commit && git add . && git commit -m "your message"
+```
+
+**Never bypass pre-commit hooks** - they prevent issues that would fail in CI/CD!
+
 ## Project Structure
 
 ### Directory Organization
@@ -150,6 +200,18 @@ def function_handler(req: func.HttpRequest) -> func.HttpResponse:
 - **Line length**: 88 characters (Black default)
 - **Imports**: Use isort for import organization
 - **Type hints**: Use type hints for all function parameters and return values
+- **Enforcement**: Pre-commit hooks automatically format and validate code
+
+**Pre-commit Integration**:
+```bash
+# ✅ PREFERRED: Let pre-commit handle formatting automatically
+make pre-commit                     # Formats and validates all code
+
+# ✅ ALTERNATIVE: Direct formatting commands (if needed)
+make format                         # Format all Python code with Black + isort
+pre-commit run black --all-files    # Run Black formatting only
+pre-commit run isort --all-files    # Run import sorting only
+```
 
 ### 2. Documentation
 
@@ -176,7 +238,22 @@ def function_handler(req: func.HttpRequest) -> func.HttpResponse:
 - **Rule**: Maintain minimum 80% test coverage for functions, validate all policy files
 - **Tools**: Use pytest for testing, coverage.py for coverage reporting
 - **Types**: Unit tests, integration tests, policy validation tests, and infrastructure tests
-- **Command**: Use `./run-tests.sh` for comprehensive testing workflows
+- **Command**: Use `make test` or `./run-tests.sh` for comprehensive testing workflows
+- **Validation**: ALWAYS run `make pre-commit` before committing to ensure all tests pass
+
+**Pre-commit Testing Integration**:
+```bash
+# ✅ COMPREHENSIVE: Run all validations (recommended before commits)
+make pre-commit                     # Includes testing, linting, formatting, security
+
+# ✅ TESTING ONLY: Run specific test suites
+make test                           # Run all tests via Makefile
+make test-smoke                     # Quick validation tests
+./run-tests.sh coverage            # Tests with coverage report
+
+# 🔄 WORKFLOW: Complete validation before commit
+pwd && make pre-commit && git add . && git commit -m "feat: your changes"
+```
 
 ### 2. Policy Testing Framework
 
@@ -300,14 +377,40 @@ tests/
 - **Format**: Use conventional commit format
 - **Examples**: `feat: add storage naming policy`, `fix: resolve function timeout`
 - **Scope**: Keep commits focused and atomic
+- **Pre-commit**: ALWAYS run `make pre-commit` before committing
 
-### 3. Pull Request Guidelines
+### 3. Pre-commit Hook Integration
+
+- **Rule**: MANDATORY use of pre-commit hooks for all commits
+- **Installation**: Hooks are automatically installed with `make setup`
+- **Enforcement**: Never use `git commit --no-verify` to bypass hooks
+- **Workflow**: Pre-commit hooks run automatically on every `git commit`
+
+**Pre-commit Workflow**:
+```bash
+# ✅ RECOMMENDED: Complete validation workflow
+pwd                                 # Check location
+make pre-commit                     # Run all validations
+git add .                          # Stage changes
+git commit -m "feat: your message" # Commit (hooks run automatically)
+
+# 🔍 TROUBLESHOOTING: If pre-commit fails
+make pre-commit                     # Fix issues manually
+git add .                          # Re-stage fixed files
+git commit -m "feat: your message" # Retry commit
+
+# ❌ NEVER DO: Bypass pre-commit hooks
+git commit --no-verify             # This defeats the purpose!
+```
+
+### 4. Pull Request Guidelines
 
 - **Rule**: All changes must go through pull requests
 - **Reviews**: Require at least one reviewer
 - **Checks**: All tests and linting must pass
+- **Pre-commit**: All commits must have passed pre-commit hooks locally
 
-### 4. Automated Testing
+### 5. Automated Testing
 
 - **Rule**: Run tests on every pull request
 - **Tools**: GitHub Actions for CI/CD pipelines
@@ -318,11 +421,13 @@ tests/
 ### 1. Development Environment
 
 - **Rule**: Use DevContainer for consistent development
-- **Tools**: Python 3.13, Azure CLI, Azure Functions Core Tools
+- **Tools**: Python 3.10.12, Azure CLI, Azure Functions Core Tools
 - **Configuration**: VS Code with recommended extensions
 
 #### Current Environment Setup
-- **Python**: 3.13.5 (venv environment)
+- **Python**: 3.10.12 (multiple venv environments available)
+  - **Project root**: `/home/vagrant/git/azure-policy/.venv/` (for general project work)
+  - **Functions-specific**: `functions/basic/.venv/` (for Azure Functions development)
 - **Azure CLI**: 2.75.0
 - **Terraform**: 1.12.2
 - **Azure Functions Core Tools**: 4.1.0
@@ -391,13 +496,15 @@ TF_VAR_cost_center=development
 #### Infrastructure Structure
 ```
 infrastructure/
-├── infrastructure/         # Core resources (networking, RG, storage)
-├── functions/             # Azure Functions resources
-├── policies/              # Azure Policy definitions
-└── terraform/            # Main Terraform configuration
-    └── modules/          # Reusable Terraform modules
-        ├── networking/   # Virtual networks, subnets, NSGs
-        └── policies/     # Policy definitions and assignments
+├── app-service/            # App Service resources (plans, storage, insights)
+├── core/                   # Core resources (networking, RG, storage)
+├── functions-app/          # Functions App deployment resources
+├── policies/               # Azure Policy definitions
+├── service-bus/            # Service Bus namespace, queues, and topics
+└── terraform/              # Main Terraform configuration
+    └── modules/            # Reusable Terraform modules
+        ├── networking/     # Virtual networks, subnets, NSGs
+        └── policies/       # Policy definitions and assignments
 ```
 
 ### 4. Monitoring and Logging
@@ -457,10 +564,12 @@ terraform plan
 - **Organization**: `azure-policy-cloud`
 - **Workspaces**:
   - `azure-policy-core` (uses `infrastructure/core/`)
-  - `azure-policy-functions` (uses `infrastructure/functions/`)
+  - `azure-policy-app-service` (uses `infrastructure/app-service/`)
+  - `azure-policy-functions-app` (uses `infrastructure/functions-app/`)
+  - `azure-policy-service-bus` (uses `infrastructure/service-bus/`)
   - `azure-policy-policies` (uses `infrastructure/policies/`)
 - **Authentication**: Service Principal required in workspace environment variables
-- **Directory**: Use `infrastructure/infrastructure/` NOT `infrastructure/terraform/`
+- **Directory**: Use specific infrastructure modules, NOT `infrastructure/terraform/`
 
 **If terraform plan fails with Azure CLI error:**
 1. Go to Terraform Cloud workspace settings
@@ -561,6 +670,18 @@ az account set --subscription "your-subscription-id"
 # ALWAYS START WITH LOCATION CHECK
 pwd                                   # Verify current directory location
 
+# Activate appropriate Python environment
+# For project root work (testing, policies, infrastructure):
+source /home/vagrant/git/azure-policy/.venv/bin/activate
+
+# For Azure Functions work:
+cd functions/basic && source .venv/bin/activate
+
+# PREFERRED: Use Makefile for comprehensive operations
+make help                            # Show all available commands
+make status                          # Show project status
+make terraform-login                 # Configure Terraform Cloud from .env
+
 # Complete environment validation
 pre-commit run --all-files
 
@@ -577,7 +698,8 @@ source .env
 az account show
 
 # Test Terraform Cloud connectivity
-cd infrastructure/infrastructure && pwd && terraform init
+make terraform-login                 # Configure authentication from .env
+make terraform-core-init             # Test initialization with backend
 
 # Start local development environment
 azurite --silent --location azurite-data &
@@ -590,34 +712,71 @@ cd functions/basic && pwd && func start --python
 # ALWAYS VERIFY LOCATION FIRST
 pwd                          # Check current directory
 
-# Testing commands
+# 🎯 MOST IMPORTANT: Pre-commit validation (run before every commit)
+make pre-commit              # Run ALL validations (formatting, linting, testing, security)
+pre-commit run --all-files   # Alternative: direct pre-commit command
+
+# Testing commands (PREFERRED: Use Makefile)
+make test                    # Run all tests
+make test-smoke              # Quick validation
+make test-policy             # Policy validation tests
+make test-integration        # Integration tests
+make test-coverage           # Tests with coverage report
+
+# ALTERNATIVE: Direct script usage
 ./run-tests.sh smoke         # Quick validation
 ./run-tests.sh policy        # Policy validation tests
 ./run-tests.sh integration   # Integration tests
 ./run-tests.sh coverage      # Tests with coverage report
 ./run-tests.sh validate policies/policy-name.json  # Validate specific policy
 
-# Azure Functions development
+# Azure Functions development (PREFERRED: Use Makefile)
+make functions-start         # Start Azure Functions with environment setup
+
+# ALTERNATIVE: Direct commands
 cd functions/basic && pwd && func start
 
 # Run tests
 pwd && python -m pytest tests/ -v
 
-# Format code
+# Format code (PREFERRED: Use Makefile)
+make format                  # Format all code (project + functions)
+
+# ALTERNATIVE: Direct commands
 pwd && black .
 
-# Lint code
+# Lint code (PREFERRED: Use Makefile)
+make lint                    # Run all linting
+
+# ALTERNATIVE: Direct commands
 pwd && pylint function_app.py
 
 # Deploy policy
 pwd && az policy definition create --name "policy-name" --rules policy.json
 
-# Terraform operations (from infrastructure modules)
-cd infrastructure/infrastructure && pwd
-terraform init      # Initialize with Terraform Cloud backend
-terraform plan       # Preview changes
-terraform apply      # Apply changes
-terraform destroy    # Destroy resources (dev only)
+# Terraform operations (use Makefile for Terraform Cloud)
+# PREFERRED: Use Makefile commands (handles .env loading and authentication)
+make terraform-login                  # Configure Terraform Cloud from .env
+make terraform-core-init             # Initialize core workspace
+make terraform-core-plan             # Plan core workspace changes
+make terraform-core-apply            # Apply core workspace changes
+
+# Other workspace commands:
+make terraform-app-service-init      # Initialize app service workspace
+make terraform-functions-app-plan    # Plan functions app workspace
+make terraform-service-bus-apply     # Apply service bus workspace
+make terraform-policies-apply        # Apply policies workspace
+
+# Show all available workspaces
+make terraform-workspaces            # List all Terraform workspaces
+
+# ALTERNATIVE: Direct terraform commands (manual .env loading required)
+cd infrastructure/core && pwd
+source ../../.env                    # Load environment variables first
+terraform init                       # Initialize with Terraform Cloud backend
+terraform plan                       # Preview changes
+terraform apply                      # Apply changes
+terraform destroy                    # Destroy resources (dev only)
 ```
 
 ### VS Code Tasks
@@ -694,7 +853,9 @@ pwd
 Use this checklist to ensure your development environment is properly configured:
 
 #### Core Tools
-- [ ] **Python 3.13.5** with virtual environment in `functions/basic/.venv`
+- [ ] **Python 3.10.12** with dual virtual environment setup:
+  - [ ] **Project root venv**: `source /home/vagrant/git/azure-policy/.venv/bin/activate`
+  - [ ] **Functions venv**: `source functions/basic/.venv/bin/activate` (when in functions/basic/)
 - [ ] **Azure CLI 2.75.0** authenticated with `az account show`
 - [ ] **Terraform 1.12.2** with Terraform Cloud credentials
 - [ ] **Azure Functions Core Tools 4.1.0** for local testing
@@ -754,18 +915,58 @@ pre-commit autoupdate
 
 #### If Terraform Init Fails
 ```bash
-pwd  # Should be in infrastructure/core
-source ../../.env  # Load from project root
-export TF_API_TOKEN="$TF_API_TOKEN"
-terraform login  # Alternative method
+pwd  # Should be in project root
+# PREFERRED: Use Makefile (handles .env loading automatically)
+make terraform-login                 # Load credentials from .env
+
+# ALTERNATIVE: Manual setup
+source .env                          # Load from project root
+export TF_TOKEN_app_terraform_io="$TF_API_TOKEN"
+terraform login                      # Alternative authentication method
 ```
+
+#### Python Environment Management
+
+The project uses dual virtual environments for different purposes:
+
+**Project Root Environment** (`/home/vagrant/git/azure-policy/.venv/`):
+```bash
+# Activate project root environment (from project root)
+source .venv/bin/activate
+
+# OR with full path (from anywhere)
+source /home/vagrant/git/azure-policy/.venv/bin/activate
+```
+- **Use for**: General project tasks, testing, policy validation, infrastructure work
+- **Contains**: Project-wide dependencies, testing tools, Azure CLI tools
+
+**Functions-Specific Environment** (`functions/basic/.venv/`):
+```bash
+# Activate functions environment (from functions/basic/)
+cd functions/basic
+source .venv/bin/activate
+
+# OR with full path (from anywhere)
+source /home/vagrant/git/azure-policy/functions/basic/.venv/bin/activate
+```
+- **Use for**: Azure Functions development, function testing, func CLI operations
+- **Contains**: Azure Functions runtime dependencies, function-specific packages
 
 #### If Python Environment Issues
 ```bash
-cd /home/vagrant/git/azure-policy/functions/basic
-pwd  # Verify location
-rm -rf .venv && python3 -m venv .venv
-source .venv/bin/activate && pip install -r requirements.txt
+# Recreate project root virtual environment
+cd /home/vagrant/git/azure-policy && pwd
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# Recreate functions virtual environment
+cd functions/basic && pwd
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 #### If Azure CLI Authentication Fails
@@ -779,12 +980,13 @@ az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 | Component | Status | Command to Check |
 |-----------|--------|------------------|
+| Project Status | ✅ Ready | `make status` |
 | Pre-commit Hooks | ✅ All Passing | `pre-commit run --all-files` |
 | Python Environment | ✅ Active | `python --version` |
 | Azure CLI | ✅ Authenticated | `az account show` |
-| Terraform Cloud | ✅ Connected | `terraform init` |
+| Terraform Cloud | ✅ Connected | `make terraform-login` |
 | GitHub Actions | ✅ Valid | `pre-commit run actionlint --all-files` |
-| Function App | ✅ Ready | `func start --python` |
+| Function App | ✅ Ready | `make functions-start` |
 | Azurite | ✅ Running | `curl http://localhost:10000` |
 
 ### 🚀 **Ready for Development**
@@ -795,6 +997,111 @@ Once all items above are checked, your environment is ready for:
 - Terraform infrastructure deployment
 - GitHub Actions workflow execution
 - Full CI/CD pipeline functionality
+
+### 🛠️ **Essential Makefile Commands Quick Reference**
+
+The project includes a comprehensive Makefile that simplifies common operations:
+
+```bash
+# Environment and setup
+make help                    # Show all available commands
+make status                  # Show current project status
+make setup                   # Complete environment setup
+
+# 🎯 CRITICAL: Code Quality & Validation (run before every commit)
+make pre-commit              # ⭐ MOST IMPORTANT: Run ALL validations
+make pre-commit-install      # Install pre-commit hooks (one-time setup)
+
+# Testing and validation
+make test                    # Run all tests
+make test-smoke              # Quick smoke tests
+make test-coverage           # Tests with coverage report
+
+# Code quality (individual components)
+make format                  # Format all code
+make lint                    # Run all linting
+make validate                # Run all validations
+
+# Azure Functions
+make functions-start         # Start Azure Functions with setup
+make functions-stop          # Stop Azure Functions
+
+# Terraform Cloud operations
+make terraform-login         # Configure Terraform Cloud auth
+make terraform-workspaces    # Show all workspaces
+make terraform-core-plan     # Plan core infrastructure
+make terraform-all-init     # Initialize all workspaces
+
+# Development workflow
+make dev-setup               # Setup development environment
+make dev-start               # Start complete dev environment
+make build                   # Build all components
+```
+
+**Pro Tip**: Always use `make help` to see the most current commands and their descriptions!
+
+---
+
+## 🚀 **Recommended Development Workflow**
+
+Follow this workflow to ensure consistent code quality and prevent CI/CD failures:
+
+### 📋 **Daily Development Cycle**
+
+```bash
+# 1. Start with location and status check
+pwd                                  # Verify you're in project root
+make status                          # Check project health
+
+# 2. Activate appropriate environment
+source .venv/bin/activate            # Project root environment
+# OR: cd functions/basic && source .venv/bin/activate  # Functions environment
+
+# 3. Make your code changes
+# ... edit files, add features, fix bugs ...
+
+# 4. 🎯 CRITICAL: Run pre-commit validation (BEFORE committing)
+make pre-commit                      # ⭐ This is the most important step!
+
+# 5. If pre-commit passes, commit your changes
+git add .
+git commit -m "feat: your descriptive message"
+
+# 6. Push to your feature branch
+git push origin feature/your-branch
+```
+
+### ⚠️ **If Pre-commit Fails**
+
+```bash
+# Don't panic! Pre-commit is helping you catch issues early
+make pre-commit                      # See what failed
+# Fix the issues shown in the output
+make pre-commit                      # Re-run to verify fixes
+git add .                           # Stage the fixed files
+git commit -m "feat: your message"  # Try committing again
+```
+
+### 🔄 **Before Creating Pull Requests**
+
+```bash
+# Comprehensive validation
+make pre-commit                      # All quality checks
+make test-coverage                   # Ensure test coverage
+make terraform-login                 # Verify Terraform setup (if needed)
+
+# Everything should pass before creating your PR!
+```
+
+### 💡 **Why Pre-commit Hooks Matter**
+
+- **Catch issues early** - Fix problems locally instead of in CI/CD
+- **Consistent code style** - Automatic formatting with Black and isort
+- **Security scanning** - Prevent secrets and security vulnerabilities
+- **Infrastructure validation** - Terraform and policy file validation
+- **Save time** - Faster feedback than waiting for CI/CD pipelines
+
+**Remember**: Pre-commit hooks are your friend, not your enemy! They help maintain code quality and prevent embarrassing CI/CD failures. 🛡️
 
 ---
 
