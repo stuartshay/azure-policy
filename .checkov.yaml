@@ -47,7 +47,6 @@ skip-check:
   # Ensure Terraform module sources use a commit hash"
   - CKV_TF_1 #"Ensure Terraform module sources use a commit hash"
 
-
 # Skip parsing issues with complex policy definitions
 skip-path:
   - /infrastructure/terraform/modules/policies/main.tf# Output format
