@@ -85,6 +85,17 @@ variable "subnet_config" {
       address_prefixes  = ["10.0.1.0/24"]
       service_endpoints = []
     }
+    functions = {
+      address_prefixes  = ["10.0.2.0/24"]
+      service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault"]
+      delegation = {
+        name = "Microsoft.Web.serverFarms"
+        service_delegation = {
+          name    = "Microsoft.Web/serverFarms"
+          actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+        }
+      }
+    }
     privateendpoints = {
       address_prefixes  = ["10.0.4.0/24"]
       service_endpoints = []

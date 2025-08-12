@@ -1,5 +1,5 @@
-# Terraform Makefile for Functions Infrastructure
-# This Makefile handles Terraform operations for the functions workspace
+# Terraform Makefile for App Service Infrastructure
+# This Makefile handles Terraform operations for the app service workspace
 
 # Colors for output
 RED := \033[0;31m
@@ -17,7 +17,7 @@ ENV_FILE := ../../.env
 .PHONY: help init plan apply destroy validate fmt output login clean
 
 help: ## Display this help message
-	@echo "$(GREEN)Terraform Functions Infrastructure$(RESET)"
+	@echo "$(GREEN)Terraform App Service Infrastructure$(RESET)"
 	@echo ""
 	@echo "$(YELLOW)Usage: make <target>$(RESET)"
 	@echo ""
