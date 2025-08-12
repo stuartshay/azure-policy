@@ -5,6 +5,15 @@ This project manages Azure infrastructure for the AzurePolicy resource group usi
 
 ## Development Standards
 
+### Pre-commit Validation (MANDATORY)
+- **ALWAYS** run `make pre-commit` before completing tasks or checking in code
+- **NEVER** bypass pre-commit hooks with `git commit --no-verify`
+- **VERIFY** all pre-commit hooks pass before considering work complete
+- Pre-commit hooks include: formatting, linting, testing, security scanning, Terraform validation
+- Use `make pre-commit` (preferred) or `pre-commit run --all-files`
+- If pre-commit fails, fix issues and re-run before proceeding
+- This ensures code quality and prevents CI/CD pipeline failures
+
 ### File Organization
 - All infrastructure code goes in `infrastructure/` directory
 - Terraform modules are organized by logical grouping (networking, app-service, policies)
@@ -96,10 +105,33 @@ All Azure resources must include these tags:
 ### Workflow Patterns
 - Feature branches for all changes
 - PR reviews required for infrastructure changes
+- **MANDATORY**: `make pre-commit` before every commit
 - Automated validation on every commit
 - Manual approval for apply operations
 - Scheduled drift detection
 - Automated cost reporting
+
+### Complete Development Workflow
+```bash
+# 1. Start work (always check location first)
+pwd                              # Verify you're in project root
+
+# 2. Make your changes
+# ... edit files ...
+
+# 3. CRITICAL: Validate before committing (NEVER SKIP THIS)
+make pre-commit                  # Must pass before proceeding
+
+# 4. If pre-commit passes, commit your changes
+git add .
+git commit -m "feat: your descriptive message"
+git push
+
+# 5. If pre-commit fails, fix issues and retry
+make pre-commit                  # Fix any issues it reports
+git add .                       # Re-stage fixed files
+git commit -m "feat: your descriptive message"
+```
 
 ## File Templates
 
@@ -133,6 +165,22 @@ modules/{module-name}/
 - Include links to relevant Azure documentation
 
 ## Common Commands
+
+### Pre-commit Operations (CRITICAL - Run Before Any Commit)
+```bash
+# MANDATORY: Run before completing tasks or committing
+make pre-commit                    # Preferred method (runs all validations)
+pre-commit run --all-files        # Alternative direct command
+
+# Setup pre-commit hooks (one-time)
+make pre-commit-install           # Install pre-commit hooks
+pre-commit install               # Alternative installation
+
+# Fix common issues
+make format                      # Auto-format code
+make lint                       # Check code quality
+make test-smoke                 # Quick validation tests
+```
 
 ### Terraform Operations
 ```bash
@@ -175,9 +223,11 @@ gh secret set AZURE_CLIENT_ID --body "client-id-value"
 
 ## Best Practices Reminders
 
-1. **Always** validate Terraform before committing
-2. **Never** commit sensitive values or secrets
-3. **Always** use consistent naming conventions
+1. **CRITICAL**: Run `make pre-commit` before completing ANY task or checking in code
+2. **Always** validate Terraform before committing
+3. **Never** commit sensitive values or secrets
+4. **Never** bypass pre-commit hooks with `--no-verify`
+5. **Always** use consistent naming conventions
 4. **Include** cost impact in PR descriptions
 5. **Test** infrastructure changes in development first
 6. **Document** any manual configuration steps

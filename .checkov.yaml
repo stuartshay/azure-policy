@@ -36,9 +36,16 @@ skip-check:
   - CKV_AZURE_44 # Latest TLS version not enforced for dev
   - CKV_AZURE_59 # Public access restriction not enforced for dev
 
+  # Service Bus security settings not required for dev environment
+  - CKV_AZURE_199 # Double encryption not required for dev
+  - CKV_AZURE_201 # Customer-managed key not required for dev
+  - CKV_AZURE_202 # Managed identity not required for dev
+  - CKV_AZURE_203 # Local authentication needed for dev
+  - CKV_AZURE_204 # Public network access needed for dev
+  - CKV_AZURE_205 # Latest TLS version not enforced for dev
+
   # Ensure Terraform module sources use a commit hash"
   - CKV_TF_1 #"Ensure Terraform module sources use a commit hash"
-
 
 # Skip parsing issues with complex policy definitions
 skip-path:
