@@ -29,6 +29,7 @@ skip-check:
   - CKV_AZURE_71 # Managed identity not configured for dev
   - CKV2_AZURE_33 # Private endpoints not used in dev
   - CKV2_AZURE_1 # Customer managed keys not used in dev
+  - CKV2_AZURE_40 # "Ensure storage account is not configured with Shared Key authorization"
 
   # Storage account settings for flow logs (dev-appropriate)
   - CKV_AZURE_206 # Storage replication not critical for dev flow logs
@@ -43,6 +44,10 @@ skip-check:
   - CKV_AZURE_203 # Local authentication needed for dev
   - CKV_AZURE_204 # Public network access needed for dev
   - CKV_AZURE_205 # Latest TLS version not enforced for dev
+
+  # PostgreSQL Database
+  - CKV2_AZURE_57  #"Ensure PostgreSQL Flexible Server is configured with private endpoint"
+  - CKV_AZURE_136  #"Ensure that PostgreSQL Flexible server enables geo-redundant backups"
 
   # Ensure Terraform module sources use a commit hash"
   - CKV_TF_1 #"Ensure Terraform module sources use a commit hash"

@@ -1,0 +1,49 @@
+# Azure Database for PostgreSQL - Example Configuration
+# Copy this file to terraform.tfvars and update with your values
+
+# Required Variables
+subscription_id       = "12345678-1234-1234-1234-123456789012"  # Your Azure subscription ID
+resource_group_name   = "rg-azpolicy-dev-eastus"                # From core module output
+
+# Environment Configuration
+environment = "dev"
+workload    = "azpolicy"
+location    = "East US"
+
+# Tagging
+cost_center = "development"
+owner       = "platform-team"
+
+# Database Configuration (Optional - defaults shown)
+admin_username    = "psqladmin"
+# admin_password  = "YourSecurePassword123!"  # If not set, auto-generated
+database_name     = "azurepolicy"
+postgres_version  = "15"
+
+# Cost Optimization Settings (Optional - defaults shown)
+sku_name                     = "B_Standard_B1ms"  # Lowest cost tier
+storage_mb                   = 32768               # 32 GB minimum
+backup_retention_days        = 7                  # Minimum retention
+geo_redundant_backup_enabled = true               # Enabled for security compliance
+
+# Additional Databases (Optional)
+additional_databases = [
+  # "analytics",
+  # "reporting"
+]
+
+# Network Configuration (Optional)
+allowed_cidrs = [
+  # "10.0.0.0/8",    # Additional CIDR blocks if needed
+]
+
+# Performance and Monitoring (Optional - defaults shown)
+enable_query_store         = true
+enable_performance_insights = true
+
+# Maintenance Window (Optional - defaults shown)
+maintenance_window = {
+  day_of_week  = 0  # Sunday
+  start_hour   = 2  # 2 AM UTC
+  start_minute = 0
+}
