@@ -12,7 +12,7 @@ This guide explains how to integrate Azure Functions with the newly deployed Ser
 
 ### **Queues Created:**
 1. `policy-compliance-checks` - For compliance evaluation tasks
-2. `policy-remediation-tasks` - For remediation workflows  
+2. `policy-remediation-tasks` - For remediation workflows
 3. `policy-audit-logs` - For audit logging and reporting
 4. `policy-notifications` - For alert and notification processing
 5. `policy-deployment-tasks` - For deployment automation
@@ -20,7 +20,7 @@ This guide explains how to integrate Azure Functions with the newly deployed Ser
 
 ### **Topics and Subscriptions:**
 1. `policy-events` → `all-policy-events` subscription
-2. `compliance-reports` → `all-compliance-reports` subscription  
+2. `compliance-reports` → `all-compliance-reports` subscription
 3. `resource-changes` - For Azure resource change events
 4. `security-alerts` - For security-related notifications
 
@@ -34,7 +34,7 @@ When you deploy the Function App again, you can add Service Bus settings:
 # Deploy app-service infrastructure first
 make terraform-app-service-apply
 
-# Then deploy function app  
+# Then deploy function app
 make terraform-functions-app-apply
 ```
 
@@ -45,7 +45,7 @@ If you have an existing Function App, add these application settings:
 ```json
 {
   "ServiceBusConnectionString": "<from terraform output>",
-  "PolicyComplianceQueue": "policy-compliance-checks", 
+  "PolicyComplianceQueue": "policy-compliance-checks",
   "PolicyRemediationQueue": "policy-remediation-tasks",
   "PolicyEventsTopic": "policy-events",
   "ComplianceReportsTopic": "compliance-reports"
@@ -69,11 +69,11 @@ app = func.FunctionApp()
 )
 def policy_compliance_processor(msg: func.ServiceBusMessage):
     logging.info(f'Processing compliance check: {msg.get_body().decode("utf-8")}')
-    
+
     # Process compliance check logic
     message_body = msg.get_body().decode('utf-8')
     logging.info(f'Received message: {message_body}')
-    
+
     # Add your compliance checking logic here
     return "Compliance check completed"
 ```
@@ -83,17 +83,17 @@ def policy_compliance_processor(msg: func.ServiceBusMessage):
 ```python
 @app.service_bus_topic_trigger(
     arg_name="msg",
-    topic_name="policy-events", 
+    topic_name="policy-events",
     subscription_name="all-policy-events",
     connection="ServiceBusConnectionString"
 )
 def policy_events_handler(msg: func.ServiceBusMessage):
     logging.info(f'Processing policy event: {msg.get_body().decode("utf-8")}')
-    
+
     # Process policy event
     event_data = msg.get_body().decode('utf-8')
     logging.info(f'Policy event received: {event_data}')
-    
+
     # Add your event processing logic here
 ```
 
@@ -105,20 +105,20 @@ import os
 
 @app.http_trigger(route="send-remediation-task")
 def send_remediation_task(req: func.HttpRequest) -> func.HttpResponse:
-    
+
     # Get connection string from app settings
     connection_str = os.environ["ServiceBusConnectionString"]
     queue_name = "policy-remediation-tasks"
-    
+
     # Create message
     message_data = req.get_json()
     message = ServiceBusMessage(json.dumps(message_data))
-    
+
     # Send message
     with ServiceBusClient.from_connection_string(connection_str) as client:
         sender = client.get_queue_sender(queue_name)
         sender.send_messages(message)
-    
+
     return func.HttpResponse("Remediation task queued successfully")
 ```
 
@@ -148,7 +148,7 @@ az servicebus namespace authorization-rule keys list \
 
 1. **FunctionAppAccess** - For Function Apps
    - Listen: ✅ (Receive messages)
-   - Send: ✅ (Send messages) 
+   - Send: ✅ (Send messages)
    - Manage: ❌
 
 2. **ReadOnlyAccess** - For monitoring/reporting
