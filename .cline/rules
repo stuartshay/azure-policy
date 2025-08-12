@@ -1,9 +1,32 @@
-# Azure Policy Infrastructure Project - Cline Rules
+# Azure Policy & Functions Project - Cline Rules
 
 ## Project Overview
-This project manages Azure infrastructure for the AzurePolicy resource group using Terraform and GitHub Actions. The infrastructure includes VNet, NSG, Subnets, App Service Plans, and Azure Functions with comprehensive CI/CD pipelines.
+This project manages Azure Policy and Functions infrastructure using Terraform Cloud, GitHub Actions, and comprehensive development workflows. The project includes Azure Functions, Policy definitions, VNet, NSG, Subnets, App Service Plans, and complete CI/CD pipelines with dual Python environments and extensive testing frameworks.
+
+## Documentation Reference
+- **Rule**: Always reference `.github/copilot_instructions.md` for comprehensive project guidelines
+- **Rationale**: The copilot instructions provide detailed development standards, environment setup, and best practices that complement these Cline-specific rules
+- **Usage**: When in doubt about project standards, coding conventions, or development workflows, consult both documents
+- **Relationship**: This Cline rules file focuses on infrastructure and workflow patterns, while copilot instructions provide comprehensive development guidelines including Azure Functions, Python standards, testing frameworks, and environment setup
+- **Alignment**: Both documents are maintained in sync to ensure consistent development practices across the project
 
 ## Development Standards
+
+### Directory Awareness - Always Check Location First
+- **Rule**: ALWAYS run `pwd` before executing any commands or operations
+- **Rationale**: Prevents accidental operations in wrong directories, ensures context awareness
+- **Implementation**: Make `pwd` your first command in any terminal session or operation
+- **Example**:
+```bash
+# ALWAYS start with location check
+pwd
+# Expected: /home/vagrant/git/azure-policy (project root)
+
+# Then proceed with operations
+cd functions/basic
+pwd
+# Expected: /home/vagrant/git/azure-policy/functions/basic
+```
 
 ### Pre-commit Validation (MANDATORY)
 - **ALWAYS** run `make pre-commit` before completing tasks or checking in code
@@ -14,12 +37,132 @@ This project manages Azure infrastructure for the AzurePolicy resource group usi
 - If pre-commit fails, fix issues and re-run before proceeding
 - This ensures code quality and prevents CI/CD pipeline failures
 
+### Use Makefile for Terraform Cloud Operations
+- **Rule**: ALWAYS use Makefile commands for Terraform operations with Terraform Cloud
+- **Rationale**: Makefile handles environment variable loading, authentication, and workspace management automatically
+- **Implementation**: Use `make terraform-*` commands instead of direct `terraform` commands
+- **Benefits**:
+  - Automatic `.env` file loading for authentication
+  - Workspace-specific commands for modular infrastructure
+  - Consistent environment setup across team members
+  - Built-in error handling and validation
+
+**Examples**:
+```bash
+# ✅ PREFERRED: Use Makefile (handles authentication automatically)
+make terraform-login                  # Configure Terraform Cloud from .env
+make terraform-core-plan             # Plan core infrastructure changes
+make terraform-workspaces            # Show all available workspaces
+
+# ❌ AVOID: Direct terraform commands (requires manual .env loading)
+cd infrastructure/core && source ../../.env && terraform init
+```
+
 ### File Organization
 - All infrastructure code goes in `infrastructure/` directory
+- Azure Functions applications in `functions/` directory
+- Azure Policy definitions in `policies/` directory
 - Terraform modules are organized by logical grouping (networking, app-service, policies)
 - GitHub Actions workflows are in `.github/workflows/`
 - Documentation includes Mermaid diagrams for visual architecture representation
-- Scripts for automation are in `infrastructure/scripts/`
+- Scripts for automation are in `scripts/` directory
+- Tests organized in `tests/` with subdirectories for different test types
+
+### Project Structure
+```
+/
+├── functions/              # Azure Functions applications
+│   └── basic/             # Basic HTTP trigger functions
+├── policies/              # Azure Policy definitions
+├── scripts/               # Azure CLI management scripts
+├── infrastructure/        # Infrastructure as Code templates
+├── tests/                 # Comprehensive test suite
+├── .devcontainer/         # Development environment configuration
+├── .vscode/              # VS Code settings and tasks
+└── .github/              # GitHub workflows and templates
+```
+
+## Azure Functions Development
+
+### Function Structure
+- **Rule**: Use Azure Functions Python v2 programming model
+- **Implementation**: Always use `@app.function_name()` and `@app.route()` decorators
+- **Example**:
+
+```python
+@app.function_name(name="FunctionName")
+@app.route(route="endpoint", methods=["GET", "POST"])
+def function_handler(req: func.HttpRequest) -> func.HttpResponse:
+    # Function implementation
+```
+
+### HTTP Response Standards
+- **Rule**: All HTTP functions must return consistent JSON responses
+- **Required fields**: `message`, `timestamp`, `status`
+- **Headers**: Include `Content-Type: application/json`
+- **Error handling**: Return appropriate HTTP status codes (200, 400, 500)
+
+### Function Endpoints
+- **Rule**: All functions must implement these standard endpoints:
+  - Health check endpoint (`/health`) for monitoring
+  - Info endpoint (`/info`) for service discovery
+  - Functional endpoints with clear, RESTful naming
+
+### Environment Configuration
+- **Rule**: Use `local.settings.json` for local development
+- **Rule**: Never commit sensitive configuration to version control
+- **Implementation**: Use Azure Key Vault for secrets in production
+
+## Azure Policy Development
+
+### Policy Definition Structure
+- **Rule**: All policies must include proper metadata
+- **Required fields**: `displayName`, `description`, `mode`, `policyRule`
+- **Parameters**: Use parameters for flexibility and reusability
+
+### Policy Naming Conventions
+- **Rule**: Use descriptive, kebab-case names for policy files
+- **Pattern**: `{resource-type}-{purpose}.json`
+- **Examples**: `storage-naming-convention.json`, `resource-group-naming.json`
+
+### Policy Effects
+- **Rule**: Start with `Audit` effect for new policies
+- **Progression**: Audit → DoNotEnforce → Deny
+- **Documentation**: Document the rationale for each effect choice
+
+### Policy Testing
+- **Rule**: Test policies in development environments first
+- **Implementation**: Use policy assignments with test scopes
+- **Validation**: Verify both compliant and non-compliant scenarios
+
+## Python Coding Standards
+
+### Code Style
+- **Tool**: Use Black for code formatting
+- **Line length**: 88 characters (Black default)
+- **Imports**: Use isort for import organization
+- **Type hints**: Use type hints for all function parameters and return values
+- **Enforcement**: Pre-commit hooks automatically format and validate code
+
+### Documentation
+- **Rule**: All functions must have comprehensive docstrings
+- **Format**: Use Google-style docstrings
+- **Content**: Include purpose, parameters, return values, and examples
+
+### Error Handling
+- **Rule**: Implement comprehensive error handling
+- **Implementation**: Use try-catch blocks with specific exception types
+- **Logging**: Log errors with appropriate context and stack traces
+
+### Dependencies
+- **Rule**: Pin dependency versions in `requirements.txt`
+- **Security**: Regularly update dependencies for security patches
+- **Minimal**: Only include necessary dependencies
+
+### Logging Standards
+- **Rule**: Use structured logging with appropriate levels
+- **Implementation**: Use Python's `logging` module with INFO, WARNING, ERROR levels
+- **Format**: Include function name, timestamp, and relevant context
 
 ### Terraform Standards
 - Use consistent naming following Azure CAF (Cloud Adoption Framework)
@@ -94,7 +237,147 @@ All Azure resources must include these tags:
 - Follow DRY principles
 - Use locals for repeated values
 
-### Testing and Validation
+## Testing Guidelines
+
+### Test Coverage and Strategy
+- **Rule**: Maintain minimum 80% test coverage for functions, validate all policy files
+- **Tools**: Use pytest for testing, coverage.py for coverage reporting
+- **Types**: Unit tests, integration tests, policy validation tests, and infrastructure tests
+- **Command**: Use `make test` or `./run-tests.sh` for comprehensive testing workflows
+- **Validation**: ALWAYS run `make pre-commit` before committing to ensure all tests pass
+
+### Policy Testing Framework
+- **Location**: `tests/` directory with organized subdirectories
+- **Policy validation**: Test JSON syntax, structure, and Azure compliance
+- **Fragment support**: Handle both complete policies and modular policy components
+- **Azure CLI integration**: Simulate and validate Azure CLI policy operations
+- **Naming validation**: Enforce consistent policy file naming conventions
+
+### Test Structure and Organization
+```
+tests/
+├── __init__.py                    # Package initialization
+├── conftest.py                   # Shared fixtures and utilities
+├── policies/                     # Azure Policy validation tests
+│   ├── test_policy_validation.py    # Structure and syntax validation
+│   ├── test_existing_policies.py    # Tests for specific policy files
+│   └── test_policy_fragments.py     # Modular policy component tests
+├── integration/                  # Integration and Azure CLI tests
+│   └── test_azure_cli_integration.py # CLI simulation and live tests
+├── infrastructure/              # Infrastructure testing (future)
+└── utils/                      # Test utilities and helpers
+```
+
+### Testing Commands and Workflows
+```bash
+# Quick validation
+./run-tests.sh smoke              # Fast syntax validation
+
+# Comprehensive testing
+./run-tests.sh all                # Run all tests
+./run-tests.sh policy             # Policy validation only
+./run-tests.sh integration        # Integration tests only
+./run-tests.sh coverage           # Tests with coverage report
+
+# Specific validation
+./run-tests.sh validate policies/storage-naming.json
+
+# Generate reports
+./run-tests.sh report             # Comprehensive HTML report
+```
+
+### Test Data and Fixtures
+- **Rule**: Use fixtures for reusable test data in `conftest.py`
+- **Policy helpers**: Use `PolicyTestHelper` for validation logic
+- **Mock data**: Provide sample policies and Azure resource structures
+- **Isolation**: Each test should be independent and isolated
+
+### Mock External Dependencies
+- **Rule**: Mock all external API calls and Azure services
+- **Azure CLI**: Simulate commands without requiring authentication
+- **Live tests**: Optional live tests marked with `@pytest.mark.live`
+- **Tools**: Use unittest.mock, pytest-mock, and responses for HTTP mocking
+
+## Environment and Infrastructure
+
+### Development Environment
+- **Rule**: Use DevContainer for consistent development
+- **Tools**: Python 3.10.12, Azure CLI, Azure Functions Core Tools
+- **Configuration**: VS Code with recommended extensions
+
+#### Current Environment Setup
+- **Python**: 3.10.12 (dual venv environments available)
+  - **Project root**: `/home/vagrant/git/azure-policy/.venv/` (for general project work)
+  - **Functions-specific**: `functions/basic/.venv/` (for Azure Functions development)
+- **Azure CLI**: 2.75.0
+- **Terraform**: 1.12.2
+- **Azure Functions Core Tools**: 4.1.0
+- **Node.js**: 24.4.1 (for additional tooling)
+- **jq**: 1.6 (JSON processing)
+
+#### Pre-commit Hooks Configuration
+- **actionlint**: v1.7.7 (GitHub Actions validation)
+- **black**: 25.1.0 (Python formatting)
+- **isort**: 6.0.1 (Import organization)
+- **flake8**: 7.1.1 (Python linting)
+- **shellcheck**: v0.10.0.1 (Shell script validation)
+- **terraform**: v1.96.1 (Terraform validation and formatting)
+- **checkov**: Security scanning for Terraform
+- **bandit**: 1.7.10 (Python security analysis)
+
+### Local Development
+- **Storage**: Use Azurite for local Azure Storage emulation
+- **Functions**: Use Azure Functions Core Tools for local testing
+- **Policies**: Test with Azure CLI in development subscriptions
+
+#### Azure Functions Setup
+```bash
+# Function app structure
+functions/basic/
+├── function_app.py          # Main function definitions
+├── host.json               # Function host configuration
+├── local.settings.json     # Local development settings
+├── requirements.txt        # Python dependencies
+├── .venv/                 # Virtual environment
+└── tests/                 # Unit tests
+```
+
+#### Environment Configuration (.env)
+```bash
+# Terraform Cloud
+TF_API_TOKEN=<your_terraform_cloud_token>
+TF_CLOUD_ORGANIZATION=azure-policy-cloud
+
+# Azure Service Principal
+ARM_CLIENT_ID=<service_principal_id>
+ARM_CLIENT_SECRET=<service_principal_secret>
+ARM_SUBSCRIPTION_ID=<subscription_id>
+ARM_TENANT_ID=<tenant_id>
+
+# Project Configuration
+TF_VAR_environment=dev
+TF_VAR_location="East US"
+TF_VAR_owner=platform-team
+TF_VAR_cost_center=development
+```
+
+### Deployment Environments
+- **Stages**: Development, Testing, Production
+- **Isolation**: Use separate Azure subscriptions or resource groups
+- **Promotion**: Automated deployment through approved changes
+
+#### Terraform Cloud Configuration
+- **Organization**: azure-policy-cloud
+- **Backend**: Terraform Cloud for state management
+- **Modules**: infrastructure, functions, policies
+- **Workspaces**: Separate workspaces per module and environment
+
+### Monitoring and Logging
+- **Rule**: Implement comprehensive monitoring
+- **Tools**: Application Insights for functions, Azure Monitor for policies
+- **Alerts**: Set up alerts for errors and performance issues
+
+### Testing and Validation (Infrastructure)
 - Validate Terraform syntax and formatting
 - Test modules independently
 - Include integration tests where applicable
@@ -182,18 +465,89 @@ make lint                       # Check code quality
 make test-smoke                 # Quick validation tests
 ```
 
-### Terraform Operations
+### Terraform Operations (PREFERRED: Use Makefile Commands)
 ```bash
-# Initialize and plan
-cd infrastructure/terraform
-terraform init
-terraform plan -var-file="terraform.tfvars"
+# ALWAYS check directory first
+pwd                                   # Verify you're in project root
 
-# Apply with confirmation
-terraform apply -var-file="terraform.tfvars"
+# ✅ PREFERRED: Use Makefile for Terraform Cloud operations
+make terraform-login                  # Configure Terraform Cloud from .env
+make terraform-workspaces            # Show all available workspaces
+make terraform-core-init             # Initialize core workspace
+make terraform-core-plan             # Plan core workspace changes
+make terraform-core-apply            # Apply core workspace changes
 
-# Destroy (development only)
-terraform destroy -var-file="terraform.tfvars"
+# Other workspace commands:
+make terraform-app-service-init      # Initialize app service workspace
+make terraform-functions-app-plan    # Plan functions app workspace
+make terraform-service-bus-apply     # Apply service bus workspace
+make terraform-policies-apply        # Apply policies workspace
+
+# ❌ ALTERNATIVE: Direct terraform commands (manual .env loading required)
+cd infrastructure/core && pwd        # Navigate to specific module
+source ../../.env                    # Load environment variables first
+terraform init                       # Initialize with Terraform Cloud backend
+terraform plan                       # Preview changes
+terraform apply                      # Apply changes
+terraform destroy                    # Destroy resources (dev only)
+```
+
+### Azure Functions Development Commands
+```bash
+# ALWAYS verify location first
+pwd                                   # Check current directory
+
+# ✅ PREFERRED: Use Makefile commands
+make functions-start                  # Start Azure Functions with environment setup
+make functions-stop                   # Stop Azure Functions
+
+# ❌ ALTERNATIVE: Direct commands
+cd functions/basic && pwd            # Navigate to functions directory
+source .venv/bin/activate            # Activate functions environment
+func start --python                  # Start functions locally
+
+# Test functions
+curl http://localhost:7071/api/health # Test health endpoint
+```
+
+### Testing Commands (PREFERRED: Use Makefile)
+```bash
+# ALWAYS start with location check
+pwd                                   # Verify you're in project root
+
+# ✅ PREFERRED: Use Makefile commands
+make test                            # Run all tests
+make test-smoke                      # Quick validation tests
+make test-policy                     # Policy validation tests
+make test-integration                # Integration tests
+make test-coverage                   # Tests with coverage report
+
+# ❌ ALTERNATIVE: Direct script usage
+./run-tests.sh smoke                 # Quick validation
+./run-tests.sh policy                # Policy validation tests
+./run-tests.sh integration           # Integration tests
+./run-tests.sh coverage              # Tests with coverage report
+./run-tests.sh validate policies/policy-name.json  # Validate specific policy
+```
+
+### Environment Management
+```bash
+# Python environment management (dual environments)
+# Project root environment (for general project work):
+source .venv/bin/activate            # From project root
+# OR with full path (from anywhere):
+source /home/vagrant/git/azure-policy/.venv/bin/activate
+
+# Functions-specific environment:
+cd functions/basic && source .venv/bin/activate
+# OR with full path (from anywhere):
+source /home/vagrant/git/azure-policy/functions/basic/.venv/bin/activate
+
+# Environment validation
+python --version                     # Should show Python 3.10.12
+az --version                         # Should show Azure CLI 2.75.0
+terraform --version                  # Should show Terraform 1.12.2
+func --version                       # Should show Functions Core Tools 4.1.0
 ```
 
 ### Azure CLI Operations
