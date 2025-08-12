@@ -415,6 +415,26 @@ terraform-functions-app-status: ## Show Functions App deployment status
 	@echo "$(BLUE)Functions App deployment status:$(RESET)"
 	@cd $(INFRASTRUCTURE_PATH)/functions-app && $(MAKE) status
 
+terraform-service-bus-init: ## Initialize Service Bus workspace
+	@echo "$(YELLOW)Initializing Service Bus workspace...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/service-bus && $(MAKE) init
+
+terraform-service-bus-plan: ## Plan Service Bus workspace changes
+	@echo "$(YELLOW)Planning Service Bus workspace changes...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/service-bus && $(MAKE) plan
+
+terraform-service-bus-apply: ## Apply Service Bus workspace changes
+	@echo "$(YELLOW)Applying Service Bus workspace changes...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/service-bus && $(MAKE) apply
+
+terraform-service-bus-destroy: ## Destroy Service Bus workspace resources
+	@echo "$(RED)Destroying Service Bus workspace resources...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/service-bus && $(MAKE) destroy
+
+terraform-service-bus-status: ## Show Service Bus deployment status
+	@echo "$(BLUE)Service Bus deployment status:$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/service-bus && $(MAKE) status
+
 ##@ Module Management
 
 module-verify: ## Verify module is ready for publishing
@@ -454,6 +474,7 @@ terraform-all-init: ## Initialize all Terraform workspaces
 	@echo "$(YELLOW)Initializing all Terraform workspaces...$(RESET)"
 	@$(MAKE) terraform-core-init
 	@$(MAKE) terraform-app-service-init
+	@$(MAKE) terraform-service-bus-init
 	@$(MAKE) terraform-policies-init
 	@echo "$(GREEN)All workspaces initialized$(RESET)"
 
@@ -461,6 +482,7 @@ terraform-all-plan: ## Plan changes for all workspaces
 	@echo "$(YELLOW)Planning changes for all workspaces...$(RESET)"
 	@$(MAKE) terraform-core-plan
 	@$(MAKE) terraform-app-service-plan
+	@$(MAKE) terraform-service-bus-plan
 	@$(MAKE) terraform-policies-plan
 	@echo "$(GREEN)All workspace plans completed$(RESET)"
 
@@ -469,18 +491,21 @@ terraform-workspaces: ## Show all Terraform workspaces
 	@echo "  $(BLUE)core$(RESET)         - Core infrastructure (networking, resource groups)"
 	@echo "  $(BLUE)app-service$(RESET)  - App Service infrastructure (plans, storage, insights)"
 	@echo "  $(BLUE)functions-app$(RESET) - Function App deployment (depends on app-service)"
+	@echo "  $(BLUE)service-bus$(RESET)  - Service Bus namespace, queues, and topics"
 	@echo "  $(BLUE)policies$(RESET)     - Azure Policy definitions and assignments"
 	@echo ""
 	@echo "$(YELLOW)Use workspace-specific commands:$(RESET)"
 	@echo "  make terraform-core-init             # Initialize core workspace"
 	@echo "  make terraform-app-service-plan      # Plan app service workspace"
 	@echo "  make terraform-functions-app-apply   # Apply functions app workspace"
+	@echo "  make terraform-service-bus-apply     # Apply service bus workspace"
 	@echo "  make terraform-policies-apply        # Apply policies workspace"
 	@echo ""
 	@echo "$(YELLOW)Or work directly in the workspace directory:$(RESET)"
 	@echo "  cd infrastructure/core && make init"
 	@echo "  cd infrastructure/app-service && make plan"
 	@echo "  cd infrastructure/functions-app && make apply"
+	@echo "  cd infrastructure/service-bus && make apply"
 	@echo "  cd infrastructure/policies && make apply"
 
 ##@ Documentation
