@@ -363,21 +363,21 @@ terraform-core-destroy: ## Destroy Core workspace resources
 	@echo "$(RED)Destroying Core workspace resources...$(RESET)"
 	@cd $(INFRASTRUCTURE_PATH)/core && $(MAKE) destroy
 
-terraform-functions-init: ## Initialize Functions workspace
-	@echo "$(YELLOW)Initializing Functions workspace...$(RESET)"
-	@cd $(INFRASTRUCTURE_PATH)/functions && $(MAKE) init
+terraform-app-service-init: ## Initialize App Service workspace
+	@echo "$(YELLOW)Initializing App Service workspace...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/app-service && $(MAKE) init
 
-terraform-functions-plan: ## Plan Functions workspace changes
-	@echo "$(YELLOW)Planning Functions workspace changes...$(RESET)"
-	@cd $(INFRASTRUCTURE_PATH)/functions && $(MAKE) plan
+terraform-app-service-plan: ## Plan App Service workspace changes
+	@echo "$(YELLOW)Planning App Service workspace changes...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/app-service && $(MAKE) plan
 
-terraform-functions-apply: ## Apply Functions workspace changes
-	@echo "$(YELLOW)Applying Functions workspace changes...$(RESET)"
-	@cd $(INFRASTRUCTURE_PATH)/functions && $(MAKE) apply
+terraform-app-service-apply: ## Apply App Service workspace changes
+	@echo "$(YELLOW)Applying App Service workspace changes...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/app-service && $(MAKE) apply
 
-terraform-functions-destroy: ## Destroy Functions workspace resources
-	@echo "$(RED)Destroying Functions workspace resources...$(RESET)"
-	@cd $(INFRASTRUCTURE_PATH)/functions && $(MAKE) destroy
+terraform-app-service-destroy: ## Destroy App Service workspace resources
+	@echo "$(RED)Destroying App Service workspace resources...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/app-service && $(MAKE) destroy
 
 terraform-policies-init: ## Initialize Policies workspace
 	@echo "$(YELLOW)Initializing Policies workspace...$(RESET)"
@@ -394,6 +394,26 @@ terraform-policies-apply: ## Apply Policies workspace changes
 terraform-policies-destroy: ## Destroy Policies workspace resources
 	@echo "$(RED)Destroying Policies workspace resources...$(RESET)"
 	@cd $(INFRASTRUCTURE_PATH)/policies && $(MAKE) destroy
+
+terraform-functions-app-init: ## Initialize Functions App workspace
+	@echo "$(YELLOW)Initializing Functions App workspace...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/functions-app && $(MAKE) init
+
+terraform-functions-app-plan: ## Plan Functions App workspace changes
+	@echo "$(YELLOW)Planning Functions App workspace changes...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/functions-app && $(MAKE) plan
+
+terraform-functions-app-apply: ## Apply Functions App workspace changes
+	@echo "$(YELLOW)Applying Functions App workspace changes...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/functions-app && $(MAKE) apply
+
+terraform-functions-app-destroy: ## Destroy Functions App workspace resources
+	@echo "$(RED)Destroying Functions App workspace resources...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/functions-app && $(MAKE) destroy
+
+terraform-functions-app-status: ## Show Functions App deployment status
+	@echo "$(BLUE)Functions App deployment status:$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/functions-app && $(MAKE) status
 
 ##@ Module Management
 
@@ -433,31 +453,34 @@ module-tag: ## Create and push a new module version tag
 terraform-all-init: ## Initialize all Terraform workspaces
 	@echo "$(YELLOW)Initializing all Terraform workspaces...$(RESET)"
 	@$(MAKE) terraform-core-init
-	@$(MAKE) terraform-functions-init
+	@$(MAKE) terraform-app-service-init
 	@$(MAKE) terraform-policies-init
 	@echo "$(GREEN)All workspaces initialized$(RESET)"
 
 terraform-all-plan: ## Plan changes for all workspaces
 	@echo "$(YELLOW)Planning changes for all workspaces...$(RESET)"
 	@$(MAKE) terraform-core-plan
-	@$(MAKE) terraform-functions-plan
+	@$(MAKE) terraform-app-service-plan
 	@$(MAKE) terraform-policies-plan
 	@echo "$(GREEN)All workspace plans completed$(RESET)"
 
 terraform-workspaces: ## Show all Terraform workspaces
 	@echo "$(GREEN)Available Terraform Workspaces:$(RESET)"
-	@echo "  $(BLUE)core$(RESET)      - Core infrastructure (networking, resource groups)"
-	@echo "  $(BLUE)functions$(RESET) - Azure Functions infrastructure"
-	@echo "  $(BLUE)policies$(RESET)  - Azure Policy definitions and assignments"
+	@echo "  $(BLUE)core$(RESET)         - Core infrastructure (networking, resource groups)"
+	@echo "  $(BLUE)app-service$(RESET)  - App Service infrastructure (plans, storage, insights)"
+	@echo "  $(BLUE)functions-app$(RESET) - Function App deployment (depends on app-service)"
+	@echo "  $(BLUE)policies$(RESET)     - Azure Policy definitions and assignments"
 	@echo ""
 	@echo "$(YELLOW)Use workspace-specific commands:$(RESET)"
-	@echo "  make terraform-core-init      # Initialize core workspace"
-	@echo "  make terraform-functions-plan # Plan functions workspace"
-	@echo "  make terraform-policies-apply # Apply policies workspace"
+	@echo "  make terraform-core-init             # Initialize core workspace"
+	@echo "  make terraform-app-service-plan      # Plan app service workspace"
+	@echo "  make terraform-functions-app-apply   # Apply functions app workspace"
+	@echo "  make terraform-policies-apply        # Apply policies workspace"
 	@echo ""
 	@echo "$(YELLOW)Or work directly in the workspace directory:$(RESET)"
 	@echo "  cd infrastructure/core && make init"
-	@echo "  cd infrastructure/functions && make plan"
+	@echo "  cd infrastructure/app-service && make plan"
+	@echo "  cd infrastructure/functions-app && make apply"
 	@echo "  cd infrastructure/policies && make apply"
 
 ##@ Documentation

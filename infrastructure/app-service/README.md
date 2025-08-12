@@ -1,6 +1,6 @@
-# Azure Functions Infrastructure
+# Azure App Service Infrastructure
 
-This Terraform configuration deploys Azure Functions infrastructure with EP1 (Elastic Premium) App Service Plan and VNet integration support.
+This Terraform configuration deploys Azure App Service infrastructure with EP1 (Elastic Premium) App Service Plan and VNet integration support. This infrastructure can host Functions, Web Apps, or other Azure App Service applications.
 
 ## Features
 
@@ -28,13 +28,13 @@ The infrastructure creates:
 
 ```bash
 # Initialize the workspace
-make terraform-functions-init
+make terraform-app-service-init
 
 # Plan the deployment
-make terraform-functions-plan
+make terraform-app-service-plan
 
 # Apply the changes
-make terraform-functions-apply
+make terraform-app-service-apply
 ```
 
 ## Configuration

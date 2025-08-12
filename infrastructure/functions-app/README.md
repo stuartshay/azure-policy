@@ -1,0 +1,266 @@
+# Azure Function App Deployment
+
+This module deploys the actual Azure Function App that depends on the app-service infrastructure. It's designed as a separate deployment to allow for independent Function App lifecycle management.
+
+## Prerequisites
+
+1. **App Service Infrastructure**: The `app-service` module must be deployed first
+   ```bash
+   # From project root
+   make terraform-app-service-apply
+   ```
+
+2. **Azure CLI**: Must be logged in and have appropriate permissions
+   ```bash
+   az login
+   az account set --subscription "your-subscription-id"
+   ```
+
+## Architecture
+
+This module creates:
+- **Azure Function App**: Linux-based Python Function App
+- **Dependencies**: References existing App Service Plan, Storage Account, and Application Insights
+
+## Dependencies
+
+This module depends on outputs from the `app-service` module:
+- App Service Plan ID
+- Storage Account name and connection string
+- Application Insights connection string and instrumentation key
+- VNet integration configuration (if enabled)
+
+## Configuration
+
+### Key Variables (terraform.tfvars)
+
+```hcl
+# Must match app-service module configuration
+subscription_id         = "your-subscription-id"
+resource_group_name    = "rg-azpolicy-dev-eastus"
+environment           = "dev"
+workload              = "azpolicy"
+functions_sku_name    = "EP1"
+python_version        = "3.11"
+
+# Function App specific settings
+function_app_settings = {
+  "ENVIRONMENT" = "dev"
+  "LOG_LEVEL"   = "INFO"
+}
+```
+
+## Deployment
+
+### Using Makefile (Recommended)
+
+```bash
+# Quick deployment
+make quick-deploy
+
+# Step by step
+make init      # Initialize Terraform
+make plan      # Review deployment plan
+make apply     # Deploy Function App
+make status    # Check deployment status
+```
+
+### Using Terraform directly
+
+```bash
+terraform init
+terraform plan
+terraform apply
+```
+
+## Management
+
+### View Function App Status
+```bash
+make status
+```
+
+### Update Function App
+```bash
+# After making changes
+make plan
+make apply
+```
+
+### Destroy Function App
+```bash
+make destroy  # Keeps app-service infrastructure
+```
+
+## Outputs
+
+After deployment, the module provides:
+
+- `function_app_name`: Name of the deployed Function App
+- `function_app_url`: URL of the Function App
+- `function_app_id`: Azure resource ID
+- `app_settings_summary`: Key configuration settings
+
+## Function App Configuration
+
+The Function App is configured with:
+
+### Runtime Settings
+- **Runtime**: Python
+- **Version**: Configurable (default: 3.11)
+- **Extension Version**: ~4
+- **Always On**: Enabled for non-consumption plans
+
+### EP1 Premium Plan Features
+- **Pre-warmed Instances**: Configurable always-ready instances
+- **Elastic Scaling**: Up to configured maximum workers
+- **VNet Integration**: If enabled in app-service module
+
+### Storage Configuration
+- **AzureWebJobsStorage**: Uses storage account from app-service module
+- **Content Share**: Dedicated file share for Function App content
+
+### Monitoring
+- **Application Insights**: Uses instance from app-service module
+- **Connection String**: Automatically configured
+- **Instrumentation Key**: Automatically configured
+
+## File Structure
+
+```
+functions-app/
+├── main.tf           # Main Terraform configuration
+├── variables.tf      # Variable definitions
+├── outputs.tf        # Output definitions
+├── terraform.tfvars  # Variable values
+├── Makefile         # Automation commands
+└── README.md        # This file
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **App Service Not Found**
+   ```
+   Error: App Service infrastructure not found
+   Solution: Deploy app-service module first
+   ```
+
+2. **Storage Account Access**
+   ```
+   Error: Cannot access storage account
+   Solution: Ensure app-service module is properly deployed
+   ```
+
+3. **VNet Integration Issues**
+   ```
+   Error: Subnet not available for VNet integration
+   Solution: Check app-service VNet configuration
+   ```
+
+### Debugging Commands
+
+```bash
+# Check prerequisites
+make check-prerequisites
+
+# Validate configuration
+make validate
+
+# View current state
+terraform show
+
+# View remote state
+terraform state pull
+```
+
+## Integration with CI/CD
+
+This module is designed to work with CI/CD pipelines:
+
+1. **Infrastructure Pipeline**: Deploys app-service module
+2. **Application Pipeline**: Deploys Function App using this module
+3. **Code Pipeline**: Deploys function code to the Function App
+
+## Security Considerations
+
+- Function App uses managed identity when possible
+- Storage account access keys are managed by Terraform
+- Application Insights keys are marked as sensitive
+- VNet integration provides network isolation
+
+## Cost Optimization
+
+- EP1 plan allows for elastic scaling
+- Pre-warmed instances minimize cold starts
+- Always-on ensures consistent performance
+- Elastic scaling optimizes costs during low usage
+
+## Next Steps
+
+After deploying the Function App:
+
+1. Deploy your function code using Azure Functions Core Tools or CI/CD
+2. Configure custom domains and SSL certificates if needed
+3. Set up monitoring and alerting
+4. Configure authentication and authorization
+
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | ~> 4.37 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.39.0 |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [azurerm_linux_function_app.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app) | resource |
+| [azurerm_resource_group.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) | data source |
+| [azurerm_storage_account.functions](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) | data source |
+| [terraform_remote_state.app_service](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/data-sources/remote_state) | data source |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_always_ready_instances"></a> [always\_ready\_instances](#input\_always\_ready\_instances) | Number of always ready instances for EP1 (must match app-service module) | `number` | `1` | no |
+| <a name="input_cost_center"></a> [cost\_center](#input\_cost\_center) | Cost center for resource billing | `string` | `"development"` | no |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, staging, prod) | `string` | `"dev"` | no |
+| <a name="input_function_app_settings"></a> [function\_app\_settings](#input\_function\_app\_settings) | Additional app settings for the Function App | `map(string)` | `{}` | no |
+| <a name="input_functions_sku_name"></a> [functions\_sku\_name](#input\_functions\_sku\_name) | SKU name for the Functions App Service Plan (must match app-service module) | `string` | `"EP1"` | no |
+| <a name="input_maximum_elastic_worker_count"></a> [maximum\_elastic\_worker\_count](#input\_maximum\_elastic\_worker\_count) | Maximum number of elastic workers for EP1 (must match app-service module) | `number` | `3` | no |
+| <a name="input_owner"></a> [owner](#input\_owner) | Owner of the resources (team name or email) | `string` | `"platform-team"` | no |
+| <a name="input_python_version"></a> [python\_version](#input\_python\_version) | Python version for Functions | `string` | `"3.11"` | no |
+| <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name) | Name of the existing resource group (created by app-service module) | `string` | n/a | yes |
+| <a name="input_subscription_id"></a> [subscription\_id](#input\_subscription\_id) | Azure subscription ID | `string` | n/a | yes |
+| <a name="input_workload"></a> [workload](#input\_workload) | Name of the workload or application | `string` | `"azpolicy"` | no |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_app_settings_summary"></a> [app\_settings\_summary](#output\_app\_settings\_summary) | Summary of key app settings |
+| <a name="output_function_app_default_hostname"></a> [function\_app\_default\_hostname](#output\_function\_app\_default\_hostname) | Default hostname of the Function App |
+| <a name="output_function_app_id"></a> [function\_app\_id](#output\_function\_app\_id) | ID of the deployed Function App |
+| <a name="output_function_app_kind"></a> [function\_app\_kind](#output\_function\_app\_kind) | Kind of the Function App |
+| <a name="output_function_app_name"></a> [function\_app\_name](#output\_function\_app\_name) | Name of the deployed Function App |
+| <a name="output_function_app_url"></a> [function\_app\_url](#output\_function\_app\_url) | URL of the Function App |
+| <a name="output_python_version"></a> [python\_version](#output\_python\_version) | Python version used by the Function App |
+| <a name="output_service_plan_id"></a> [service\_plan\_id](#output\_service\_plan\_id) | ID of the App Service Plan used by the Function App |
+| <a name="output_storage_account_name"></a> [storage\_account\_name](#output\_storage\_account\_name) | Name of the storage account used by the Function App |
+<!-- END_TF_DOCS -->

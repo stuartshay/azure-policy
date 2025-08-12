@@ -1,5 +1,5 @@
-# Azure Functions Infrastructure
-# This file defines the Azure Functions deployment infrastructure
+# Azure App Service Infrastructure
+# This file defines the Azure App Service deployment infrastructure
 
 terraform {
   required_version = ">= 1.5"
@@ -11,23 +11,13 @@ terraform {
     }
   }
 
-  # Terraform Cloud backend for state management
-  cloud {
-    organization = "azure-policy-cloud"
-
-    workspaces {
-      name = "azure-policy-functions"
-    }
+  # Local backend for deployment
+  backend "local" {
+    path = "terraform.tfstate"
   }
 }
 
 provider "azurerm" {
-  # Explicitly use Service Principal authentication for Terraform Cloud
-  use_cli = false
-  use_msi = false
-
-  # These environment variables should be set in Terraform Cloud workspace:
-  # ARM_CLIENT_ID, ARM_CLIENT_SECRET, ARM_TENANT_ID, ARM_SUBSCRIPTION_ID
   subscription_id = var.subscription_id
 
   features {
@@ -133,6 +123,8 @@ resource "azurerm_service_plan" "functions" {
 
 # Function App
 resource "azurerm_linux_function_app" "main" {
+  count = var.deploy_function_app ? 1 : 0
+
   name                = "func-${var.workload}-${var.environment}-001"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
@@ -180,8 +172,8 @@ resource "azurerm_linux_function_app" "main" {
 
 # VNet Integration for Function App
 resource "azurerm_app_service_virtual_network_swift_connection" "functions" {
-  count          = var.enable_vnet_integration ? 1 : 0
-  app_service_id = azurerm_linux_function_app.main.id
+  count          = var.deploy_function_app && var.enable_vnet_integration ? 1 : 0
+  app_service_id = azurerm_linux_function_app.main[0].id
   subnet_id      = var.vnet_integration_subnet_id != null ? var.vnet_integration_subnet_id : data.azurerm_subnet.functions[0].id
 }
 
