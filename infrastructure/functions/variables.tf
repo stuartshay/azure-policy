@@ -40,12 +40,23 @@ variable "resource_group_name" {
   type        = string
 }
 
+variable "location" {
+  description = "Azure region for resources"
+  type        = string
+  default     = "East US"
+
+  validation {
+    condition     = contains(["East US", "East US 2"], var.location)
+    error_message = "Location must be East US or East US 2."
+  }
+}
+
 
 # Functions Configuration
 variable "functions_sku_name" {
   description = "SKU name for the Functions App Service Plan"
   type        = string
-  default     = "Y1" # Consumption plan
+  default     = "EP1" # Elastic Premium plan
 
   validation {
     condition     = contains(["Y1", "EP1", "EP2", "EP3", "B1", "B2", "B3", "S1", "S2", "S3"], var.functions_sku_name)
@@ -74,4 +85,47 @@ variable "enable_application_insights" {
   description = "Enable Application Insights for Functions"
   type        = bool
   default     = true
+}
+
+# VNet Integration Configuration
+variable "vnet_integration_subnet_id" {
+  description = "Subnet ID for VNet integration (required for EP1 SKU)"
+  type        = string
+  default     = null
+}
+
+variable "enable_vnet_integration" {
+  description = "Enable VNet integration for the Function App"
+  type        = bool
+  default     = true
+}
+
+# EP1 Specific Configuration
+variable "always_ready_instances" {
+  description = "Number of always ready instances for EP1"
+  type        = number
+  default     = 1
+
+  validation {
+    condition     = var.always_ready_instances >= 0 && var.always_ready_instances <= 20
+    error_message = "Always ready instances must be between 0 and 20."
+  }
+}
+
+variable "maximum_elastic_worker_count" {
+  description = "Maximum number of elastic workers for EP1"
+  type        = number
+  default     = 3
+
+  validation {
+    condition     = var.maximum_elastic_worker_count >= 1 && var.maximum_elastic_worker_count <= 20
+    error_message = "Maximum elastic worker count must be between 1 and 20."
+  }
+}
+
+# Deployment Control
+variable "deploy_function_app" {
+  description = "Whether to deploy the Function App resource (set to false for infrastructure-only deployment)"
+  type        = bool
+  default     = false
 }
