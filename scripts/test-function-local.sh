@@ -205,7 +205,21 @@ fi
 
 # Cleanup
 print_status "Stopping Azure Functions runtime..."
+print_status "Stopping Azure Functions runtime..."
+# Send SIGTERM first
 kill $FUNC_PID 2>/dev/null || true
+# Wait up to 5 seconds for graceful shutdown
+for i in {1..5}; do
+    if ! kill -0 $FUNC_PID 2>/dev/null; then
+        break
+    fi
+    sleep 1
+done
+# If still running, send SIGKILL
+if kill -0 $FUNC_PID 2>/dev/null; then
+    print_status "Process did not terminate gracefully, sending SIGKILL..."
+    kill -9 $FUNC_PID 2>/dev/null || true
+fi
 wait $FUNC_PID 2>/dev/null || true
 
 # Clean up temp files
