@@ -121,6 +121,20 @@ FUNC_PID=$!
 print_status "Waiting for function to start..."
 sleep 10
 
+# Wait for Azure Functions runtime to be available (max 30 seconds)
+MAX_RETRIES=30
+RETRY_INTERVAL=1
+RETRIES=0
+while ! curl -s "http://localhost:7071" >/dev/null; do
+    sleep $RETRY_INTERVAL
+    RETRIES=$((RETRIES+1))
+    if [ $RETRIES -ge $MAX_RETRIES ]; then
+        print_error "Azure Functions runtime did not start within $((MAX_RETRIES * RETRY_INTERVAL)) seconds."
+        kill $FUNC_PID 2>/dev/null || true
+        exit 1
+    fi
+done
+print_success "Azure Functions runtime is up!"
 # Function to test endpoint
 test_endpoint() {
     local endpoint=$1
