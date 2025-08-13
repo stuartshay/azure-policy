@@ -86,13 +86,43 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: 'Get Runner IP and Configure Access'
+        shell: bash
+        run: |
+          # Get the current runner's public IP
+          RUNNER_IP=$(curl -s https://api.ipify.org)
+          echo "Runner IP: $RUNNER_IP"
+
+          # Add GitHub Actions IP range to Function App access restrictions
+          echo "Adding runner IP to Function App access restrictions..."
+          az functionapp config access-restriction add \
+            --resource-group rg-azpolicy-dev-eastus \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --rule-name "GitHubActions-$(date +%s)" \
+            --action Allow \
+            --ip-address "$RUNNER_IP/32" \
+            --priority 100 || true
+
+          echo "Waiting for access rule to take effect..."
+          sleep 30
+
       - name: 'Deploy to Azure Functions'
-        uses: Azure/functions-action@v1
-        with:
-          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          scm-do-build-during-deployment: false
-          enable-oryx-build: false
+        shell: bash
+        run: |
+          echo "Deploying function package using Azure CLI..."
+          cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+
+          # Create zip package
+          zip -r ../function-deploy.zip . -x "tests/*" "*/__pycache__/*" "*.pyc" ".coverage" "coverage.xml"
+
+          # Deploy using Azure CLI
+          az functionapp deployment source config-zip \
+            --resource-group rg-azpolicy-dev-eastus \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --src ../function-deploy.zip \
+            --build-remote true
+
+          echo "Deployment completed"
 
       - name: 'Verify Deployment'
         shell: bash
@@ -126,6 +156,27 @@ jobs:
             echo "❌ Function deployment verification failed after $MAX_ATTEMPTS attempts."
             exit 1
           fi
+
+      - name: 'Cleanup Access Rules'
+        if: always()
+        shell: bash
+        run: |
+          echo "Cleaning up temporary GitHub Actions access rules..."
+          # Remove any GitHub Actions rules (cleanup old ones too)
+          az functionapp config access-restriction list \
+            --resource-group rg-azpolicy-dev-eastus \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --query "[?contains(name, 'GitHubActions')].name" -o tsv | \
+          while read -r rule_name; do
+            if [ -n "$rule_name" ]; then
+              echo "Removing rule: $rule_name"
+              az functionapp config access-restriction remove \
+                --resource-group rg-azpolicy-dev-eastus \
+                --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+                --rule-name "$rule_name" || true
+            fi
+          done
+          echo "Cleanup completed"
   test-deployment:
     runs-on: ubuntu-latest
     needs: deploy
