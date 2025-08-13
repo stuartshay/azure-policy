@@ -2,6 +2,8 @@
 
 [![Pre-commit](https://github.com/stuartshay/azure-policy/workflows/Pre-commit/badge.svg)](https://github.com/stuartshay/azure-policy/actions/workflows/pre-commit.yml)
 
+[![Deploy Azure Function](https://github.com/stuartshay/azure-policy/actions/workflows/deploy-function.yml/badge.svg)](https://github.com/stuartshay/azure-policy/actions/workflows/deploy-function.yml)
+
 This repository contains tools and examples for Azure Policy management and Azure Functions development, with a complete DevContainer setup for streamlined development.
 
 ## Repository Structure
