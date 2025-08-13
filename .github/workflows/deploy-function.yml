@@ -111,7 +111,35 @@ jobs:
           --query "name" -o tsv
 
         echo "✅ Function deployment verified successfully"
+        echo "Waiting for deployment to complete and verifying deployment..."
+        MAX_ATTEMPTS=10
+        SLEEP_SECONDS=10
+        ATTEMPT=1
+        SUCCESS=0
 
+        while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+          echo "Attempt $ATTEMPT: Checking function status..."
+          # Try to show the HealthCheck function using Azure CLI
+          FUNC_NAME=$(az functionapp function show \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --resource-group rg-azpolicy-dev-eastus \
+            --function-name HealthCheck \
+            --query "name" -o tsv 2>/dev/null)
+          if [ "$FUNC_NAME" = "HealthCheck" ]; then
+            echo "✅ Function deployment verified successfully"
+            SUCCESS=1
+            break
+          else
+            echo "Function not available yet. Waiting $SLEEP_SECONDS seconds before retrying..."
+            sleep $SLEEP_SECONDS
+            ATTEMPT=$((ATTEMPT+1))
+          fi
+        done
+
+        if [ $SUCCESS -ne 1 ]; then
+          echo "❌ Function deployment verification failed after $MAX_ATTEMPTS attempts."
+          exit 1
+        fi
   test-deployment:
     runs-on: ubuntu-latest
     needs: deploy
@@ -145,6 +173,12 @@ jobs:
         curl -f -s "$BASE_URL/api/health?code=$FUNCTION_KEY" || echo "Health endpoint test failed"
 
         echo "Testing Info endpoint..."
-        curl -f -s "$BASE_URL/api/info?code=$FUNCTION_KEY" || echo "Info endpoint test failed"
+        curl -f -s "$BASE_URL/api/hello?code=$FUNCTION_KEY&name=GitHub" || { echo "Hello endpoint test failed"; exit 1; }
+
+        echo "Testing Health endpoint..."
+        curl -f -s "$BASE_URL/api/health?code=$FUNCTION_KEY" || { echo "Health endpoint test failed"; exit 1; }
+
+        echo "Testing Info endpoint..."
+        curl -f -s "$BASE_URL/api/info?code=$FUNCTION_KEY" || { echo "Info endpoint test failed"; exit 1; }
 
         echo "✅ Function endpoint tests completed"

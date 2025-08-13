@@ -121,6 +121,20 @@ FUNC_PID=$!
 print_status "Waiting for function to start..."
 sleep 10
 
+# Wait for Azure Functions runtime to be available (max 30 seconds)
+MAX_RETRIES=30
+RETRY_INTERVAL=1
+RETRIES=0
+while ! curl -s "http://localhost:7071" >/dev/null; do
+    sleep $RETRY_INTERVAL
+    RETRIES=$((RETRIES+1))
+    if [ $RETRIES -ge $MAX_RETRIES ]; then
+        print_error "Azure Functions runtime did not start within $((MAX_RETRIES * RETRY_INTERVAL)) seconds."
+        kill $FUNC_PID 2>/dev/null || true
+        exit 1
+    fi
+done
+print_success "Azure Functions runtime is up!"
 # Function to test endpoint
 test_endpoint() {
     local endpoint=$1
@@ -143,7 +157,21 @@ test_endpoint() {
         print_error "$description - Expected: $expected_status, Got: $status_code"
         if [ -f /tmp/response.json ]; then
             echo "Response:"
-            cat /tmp/response.json
+    response=$(curl -s -w "%{http_code}" -o "${TMPDIR}/response.json" "http://localhost:7071$endpoint")
+    status_code="${response: -3}"
+
+    if [ "$status_code" = "$expected_status" ]; then
+        print_success "$description - Status: $status_code"
+        if [ -f "${TMPDIR}/response.json" ]; then
+            echo "Response:"
+            cat "${TMPDIR}/response.json" | python3 -m json.tool 2>/dev/null || cat "${TMPDIR}/response.json"
+            echo ""
+        fi
+    else
+        print_error "$description - Expected: $expected_status, Got: $status_code"
+        if [ -f "${TMPDIR}/response.json" ]; then
+            echo "Response:"
+            cat "${TMPDIR}/response.json"
             echo ""
         fi
     fi
@@ -177,7 +205,21 @@ fi
 
 # Cleanup
 print_status "Stopping Azure Functions runtime..."
+print_status "Stopping Azure Functions runtime..."
+# Send SIGTERM first
 kill $FUNC_PID 2>/dev/null || true
+# Wait up to 5 seconds for graceful shutdown
+for i in {1..5}; do
+    if ! kill -0 $FUNC_PID 2>/dev/null; then
+        break
+    fi
+    sleep 1
+done
+# If still running, send SIGKILL
+if kill -0 $FUNC_PID 2>/dev/null; then
+    print_status "Process did not terminate gracefully, sending SIGKILL..."
+    kill -9 $FUNC_PID 2>/dev/null || true
+fi
 wait $FUNC_PID 2>/dev/null || true
 
 # Clean up temp files
