@@ -166,14 +166,35 @@ jobs:
           echo "SCM Site HTTP Status: $HTTP_STATUS"
 
           if [ "$HTTP_STATUS" = "000" ]; then
-            echo "⚠️  WARNING: Cannot reach SCM site - likely network restrictions"
+            echo "❌ CRITICAL: Cannot reach SCM site - likely network restrictions"
+            echo "::error::SCM site is unreachable. Deployment will fail due to network restrictions."
+            echo "This indicates VNet integration is blocking external access to the Function App."
+            echo "Consider using Azure DevOps self-hosted agents within your VNet for deployment."
+            exit 1
           elif [ "$HTTP_STATUS" = "403" ]; then
-            echo "⚠️  WARNING: SCM site blocked (403) - access restrictions active"
+            echo "❌ CRITICAL: SCM site blocked (403) - access restrictions prevent deployment"
+            echo "::error::SCM site returns 403 Forbidden. GitHub Actions cannot deploy to this Function App."
+            echo "The Function App is configured with VNet integration and private network access."
+            echo "This security configuration prevents external deployment tools from accessing the SCM endpoint."
+            echo "Deployment will fail. Consider using Azure DevOps with private agents or temporarily enabling public access."
+            exit 1
           elif [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "401" ]; then
-            echo "✅ SCM site is reachable"
+            echo "✅ SCM site is reachable - deployment should succeed"
+          else
+            echo "⚠️ WARNING: SCM site returned unexpected status: $HTTP_STATUS"
+            echo "::warning::Unexpected SCM response. Deployment may fail."
           fi
 
           echo "=== Infrastructure Verification Complete ==="
+          echo ""
+          echo "🎯 SUMMARY:"
+          echo "✅ Resource Group: EXISTS"
+          echo "✅ Function App: DEPLOYED"
+          echo "✅ Storage Account: AVAILABLE"
+          if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "401" ]; then
+            echo "✅ SCM Connectivity: ACCESSIBLE"
+            echo "🚀 Ready for deployment!"
+          fi
 
       - name: 'Get Runner IP and Configure Access'
         shell: bash
