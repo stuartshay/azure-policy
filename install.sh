@@ -688,6 +688,38 @@ extract_precommit_hooks() {
   fi
 }
 
+# Function to install PostgreSQL client
+install_postgresql_client() {
+  echo "Installing PostgreSQL client (psql)..."
+
+  if [[ "$OS" == "Linux" ]]; then
+    if command -v apt >/dev/null 2>&1; then
+      echo "Installing PostgreSQL client using apt..."
+      sudo apt update
+      sudo apt install -y postgresql-client
+
+      echo "PostgreSQL client installation complete."
+    elif command -v yum >/dev/null 2>&1; then
+      echo "Installing PostgreSQL client using yum..."
+      sudo yum install -y postgresql
+
+      echo "PostgreSQL client installation complete."
+    fi
+  elif [[ "$OS" == "Darwin" ]]; then
+    echo "Installing PostgreSQL client using Homebrew..."
+    brew install postgresql@16
+
+    echo "PostgreSQL client installation complete."
+  fi
+
+  # Verify installation
+  if command -v psql >/dev/null 2>&1; then
+    echo "PostgreSQL client version: $(psql --version)"
+  else
+    echo "Warning: PostgreSQL client installation may have failed." >&2
+  fi
+}
+
 # Function to install pre-commit and setup hooks
 install_precommit() {
   echo "Installing pre-commit and setting up hooks..."
@@ -887,6 +919,10 @@ echo "=== Installing Checkov ==="
 install_checkov
 
 echo ""
+echo "=== Installing PostgreSQL Client ==="
+install_postgresql_client
+
+echo ""
 echo "=== Installing Pre-commit ==="
 install_precommit
 
@@ -910,6 +946,7 @@ echo "Terragrunt version: $(terragrunt --version 2>/dev/null || echo 'Not found'
 echo "tflint version: $(tflint --version 2>/dev/null || echo 'Not found')"
 echo "terraform-docs version: $(terraform-docs --version 2>/dev/null || echo 'Not found')"
 echo "Checkov version: $(checkov --version 2>/dev/null || echo 'Not found')"
+echo "PostgreSQL client version: $(psql --version 2>/dev/null || echo 'Not found')"
 echo "Pre-commit version: $(pre-commit --version 2>/dev/null || echo 'Not found')"
 echo "jq version: $(jq --version 2>/dev/null || echo 'Not found')"
 echo ""
@@ -948,6 +985,7 @@ echo "   - Terragrunt for DRY Terraform configurations"
 echo "   - tflint for Terraform linting and validation"
 echo "   - terraform-docs for generating documentation"
 echo "   - Checkov for security and compliance scanning"
+echo "   - PostgreSQL client (psql) for database connectivity testing"
 echo "   - Pre-commit for code quality and consistency"
 echo "   - jq for JSON processing (perfect for CLI output parsing)"
 echo ""
