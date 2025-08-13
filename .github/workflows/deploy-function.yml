@@ -2,12 +2,12 @@ name: Deploy Azure Function
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
     paths:
       - 'functions/basic/**'
       - '.github/workflows/deploy-function.yml'
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
     paths:
       - 'functions/basic/**'
   workflow_dispatch:
