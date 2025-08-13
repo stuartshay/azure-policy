@@ -27,7 +27,7 @@ variable "sku_name" {
 variable "python_version" {
   description = "The Python version"
   type        = string
-  default     = "3.11"
+  default     = "3.13"
 }
 
 variable "app_settings" {
