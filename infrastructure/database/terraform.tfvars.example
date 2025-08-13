@@ -33,6 +33,7 @@ additional_databases = [
 ]
 
 # Network Configuration (Optional)
+dev_access_ip = null  # Set via environment variable TF_VAR_dev_access_ip
 allowed_cidrs = [
   # "10.0.0.0/8",    # Additional CIDR blocks if needed
 ]

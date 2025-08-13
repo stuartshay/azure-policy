@@ -177,10 +177,12 @@ resource "azurerm_postgresql_flexible_server_firewall_rule" "functions_subnet" {
 
 # Firewall rule to allow access from development environment
 resource "azurerm_postgresql_flexible_server_firewall_rule" "dev_access" {
+  count = var.dev_access_ip != null ? 1 : 0
+
   name             = "allow-dev-access"
   server_id        = azurerm_postgresql_flexible_server.main.id
-  start_ip_address = "108.5.250.137"
-  end_ip_address   = "108.5.250.137"
+  start_ip_address = var.dev_access_ip
+  end_ip_address   = var.dev_access_ip
 }
 
 # Additional firewall rules for allowed CIDR blocks

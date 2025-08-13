@@ -196,6 +196,18 @@ variable "additional_databases" {
 }
 
 # Network Configuration
+variable "dev_access_ip" {
+  description = "IP address for development access to the database"
+  type        = string
+  default     = null
+  sensitive   = true
+
+  validation {
+    condition     = var.dev_access_ip == null || can(regex("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$", var.dev_access_ip))
+    error_message = "Development access IP must be a valid IPv4 address."
+  }
+}
+
 variable "allowed_cidrs" {
   description = "List of CIDR blocks allowed to access the database (in addition to VNet subnets)"
   type        = list(string)

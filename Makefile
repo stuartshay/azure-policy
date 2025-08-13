@@ -401,10 +401,18 @@ terraform-database-init: ## Initialize Database workspace
 
 terraform-database-plan: ## Plan Database workspace changes
 	@echo "$(YELLOW)Planning Database workspace changes...$(RESET)"
+	@if [ -z "$(TF_VAR_dev_access_ip)" ]; then \
+		echo "$(YELLOW)Warning: TF_VAR_dev_access_ip not set. Database will not allow development access.$(RESET)"; \
+		echo "$(YELLOW)Set with: export TF_VAR_dev_access_ip=\$$(curl -s ifconfig.me)$(RESET)"; \
+	fi
 	@cd $(INFRASTRUCTURE_PATH)/database && $(MAKE) plan
 
 terraform-database-apply: ## Apply Database workspace changes
 	@echo "$(YELLOW)Applying Database workspace changes...$(RESET)"
+	@if [ -z "$(TF_VAR_dev_access_ip)" ]; then \
+		echo "$(YELLOW)Warning: TF_VAR_dev_access_ip not set. Database will not allow development access.$(RESET)"; \
+		echo "$(YELLOW)Set with: export TF_VAR_dev_access_ip=\$$(curl -s ifconfig.me)$(RESET)"; \
+	fi
 	@cd $(INFRASTRUCTURE_PATH)/database && $(MAKE) apply
 
 terraform-database-destroy: ## Destroy Database workspace resources
@@ -414,6 +422,18 @@ terraform-database-destroy: ## Destroy Database workspace resources
 terraform-database-status: ## Show Database deployment status
 	@echo "$(BLUE)Database deployment status:$(RESET)"
 	@cd $(INFRASTRUCTURE_PATH)/database && $(MAKE) status
+
+setup-dev-database-access: ## Set up development database access with current public IP
+	@echo "$(YELLOW)Setting up development database access...$(RESET)"
+	@CURRENT_IP=$$(curl -s ifconfig.me 2>/dev/null || echo "unable-to-detect"); \
+	if [ "$$CURRENT_IP" = "unable-to-detect" ]; then \
+		echo "$(RED)Unable to detect public IP. Please set manually:$(RESET)"; \
+		echo "$(YELLOW)export TF_VAR_dev_access_ip=your.ip.address.here$(RESET)"; \
+	else \
+		echo "$(GREEN)Detected public IP: $$CURRENT_IP$(RESET)"; \
+		echo "$(YELLOW)Run the following command to set development access:$(RESET)"; \
+		echo "$(BLUE)export TF_VAR_dev_access_ip=$$CURRENT_IP$(RESET)"; \
+	fi
 
 terraform-functions-app-init: ## Initialize Functions App workspace
 	@echo "$(YELLOW)Initializing Functions App workspace...$(RESET)"

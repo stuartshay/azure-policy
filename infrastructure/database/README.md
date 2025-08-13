@@ -359,6 +359,7 @@ No modules.
 | <a name="input_backup_retention_days"></a> [backup\_retention\_days](#input\_backup\_retention\_days) | Backup retention period in days | `number` | `7` | no |
 | <a name="input_cost_center"></a> [cost\_center](#input\_cost\_center) | Cost center for resource billing | `string` | `"development"` | no |
 | <a name="input_database_name"></a> [database\_name](#input\_database\_name) | Name of the default database to create | `string` | `"azurepolicy"` | no |
+| <a name="input_dev_access_ip"></a> [dev\_access\_ip](#input\_dev\_access\_ip) | IP address for development access to the database | `string` | `null` | no |
 | <a name="input_enable_performance_insights"></a> [enable\_performance\_insights](#input\_enable\_performance\_insights) | Enable Performance Insights for monitoring | `bool` | `true` | no |
 | <a name="input_enable_query_store"></a> [enable\_query\_store](#input\_enable\_query\_store) | Enable Query Store for performance monitoring | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, staging, prod) | `string` | `"dev"` | no |
