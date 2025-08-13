@@ -5,6 +5,7 @@
     "ms-azuretools.vscode-azureterraform",
     "ms-azuretools.vscode-azureresourcegroups",
     "ms-azuretools.vscode-azurestorage",
+    "ms-azuretools.vscode-azure-github-copilot",
     "ms-python.python",
     "ms-python.pylint",
     "ms-python.black-formatter",

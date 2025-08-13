@@ -86,12 +86,123 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: 'Verify Infrastructure'
+        shell: bash
+        run: |
+          echo "=== Infrastructure Verification ==="
+
+          # Check if resource group exists
+          echo "📋 Checking resource group..."
+          RG_EXISTS=$(az group exists --name rg-azpolicy-dev-eastus)
+          echo "Resource Group exists: $RG_EXISTS"
+
+          if [ "$RG_EXISTS" = "false" ]; then
+            echo "❌ ERROR: Resource group 'rg-azpolicy-dev-eastus' does not exist!"
+            exit 1
+          fi
+
+          # Check Function App existence and status
+          echo "📱 Checking Function App..."
+          FUNC_APP_STATE=$(az functionapp show \
+            --resource-group rg-azpolicy-dev-eastus \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --query "{name:name, state:state, publicNetworkAccess:publicNetworkAccessEnabled, httpsOnly:httpsOnly}" \
+            -o json 2>/dev/null || echo "null")
+
+          if [ "$FUNC_APP_STATE" = "null" ]; then
+            echo "❌ ERROR: Function App '${{ env.AZURE_FUNCTIONAPP_NAME }}' does not exist!"
+            exit 1
+          fi
+
+          echo "Function App Details:"
+          echo "$FUNC_APP_STATE" | jq .
+
+          # Check Storage Account
+          echo "💾 Checking Storage Account..."
+          STORAGE_STATE=$(az storage account show \
+            --resource-group rg-azpolicy-dev-eastus \
+            --name stfuncazpolicydev001 \
+            --query "{name:name, provisioningState:provisioningState, publicNetworkAccess:publicNetworkAccess}" \
+            -o json 2>/dev/null || echo "null")
+
+          if [ "$STORAGE_STATE" = "null" ]; then
+            echo "❌ ERROR: Storage Account 'stfuncazpolicydev001' does not exist!"
+            exit 1
+          fi
+
+          echo "Storage Account Details:"
+          echo "$STORAGE_STATE" | jq .
+
+          # Check VNet Integration
+          echo "🌐 Checking VNet Integration..."
+          VNET_CONFIG=$(az functionapp vnet-integration show \
+            --resource-group rg-azpolicy-dev-eastus \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --query "{vnetResourceId:vnetResourceId, subnetResourceId:subnetResourceId}" \
+            -o json 2>/dev/null || echo "null")
+
+          echo "VNet Integration:"
+          if [ "$VNET_CONFIG" = "null" ]; then
+            echo "No VNet integration configured"
+          else
+            echo "$VNET_CONFIG" | jq .
+          fi
+
+          # Check current access restrictions
+          echo "🔒 Checking Access Restrictions..."
+          ACCESS_RESTRICTIONS=$(az functionapp config access-restriction show \
+            --resource-group rg-azpolicy-dev-eastus \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --query "ipSecurityRestrictions[?action=='Allow']" \
+            -o json 2>/dev/null || echo "[]")
+
+          echo "Current Access Restrictions:"
+          echo "$ACCESS_RESTRICTIONS" | jq .
+
+          # Check SCM site accessibility
+          echo "🔧 Testing SCM Site Connectivity..."
+          SCM_URL="https://${{ env.AZURE_FUNCTIONAPP_NAME }}.scm.azurewebsites.net"
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$SCM_URL" --max-time 10 || echo "000")
+          echo "SCM Site HTTP Status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" = "000" ]; then
+            echo "⚠️  WARNING: Cannot reach SCM site - likely network restrictions"
+          elif [ "$HTTP_STATUS" = "403" ]; then
+            echo "⚠️  WARNING: SCM site blocked (403) - access restrictions active"
+          elif [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "401" ]; then
+            echo "✅ SCM site is reachable"
+          fi
+
+          echo "=== Infrastructure Verification Complete ==="
+
       - name: 'Get Runner IP and Configure Access'
         shell: bash
         run: |
           # Get the current runner's public IP
           RUNNER_IP=$(curl -s https://api.ipify.org)
           echo "Runner IP: $RUNNER_IP"
+
+          # Check if Function App has public network access disabled
+          PUBLIC_ACCESS=$(az functionapp show \
+            --resource-group rg-azpolicy-dev-eastus \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --query "publicNetworkAccessEnabled" -o tsv)
+
+          echo "Public Network Access Enabled: $PUBLIC_ACCESS"
+
+          if [ "$PUBLIC_ACCESS" = "false" ]; then
+            echo "⚠️  Function App has public network access disabled"
+            echo "This may prevent GitHub Actions from deploying successfully"
+
+            # Try to temporarily enable public access for deployment
+            echo "Attempting to temporarily enable public network access..."
+            az functionapp update \
+              --resource-group rg-azpolicy-dev-eastus \
+              --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+              --set publicNetworkAccessEnabled=true || echo "Failed to enable public access"
+
+            sleep 10
+          fi
 
           # Add GitHub Actions IP range to Function App access restrictions
           echo "Adding runner IP to Function App access restrictions..."
@@ -101,10 +212,16 @@ jobs:
             --rule-name "GitHubActions-$(date +%s)" \
             --action Allow \
             --ip-address "$RUNNER_IP/32" \
-            --priority 100 || true
+            --priority 100 || echo "Failed to add access restriction - may already exist or be blocked by VNet"
 
           echo "Waiting for access rule to take effect..."
           sleep 30
+
+          # Test connectivity to SCM endpoint after configuration
+          echo "Testing SCM connectivity after configuration..."
+          SCM_URL="https://${{ env.AZURE_FUNCTIONAPP_NAME }}.scm.azurewebsites.net"
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$SCM_URL" --max-time 15 || echo "000")
+          echo "SCM Site HTTP Status after configuration: $HTTP_STATUS"
 
       - name: 'Deploy to Azure Functions'
         shell: bash
@@ -162,11 +279,12 @@ jobs:
         shell: bash
         run: |
           echo "Cleaning up temporary GitHub Actions access rules..."
+
           # Remove any GitHub Actions rules (cleanup old ones too)
           az functionapp config access-restriction list \
             --resource-group rg-azpolicy-dev-eastus \
             --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-            --query "[?contains(name, 'GitHubActions')].name" -o tsv | \
+            --query "[?contains(name, 'GitHubActions')].name" -o tsv 2>/dev/null | \
           while read -r rule_name; do
             if [ -n "$rule_name" ]; then
               echo "Removing rule: $rule_name"
@@ -176,6 +294,24 @@ jobs:
                 --rule-name "$rule_name" || true
             fi
           done
+
+          # Restore original public network access setting if it was disabled
+          echo "Checking if public network access should be restored..."
+
+          # If VNet integration exists, we should disable public access for security
+          VNET_CONFIG=$(az functionapp vnet-integration show \
+            --resource-group rg-azpolicy-dev-eastus \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --query "vnetResourceId" -o tsv 2>/dev/null || echo "null")
+
+          if [ "$VNET_CONFIG" != "null" ] && [ "$VNET_CONFIG" != "" ]; then
+            echo "VNet integration detected, restoring private network access..."
+            az functionapp update \
+              --resource-group rg-azpolicy-dev-eastus \
+              --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+              --set publicNetworkAccessEnabled=false || echo "Failed to disable public access"
+          fi
+
           echo "Cleanup completed"
   test-deployment:
     runs-on: ubuntu-latest
