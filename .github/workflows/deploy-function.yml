@@ -173,6 +173,12 @@ jobs:
         curl -f -s "$BASE_URL/api/health?code=$FUNCTION_KEY" || echo "Health endpoint test failed"
 
         echo "Testing Info endpoint..."
-        curl -f -s "$BASE_URL/api/info?code=$FUNCTION_KEY" || echo "Info endpoint test failed"
+        curl -f -s "$BASE_URL/api/hello?code=$FUNCTION_KEY&name=GitHub" || { echo "Hello endpoint test failed"; exit 1; }
+
+        echo "Testing Health endpoint..."
+        curl -f -s "$BASE_URL/api/health?code=$FUNCTION_KEY" || { echo "Health endpoint test failed"; exit 1; }
+
+        echo "Testing Info endpoint..."
+        curl -f -s "$BASE_URL/api/info?code=$FUNCTION_KEY" || { echo "Info endpoint test failed"; exit 1; }
 
         echo "✅ Function endpoint tests completed"
