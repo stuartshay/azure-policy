@@ -244,19 +244,26 @@ jobs:
 
           # Remove any existing GitHub Actions access restriction rules first (cleanup from previous runs)
           echo "🧹 Cleaning up any existing GitHub Actions access rules..."
-          az functionapp config access-restriction list \
+
+          # Get access restriction rules in a more resilient way
+          EXISTING_RULES=$(az functionapp config access-restriction list \
             --resource-group rg-azpolicy-dev-eastus \
             --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-            --query "[?contains(name, 'GitHubActions')].name" -o tsv 2>/dev/null | \
-          while read -r rule_name; do
-            if [ -n "$rule_name" ]; then
-              echo "  Removing existing rule: $rule_name"
-              az functionapp config access-restriction remove \
-                --resource-group rg-azpolicy-dev-eastus \
-                --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-                --rule-name "$rule_name" || true
-            fi
-          done
+            --query "[?contains(name, 'GitHubActions')].name" -o tsv 2>/dev/null || echo "")
+
+          if [ -n "$EXISTING_RULES" ]; then
+            echo "$EXISTING_RULES" | while read -r rule_name; do
+              if [ -n "$rule_name" ]; then
+                echo "  Removing existing rule: $rule_name"
+                az functionapp config access-restriction remove \
+                  --resource-group rg-azpolicy-dev-eastus \
+                  --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+                  --rule-name "$rule_name" || true
+              fi
+            done
+          else
+            echo "  No existing GitHub Actions rules found"
+          fi
 
           # Wait for cleanup to complete
           sleep 15
@@ -396,19 +403,26 @@ jobs:
               --scm-site || true
           fi          # Remove any remaining GitHub Actions rules (cleanup from failed runs)
           echo "  Cleaning up any remaining GitHub Actions access rules..."
-          az functionapp config access-restriction list \
+
+          # Get remaining access restriction rules in a more resilient way
+          REMAINING_RULES=$(az functionapp config access-restriction list \
             --resource-group rg-azpolicy-dev-eastus \
             --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-            --query "[?contains(name, 'GitHubActions')].name" -o tsv 2>/dev/null | \
-          while read -r rule_name; do
-            if [ -n "$rule_name" ]; then
-              echo "    Removing rule: $rule_name"
-              az functionapp config access-restriction remove \
-                --resource-group rg-azpolicy-dev-eastus \
-                --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-                --rule-name "$rule_name" || true
-            fi
-          done
+            --query "[?contains(name, 'GitHubActions')].name" -o tsv 2>/dev/null || echo "")
+
+          if [ -n "$REMAINING_RULES" ]; then
+            echo "$REMAINING_RULES" | while read -r rule_name; do
+              if [ -n "$rule_name" ]; then
+                echo "    Removing rule: $rule_name"
+                az functionapp config access-restriction remove \
+                  --resource-group rg-azpolicy-dev-eastus \
+                  --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+                  --rule-name "$rule_name" || true
+              fi
+            done
+          else
+            echo "    No remaining GitHub Actions rules found"
+          fi
 
           # Restore original public network access setting
           echo "🔒 Restoring original public network access setting..."
