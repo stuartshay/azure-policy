@@ -76,7 +76,7 @@ jobs:
 
     steps:
       - name: 'Download Function Package'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: function-package
           path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
