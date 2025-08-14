@@ -46,15 +46,15 @@ skip-check:
   - CKV_AZURE_205 # Latest TLS version not enforced for dev
 
   # PostgreSQL Database
-  - CKV2_AZURE_57  #"Ensure PostgreSQL Flexible Server is configured with private endpoint"
-  - CKV_AZURE_136  #"Ensure that PostgreSQL Flexible server enables geo-redundant backups"
+  - CKV2_AZURE_57 #"Ensure PostgreSQL Flexible Server is configured with private endpoint"
+  - CKV_AZURE_136 #"Ensure that PostgreSQL Flexible server enables geo-redundant backups"
 
   # Ensure Terraform module sources use a commit hash"
   - CKV_TF_1 #"Ensure Terraform module sources use a commit hash"
 
   # GitHub Self-hosted Runner - Expected failures for functionality
   - CKV_AZURE_178 # "Ensure linux VM enables SSH with keys for secure communication" - Runner needs SSH access
-  - CKV_AZURE_50  # "Ensure Virtual Machine Extensions are not Installed" - Runner needs extensions for GitHub Actions
+  - CKV_AZURE_50 # "Ensure Virtual Machine Extensions are not Installed" - Runner needs extensions for GitHub Actions
   - CKV_AZURE_119 # "Ensure that Network Interfaces don't use public IPs" - Runner needs public IP to communicate with GitHub
 
 # Skip parsing issues with complex policy definitions
