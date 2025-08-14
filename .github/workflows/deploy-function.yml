@@ -254,7 +254,7 @@ jobs:
               az functionapp config access-restriction remove \
                 --resource-group rg-azpolicy-dev-eastus \
                 --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-                --rule-name "$rule_name" --no-wait || true
+                --rule-name "$rule_name" || true
             fi
           done
 
@@ -276,7 +276,7 @@ jobs:
             --rule-name "$RULE_NAME" \
             --action Allow \
             --ip-address "$RUNNER_IP/32" \
-            --priority 50 --no-wait
+            --priority 50
 
           # Also add the rule for SCM site specifically
           echo "🔐 Adding runner IP to SCM site access restrictions..."
@@ -287,7 +287,7 @@ jobs:
             --action Allow \
             --ip-address "$RUNNER_IP/32" \
             --priority 50 \
-            --scm-site --no-wait || echo "SCM rule may already exist or not be needed"
+            --scm-site || echo "SCM rule may already exist or not be needed"
 
           echo "⏳ Waiting for access rules to take effect..."
           sleep 45
@@ -386,14 +386,14 @@ jobs:
             az functionapp config access-restriction remove \
               --resource-group rg-azpolicy-dev-eastus \
               --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-              --rule-name "${GITHUB_ACTIONS_RULE_NAME}" --no-wait || true
+              --rule-name "${GITHUB_ACTIONS_RULE_NAME}" || true
 
             echo "  Removing SCM deployment rule: ${GITHUB_ACTIONS_RULE_NAME}-SCM"
             az functionapp config access-restriction remove \
               --resource-group rg-azpolicy-dev-eastus \
               --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
               --rule-name "${GITHUB_ACTIONS_RULE_NAME}-SCM" \
-              --scm-site --no-wait || true
+              --scm-site || true
           fi          # Remove any remaining GitHub Actions rules (cleanup from failed runs)
           echo "  Cleaning up any remaining GitHub Actions access rules..."
           az functionapp config access-restriction list \
@@ -406,7 +406,7 @@ jobs:
               az functionapp config access-restriction remove \
                 --resource-group rg-azpolicy-dev-eastus \
                 --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-                --rule-name "$rule_name" --no-wait || true
+                --rule-name "$rule_name" || true
             fi
           done
 
