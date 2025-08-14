@@ -101,6 +101,45 @@ install_jq() {
   fi
 }
 
+# Function to install zip/unzip utilities
+install_zip_utils() {
+  # Check if both zip and unzip are already installed
+  if command -v zip >/dev/null 2>&1 && command -v unzip >/dev/null 2>&1; then
+    echo "zip and unzip utilities are already installed"
+    echo "zip version: $(zip --version 2>&1 | head -1)"
+    echo "unzip version: $(unzip -v 2>&1 | head -1)"
+    return 0
+  fi
+
+  if [[ "$OS" == "Linux" ]]; then
+    if command -v apt >/dev/null 2>&1; then
+      echo "Installing zip and unzip utilities using apt..."
+      sudo apt update
+      sudo apt install -y zip unzip
+
+      echo "zip/unzip installation complete."
+    elif command -v yum >/dev/null 2>&1; then
+      echo "Installing zip and unzip utilities using yum..."
+      sudo yum install -y zip unzip
+
+      echo "zip/unzip installation complete."
+    fi
+  elif [[ "$OS" == "Darwin" ]]; then
+    echo "Installing zip and unzip utilities using Homebrew..."
+    brew install zip unzip
+
+    echo "zip/unzip installation complete."
+  fi
+
+  # Verify installation
+  if command -v zip >/dev/null 2>&1 && command -v unzip >/dev/null 2>&1; then
+    echo "zip version: $(zip --version 2>&1 | head -1)"
+    echo "unzip version: $(unzip -v 2>&1 | head -1)"
+  else
+    echo "Warning: zip/unzip installation may have failed." >&2
+  fi
+}
+
 # Function to install PowerShell
 install_powershell() {
   # Check if PowerShell is already installed
@@ -265,14 +304,11 @@ install_tflint() {
   if [[ "$OS" == "Linux" ]]; then
     echo "Installing tflint..."
 
-    # Install unzip if not present
+    # Ensure unzip is available (should be installed by install_zip_utils)
     if ! command -v unzip >/dev/null 2>&1; then
-      echo "Installing unzip dependency..."
-      if command -v apt >/dev/null 2>&1; then
-        sudo apt update && sudo apt install -y unzip
-      elif command -v yum >/dev/null 2>&1; then
-        sudo yum install -y unzip
-      fi
+      echo "unzip is required for tflint installation but not found."
+      echo "Make sure install_zip_utils() was called first."
+      return 1
     fi
 
     # Get latest version and install manually
@@ -875,6 +911,10 @@ echo "=== Installing jq (JSON processor) ==="
 install_jq
 
 echo ""
+echo "=== Installing zip/unzip utilities ==="
+install_zip_utils
+
+echo ""
 echo "=== Installing Node.js ==="
 install_nodejs
 
@@ -933,11 +973,14 @@ setup_azurite_directory
 echo ""
 echo "=== Installation Summary ==="
 echo "Python version: $(python3.13 --version 2>/dev/null || echo 'Not found')"
+echo "Azure CLI version: $(az --version 2>/dev/null | head -n1 || echo 'Not found')"
+echo "jq version: $(jq --version 2>/dev/null || echo 'Not found')"
+echo "zip version: $(zip --version 2>/dev/null | head -1 || echo 'Not found')"
+echo "unzip version: $(unzip -v 2>/dev/null | head -1 || echo 'Not found')"
 echo "nvm version: $(nvm --version 2>/dev/null || echo 'Not found - restart shell to activate')"
 echo "Node.js version: $(node --version 2>/dev/null || echo 'Not found - restart shell to activate')"
 echo "npm version: $(npm --version 2>/dev/null || echo 'Not found - restart shell to activate')"
 echo "Azurite version: $(azurite --version 2>/dev/null || echo 'Not found - install after Node.js is active')"
-echo "Azure CLI version: $(az --version 2>/dev/null | head -n1 || echo 'Not found')"
 echo "Azure Functions Core Tools version: $(func --version 2>/dev/null || echo 'Not found')"
 echo "GitHub CLI version: $(gh --version 2>/dev/null | head -n1 || echo 'Not found')"
 echo "PowerShell version: $(pwsh --version 2>/dev/null || echo 'Not found')"
@@ -948,7 +991,6 @@ echo "terraform-docs version: $(terraform-docs --version 2>/dev/null || echo 'No
 echo "Checkov version: $(checkov --version 2>/dev/null || echo 'Not found')"
 echo "PostgreSQL client version: $(psql --version 2>/dev/null || echo 'Not found')"
 echo "Pre-commit version: $(pre-commit --version 2>/dev/null || echo 'Not found')"
-echo "jq version: $(jq --version 2>/dev/null || echo 'Not found')"
 echo ""
 echo "Installation complete!"
 echo ""

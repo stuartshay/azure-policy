@@ -1,0 +1,23 @@
+# Terraform files
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars  # Contains sensitive information like GitHub tokens
+*.tfplan
+
+# Environment variables (contains secrets)
+.env
+.env.local
+.env.backup
+
+# Logs
+*.log
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

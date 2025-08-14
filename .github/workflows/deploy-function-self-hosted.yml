@@ -1,0 +1,192 @@
+name: Deploy Azure Function (Self-Hosted Runner)
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'functions/basic/**'
+      - '.github/workflows/deploy-function-self-hosted.yml'
+  workflow_dispatch:
+
+env:
+  AZURE_FUNCTIONAPP_NAME: func-azpolicy-dev-001
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: './functions/basic'
+  PYTHON_VERSION: '3.13'
+
+jobs:
+  build-and-test:
+    # Use GitHub-hosted runners for build/test (no network restrictions needed)
+    runs-on: ubuntu-latest
+    name: Build and Test Function
+
+    steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }} Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 'Resolve Project Dependencies Using Pip'
+        shell: bash
+        run: |
+          pushd '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+          popd
+
+      - name: 'Run Unit Tests'
+        shell: bash
+        run: |
+          pushd '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          python -m pip install pytest pytest-cov
+          python -m pip install -r requirements.txt
+          python -m pytest tests/ -v --cov=. --cov-report=xml
+          popd
+
+      - name: 'Create Function Package'
+        shell: bash
+        run: |
+          pushd '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+          find . -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true
+          find . -name "*.pyc" -delete 2>/dev/null || true
+          find . -name ".coverage" -delete 2>/dev/null || true
+          find . -name "coverage.xml" -delete 2>/dev/null || true
+          popd
+
+      - name: 'Upload Function Package'
+        uses: actions/upload-artifact@v4
+        with:
+          name: function-package
+          path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          retention-days: 1
+
+  deploy:
+    # Use self-hosted runner with VNet access for deployment
+    runs-on: [self-hosted, azure, vnet]
+    needs: build-and-test
+    name: Deploy to Azure Function App
+    if: (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch') && github.event_name != 'pull_request'
+
+    steps:
+      - name: 'Download Function Package'
+        uses: actions/download-artifact@v4
+        with:
+          name: function-package
+          path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+
+      - name: 'Azure Login'
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: 'Verify VNet Connectivity'
+        shell: bash
+        run: |
+          echo "🌐 Testing VNet connectivity to Function App..."
+
+          # Test Function App accessibility from within VNet
+          FUNC_APP_URL="https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net"
+          SCM_URL="https://${{ env.AZURE_FUNCTIONAPP_NAME }}.scm.azurewebsites.net"
+
+          echo "Testing Function App endpoint..."
+          FUNC_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$FUNC_APP_URL" --max-time 10 || echo "000")
+          echo "Function App Status: $FUNC_STATUS"
+
+          echo "Testing SCM endpoint..."
+          SCM_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$SCM_URL" --max-time 10 || echo "000")
+          echo "SCM Status: $SCM_STATUS"
+
+          if [ "$SCM_STATUS" = "200" ] || [ "$SCM_STATUS" = "401" ]; then
+            echo "✅ SCM endpoint is accessible from VNet - deployment can proceed"
+          else
+            echo "⚠️ SCM Status: $SCM_STATUS - may indicate authentication required"
+          fi
+
+      - name: 'Deploy to Azure Functions'
+        shell: bash
+        run: |
+          echo "🚀 Deploying function package from VNet runner..."
+          cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+
+          # Create zip package
+          zip -r ../function-deploy.zip . -x "tests/*" "*/__pycache__/*" "*.pyc" ".coverage" "coverage.xml"
+
+          # Deploy using Azure CLI (should work from within VNet)
+          az functionapp deployment source config-zip \
+            --resource-group rg-azpolicy-dev-eastus \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --src ../function-deploy.zip \
+            --build-remote true
+
+          echo "✅ Deployment completed successfully!"
+
+      - name: 'Verify Deployment'
+        shell: bash
+        run: |
+          echo "🔍 Verifying deployment from within VNet..."
+          MAX_ATTEMPTS=10
+          SLEEP_SECONDS=10
+          ATTEMPT=1
+          SUCCESS=0
+
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Attempt $ATTEMPT: Checking function status..."
+            FUNC_NAME=$(az functionapp function show \
+              --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+              --resource-group rg-azpolicy-dev-eastus \
+              --function-name HealthCheck \
+              --query "name" -o tsv 2>/dev/null)
+            if [ "$FUNC_NAME" = "HealthCheck" ]; then
+              echo "✅ Function deployment verified successfully"
+              SUCCESS=1
+              break
+            else
+              echo "Function not available yet. Waiting $SLEEP_SECONDS seconds..."
+              sleep $SLEEP_SECONDS
+              ATTEMPT=$((ATTEMPT+1))
+            fi
+          done
+
+          if [ $SUCCESS -ne 1 ]; then
+            echo "❌ Function deployment verification failed after $MAX_ATTEMPTS attempts."
+            exit 1
+          fi
+
+  test-deployment:
+    runs-on: [self-hosted, azure, vnet]
+    needs: deploy
+    name: Test Deployed Function
+    if: (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch') && github.event_name != 'pull_request'
+
+    steps:
+      - name: 'Azure Login'
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: 'Test Function Endpoints from VNet'
+        shell: bash
+        run: |
+          echo "🧪 Testing deployed function endpoints from within VNet..."
+
+          # Get function keys for testing
+          FUNCTION_KEY=$(az functionapp keys list \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --resource-group rg-azpolicy-dev-eastus \
+            --query "functionKeys.default" -o tsv)
+
+          BASE_URL="https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net"
+
+          echo "Testing Hello World endpoint..."
+          curl -f -s "$BASE_URL/api/hello?code=$FUNCTION_KEY&name=VNetRunner" || { echo "Hello endpoint test failed"; exit 1; }
+
+          echo "Testing Health endpoint..."
+          curl -f -s "$BASE_URL/api/health?code=$FUNCTION_KEY" || { echo "Health endpoint test failed"; exit 1; }
+
+          echo "Testing Info endpoint..."
+          curl -f -s "$BASE_URL/api/info?code=$FUNCTION_KEY" || { echo "Info endpoint test failed"; exit 1; }
+
+          echo "✅ All function endpoint tests completed successfully from VNet!"

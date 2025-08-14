@@ -56,7 +56,7 @@ output "private_dns_zone_name" {
 output "connection_string_full" {
   description = "Full PostgreSQL connection string for applications"
   value = format(
-    "postgresql://%s:%s@%s:5432/%s?sslmode=require",
+    "postgresql://%s:%s@%s:5432/%s?sslmode=require", # pragma: allowlist secret
     azurerm_postgresql_flexible_server.main.administrator_login,
     var.admin_password != null ? var.admin_password : random_password.postgres_admin.result,
     azurerm_postgresql_flexible_server.main.fqdn,
@@ -99,7 +99,7 @@ output "database_config_for_functions" {
     admin_username = azurerm_postgresql_flexible_server.main.administrator_login
     admin_password = var.admin_password != null ? var.admin_password : random_password.postgres_admin.result
     connection_string = format(
-      "postgresql://%s:%s@%s:5432/%s?sslmode=require",
+      "postgresql://%s:%s@%s:5432/%s?sslmode=require", # pragma: allowlist secret
       azurerm_postgresql_flexible_server.main.administrator_login,
       var.admin_password != null ? var.admin_password : random_password.postgres_admin.result,
       azurerm_postgresql_flexible_server.main.fqdn,

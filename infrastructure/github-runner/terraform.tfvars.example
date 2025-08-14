@@ -1,0 +1,30 @@
+# Example Terraform variables for GitHub Self-Hosted Runner with Public IP
+
+# Required variables - MUST be configured
+github_token = "YOUR_GITHUB_TOKEN_HERE"  # Get from: GitHub → Settings → Developer settings → Personal access tokens
+admin_ssh_public_key = "YOUR_SSH_PUBLIC_KEY_HERE"  # Optional: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC...
+
+# Resource configuration
+resource_group_name = "rg-azpolicy-dev-eastus"
+environment = "dev"
+
+# GitHub repository
+github_repo_url = "https://github.com/stuartshay/azure-policy"
+
+# VM configuration
+vm_size = "Standard_B2s"  # Cost-effective option
+# vm_size = "Standard_D2s_v3"  # Higher performance option
+
+# Enable accelerated networking for supported VM sizes
+enable_accelerated_networking = false  # Set to true for D/F/H/L series VMs
+
+# Runner labels (customize based on your needs)
+runner_labels = ["azure", "vnet", "ubuntu", "self-hosted", "github-restricted"]
+
+# Additional management IPs (optional - your office/home IP for SSH access)
+# allowed_management_ips = ["203.0.113.0/24", "198.51.100.0/32"]
+allowed_management_ips = []
+
+# Auto-shutdown (optional - saves money by shutting down VM at night)
+# auto_shutdown_time = "23:00"  # Shutdown at 11 PM UTC
+auto_shutdown_time = ""  # Disabled

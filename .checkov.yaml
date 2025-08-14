@@ -52,6 +52,11 @@ skip-check:
   # Ensure Terraform module sources use a commit hash"
   - CKV_TF_1 #"Ensure Terraform module sources use a commit hash"
 
+  # GitHub Self-hosted Runner - Expected failures for functionality
+  - CKV_AZURE_178 # "Ensure linux VM enables SSH with keys for secure communication" - Runner needs SSH access
+  - CKV_AZURE_50  # "Ensure Virtual Machine Extensions are not Installed" - Runner needs extensions for GitHub Actions
+  - CKV_AZURE_119 # "Ensure that Network Interfaces don't use public IPs" - Runner needs public IP to communicate with GitHub
+
 # Skip parsing issues with complex policy definitions
 skip-path:
   - /infrastructure/terraform/modules/policies/main.tf# Output format

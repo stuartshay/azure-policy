@@ -154,8 +154,8 @@ Add these to your Function App's application settings:
   "DB_PORT": "5432",
   "DB_NAME": "azurepolicy",
   "DB_USER": "psqladmin",
-  "DB_PASSWORD": "auto-generated-password",
-  "DATABASE_URL": "postgresql://psqladmin:password@server:5432/azurepolicy?sslmode=require"
+  "DB_PASSWORD": "auto-generated-password", # pragma: allowlist secret
+  "DATABASE_URL": "postgresql://psqladmin:password@server:5432/azurepolicy?sslmode=require" # pragma: allowlist secret
 }
 ```
 

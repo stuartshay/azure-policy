@@ -92,16 +92,12 @@ repos:
         args: ['--severity=warning']
         exclude: '\.zshrc$'
 
-  # Secrets detection (temporarily disabled due to baseline update issues)
-  # Run manually with: detect-secrets scan --baseline .secrets.baseline
-  # - repo: https://github.com/Yelp/detect-secrets
-  #   rev: v1.5.0
-  #   hooks:
-  #     - id: detect-secrets
-  #       args: ['--baseline', '.secrets.baseline']
-  #       exclude: '\.secrets\.baseline$|\.secrets\.yaml$|\.secrets\.allowlist$|package-lock\.json$|\.git/|\.venv/|\.mypy_cache/|__pycache__/|azurite-data/|\.terraform/|\.terraform\.lock\.hcl$'
-
-  # Documentation and markdown
+  # Secrets detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        exclude: ^(\.secrets\.(baseline|yaml|allowlist)$|local\.settings\.json$) # Documentation and markdown
   # - repo: https://github.com/igorshubovych/markdownlint-cli
   #   rev: v0.42.0
   #   hooks:
@@ -187,6 +183,9 @@ repos:
     rev: v1.7.7 # Use the latest version
     hooks:
       - id: actionlint
+        args:
+          - '-config-file'
+          - 'actionlint.yaml'
 
   # Security and dependency scanning
   - repo: https://github.com/PyCQA/bandit

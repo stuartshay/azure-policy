@@ -1,0 +1,9 @@
+# Terraform Cloud Backend Configuration
+terraform {
+  cloud {
+    organization = "azure-policy-cloud"
+    workspaces {
+      name = "azure-policy-github-runner"
+    }
+  }
+}
