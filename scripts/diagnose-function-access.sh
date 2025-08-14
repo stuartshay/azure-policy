@@ -96,23 +96,24 @@ if [ "$PUBLIC_ACCESS" = "false" ]; then
     echo "   - Public access is temporarily enabled during deployment"
 fi
 
-if [ "$HTTP_STATUS" = "403" ]; then
-    echo -e "${RED}❌ SCM site returns 403 Forbidden${NC}"
-    echo "   This indicates access restrictions are blocking the deployment"
-    echo "   Recommendations:"
-    echo "   1. Add GitHub Actions runner IPs to access restrictions"
-    echo "   2. Use self-hosted runners in Azure VNet"
-    echo "   3. Temporarily enable broader access during deployment"
-elif [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "401" ]; then
-    echo -e "${GREEN}✅ SCM site is accessible${NC}"
-    echo "   Deployment should succeed"
-elif [ "$HTTP_STATUS" = "000" ]; then
-    echo -e "${RED}❌ Cannot reach SCM site (timeout/network error)${NC}"
-    echo "   This indicates network-level blocking"
-else
-    echo -e "${YELLOW}⚠️  Unexpected SCM status: $HTTP_STATUS${NC}"
-    echo "   Deployment may have issues"
-fi
+  if [ "$STATUS_CODE" != "200" ]; then
+    echo "SCM Site HTTP Status: $STATUS_CODE"
+    if [ "$STATUS_CODE" = "403" ]; then
+      echo "⚠️  INFO: SCM site blocked (403) - access restrictions are active"
+      echo "##[warning]SCM site returns 403 Forbidden due to access restrictions."
+      echo "This indicates the Function App has VNet integration and private network access configured."
+      echo "This is a security configuration that blocks external access to deployment endpoints."
+      echo "Deployment may require additional access rules or private deployment agents."
+      echo "Continuing with deployment attempt - access rules will be managed during deployment..."
+    elif [ "$STATUS_CODE" = "401" ]; then
+      echo "⚠️  WARNING: Authentication required (401) - checking credentials"
+      echo "This might indicate missing or invalid deployment credentials."
+    else
+      echo "⚠️  WARNING: Unexpected status code: $STATUS_CODE"
+    fi
+  else
+    echo "✅ SCM site is accessible (200 OK)"
+  fi
 
 echo ""
 

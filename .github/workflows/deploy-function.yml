@@ -172,12 +172,11 @@ jobs:
             echo "Consider using Azure DevOps self-hosted agents within your VNet for deployment."
             exit 1
           elif [ "$HTTP_STATUS" = "403" ]; then
-            echo "❌ CRITICAL: SCM site blocked (403) - access restrictions prevent deployment"
-            echo "::error::SCM site returns 403 Forbidden. GitHub Actions cannot deploy to this Function App."
-            echo "The Function App is configured with VNet integration and private network access."
-            echo "This security configuration prevents external deployment tools from accessing the SCM endpoint."
-            echo "Deployment will fail. Consider using Azure DevOps with private agents or temporarily enabling public access."
-            exit 1
+            echo "⚠️  INFO: SCM site blocked (403) - access restrictions detected"
+            echo "::warning::SCM site returns 403 Forbidden due to access restrictions."
+            echo "The Function App has VNet integration and private network access configured."
+            echo "This is a security configuration that blocks external access to deployment endpoints."
+            echo "The deployment will attempt to create temporary access rules to proceed..."
           elif [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "401" ]; then
             echo "✅ SCM site is reachable - deployment should succeed"
           else
@@ -194,6 +193,12 @@ jobs:
           if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "401" ]; then
             echo "✅ SCM Connectivity: ACCESSIBLE"
             echo "🚀 Ready for deployment!"
+          elif [ "$HTTP_STATUS" = "403" ]; then
+            echo "⚠️  SCM Connectivity: RESTRICTED (will configure access rules)"
+            echo "🔐 Will proceed with temporary access rule configuration..."
+          else
+            echo "❓ SCM Connectivity: UNKNOWN ($HTTP_STATUS)"
+            echo "🤞 Proceeding with deployment attempt..."
           fi
 
       - name: 'Get Runner IP and Configure Access'
