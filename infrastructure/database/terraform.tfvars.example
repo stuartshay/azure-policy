@@ -16,7 +16,7 @@ owner       = "platform-team"
 
 # Database Configuration (Optional - defaults shown)
 admin_username    = "psqladmin"
-# admin_password  = "YourSecurePassword123!"  # If not set, auto-generated
+# admin_password  = "YourSecurePassword123!"  # If not set, auto-generated # pragma: allowlist secret
 database_name     = "azurepolicy"
 postgres_version  = "15"
 

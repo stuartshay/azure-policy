@@ -4,7 +4,7 @@
 repos:
   # General file formatting and checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
         exclude: '\.md$'
@@ -86,22 +86,18 @@ repos:
 
   # Shell script linting
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.10.0.1
+    rev: v0.11.0.1
     hooks:
       - id: shellcheck
         args: ['--severity=warning']
         exclude: '\.zshrc$'
 
-  # Secrets detection (temporarily disabled due to baseline update issues)
-  # Run manually with: detect-secrets scan --baseline .secrets.baseline
-  # - repo: https://github.com/Yelp/detect-secrets
-  #   rev: v1.5.0
-  #   hooks:
-  #     - id: detect-secrets
-  #       args: ['--baseline', '.secrets.baseline']
-  #       exclude: '\.secrets\.baseline$|\.secrets\.yaml$|\.secrets\.allowlist$|package-lock\.json$|\.git/|\.venv/|\.mypy_cache/|__pycache__/|azurite-data/|\.terraform/|\.terraform\.lock\.hcl$'
-
-  # Documentation and markdown
+  # Secrets detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        exclude: ^(\.secrets\.(baseline|yaml|allowlist)$|local\.settings\.json$) # Documentation and markdown
   # - repo: https://github.com/igorshubovych/markdownlint-cli
   #   rev: v0.42.0
   #   hooks:
@@ -153,7 +149,7 @@ repos:
 
   # Terraform formatting and validation
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.99.5
+    rev: v1.100.0
     hooks:
       - id: terraform_fmt
       - id: terraform_validate
@@ -187,6 +183,9 @@ repos:
     rev: v1.7.7 # Use the latest version
     hooks:
       - id: actionlint
+        args:
+          - '-config-file'
+          - 'actionlint.yaml'
 
   # Security and dependency scanning
   - repo: https://github.com/PyCQA/bandit

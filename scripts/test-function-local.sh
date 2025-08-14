@@ -157,21 +157,7 @@ test_endpoint() {
         print_error "$description - Expected: $expected_status, Got: $status_code"
         if [ -f /tmp/response.json ]; then
             echo "Response:"
-    response=$(curl -s -w "%{http_code}" -o "${TMPDIR}/response.json" "http://localhost:7071$endpoint")
-    status_code="${response: -3}"
-
-    if [ "$status_code" = "$expected_status" ]; then
-        print_success "$description - Status: $status_code"
-        if [ -f "${TMPDIR}/response.json" ]; then
-            echo "Response:"
-            cat "${TMPDIR}/response.json" | python3 -m json.tool 2>/dev/null || cat "${TMPDIR}/response.json"
-            echo ""
-        fi
-    else
-        print_error "$description - Expected: $expected_status, Got: $status_code"
-        if [ -f "${TMPDIR}/response.json" ]; then
-            echo "Response:"
-            cat "${TMPDIR}/response.json"
+            cat /tmp/response.json
             echo ""
         fi
     fi
@@ -209,7 +195,7 @@ print_status "Stopping Azure Functions runtime..."
 # Send SIGTERM first
 kill $FUNC_PID 2>/dev/null || true
 # Wait up to 5 seconds for graceful shutdown
-for i in {1..5}; do
+for _ in {1..5}; do
     if ! kill -0 $FUNC_PID 2>/dev/null; then
         break
     fi

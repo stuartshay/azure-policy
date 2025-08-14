@@ -55,11 +55,11 @@ variable "functions_sku_name" {
 variable "python_version" {
   description = "Python version for Functions"
   type        = string
-  default     = "3.11"
+  default     = "3.13"
 
   validation {
-    condition     = contains(["3.8", "3.9", "3.10", "3.11"], var.python_version)
-    error_message = "Python version must be 3.8, 3.9, 3.10, or 3.11."
+    condition     = contains(["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"], var.python_version)
+    error_message = "Python version must be 3.8, 3.9, 3.10, 3.11, 3.12, or 3.13."
   }
 }
 
