@@ -235,7 +235,7 @@ jobs:
             az functionapp update \
               --resource-group rg-azpolicy-dev-eastus \
               --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-              --set publicNetworkAccess=Enabled --no-wait
+              --set publicNetworkAccess=Enabled
 
             # Wait for the setting to take effect
             echo "⏳ Waiting for public access change to propagate..."
@@ -417,7 +417,7 @@ jobs:
             az functionapp update \
               --resource-group rg-azpolicy-dev-eastus \
               --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-              --set publicNetworkAccess=Disabled --no-wait || echo "Failed to restore public access setting"
+              --set publicNetworkAccess=Disabled || echo "Failed to restore public access setting"
           else
             echo "  Original setting was enabled, no restoration needed"
           fi
@@ -433,7 +433,7 @@ jobs:
             az functionapp update \
               --resource-group rg-azpolicy-dev-eastus \
               --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-              --set publicNetworkAccess=Disabled --no-wait || echo "Failed to secure with private access"
+              --set publicNetworkAccess=Disabled || echo "Failed to secure with private access"
           fi
 
           echo "✅ Cleanup completed"
