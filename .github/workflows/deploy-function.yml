@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: 'Checkout GitHub Action'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python ${{ env.PYTHON_VERSION }} Environment
         uses: actions/setup-python@v5
@@ -76,7 +76,7 @@ jobs:
 
     steps:
       - name: 'Download Function Package'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: function-package
           path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
@@ -201,7 +201,8 @@ jobs:
         run: |
           # Get the current runner's public IP
           RUNNER_IP=$(curl -s https://api.ipify.org)
-          echo "Runner IP: $RUNNER_IP"
+          echo "🌐 Runner IP: $RUNNER_IP"
+          echo "::notice::GitHub Actions runner IP: $RUNNER_IP"
 
           # Check if Function App has public network access disabled
           PUBLIC_ACCESS=$(az functionapp show \
@@ -209,40 +210,107 @@ jobs:
             --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
             --query "publicNetworkAccessEnabled" -o tsv)
 
-          echo "Public Network Access Enabled: $PUBLIC_ACCESS"
+          echo "📡 Public Network Access Enabled: $PUBLIC_ACCESS"
+
+          # Store original public access setting
+          echo "ORIGINAL_PUBLIC_ACCESS=$PUBLIC_ACCESS" >> "$GITHUB_ENV"
 
           if [ "$PUBLIC_ACCESS" = "false" ]; then
             echo "⚠️  Function App has public network access disabled"
-            echo "This may prevent GitHub Actions from deploying successfully"
+            echo "::warning::Function App has public network access disabled. Temporarily enabling for deployment."
 
             # Try to temporarily enable public access for deployment
-            echo "Attempting to temporarily enable public network access..."
+            echo "🔓 Temporarily enabling public network access for deployment..."
             az functionapp update \
               --resource-group rg-azpolicy-dev-eastus \
               --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-              --set publicNetworkAccessEnabled=true || echo "Failed to enable public access"
+              --set publicNetworkAccessEnabled=true --no-wait
 
-            sleep 10
+            # Wait for the setting to take effect
+            echo "⏳ Waiting for public access change to propagate..."
+            sleep 30
           fi
 
-          # Add GitHub Actions IP range to Function App access restrictions
-          echo "Adding runner IP to Function App access restrictions..."
+          # Remove any existing GitHub Actions access restriction rules first (cleanup from previous runs)
+          echo "🧹 Cleaning up any existing GitHub Actions access rules..."
+          az functionapp config access-restriction list \
+            --resource-group rg-azpolicy-dev-eastus \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --query "[?contains(name, 'GitHubActions')].name" -o tsv 2>/dev/null | \
+          while read -r rule_name; do
+            if [ -n "$rule_name" ]; then
+              echo "  Removing existing rule: $rule_name"
+              az functionapp config access-restriction remove \
+                --resource-group rg-azpolicy-dev-eastus \
+                --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+                --rule-name "$rule_name" --no-wait || true
+            fi
+          done
+
+          # Wait for cleanup to complete
+          sleep 15
+
+          # Create a unique rule name for this deployment
+          RULE_NAME="GitHubActions-Deploy-$(date +%s)"
+          echo "GITHUB_ACTIONS_RULE_NAME=$RULE_NAME" >> "$GITHUB_ENV"
+
+          # Add GitHub Actions IP to Function App access restrictions with higher priority
+          echo "🔒 Adding runner IP to Function App access restrictions..."
+          echo "  Rule name: $RULE_NAME"
+          echo "  IP address: $RUNNER_IP/32"
+
           az functionapp config access-restriction add \
             --resource-group rg-azpolicy-dev-eastus \
             --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-            --rule-name "GitHubActions-$(date +%s)" \
+            --rule-name "$RULE_NAME" \
             --action Allow \
             --ip-address "$RUNNER_IP/32" \
-            --priority 100 || echo "Failed to add access restriction - may already exist or be blocked by VNet"
+            --priority 50 --no-wait
 
-          echo "Waiting for access rule to take effect..."
-          sleep 30
+          # Also add the rule for SCM site specifically
+          echo "🔐 Adding runner IP to SCM site access restrictions..."
+          az functionapp config access-restriction add \
+            --resource-group rg-azpolicy-dev-eastus \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --rule-name "$RULE_NAME-SCM" \
+            --action Allow \
+            --ip-address "$RUNNER_IP/32" \
+            --priority 50 \
+            --scm-site --no-wait || echo "SCM rule may already exist or not be needed"
+
+          echo "⏳ Waiting for access rules to take effect..."
+          sleep 45
 
           # Test connectivity to SCM endpoint after configuration
-          echo "Testing SCM connectivity after configuration..."
+          echo "🧪 Testing SCM connectivity after configuration..."
           SCM_URL="https://${{ env.AZURE_FUNCTIONAPP_NAME }}.scm.azurewebsites.net"
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$SCM_URL" --max-time 15 || echo "000")
-          echo "SCM Site HTTP Status after configuration: $HTTP_STATUS"
+          MAX_RETRIES=3
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "  Attempt $i/$MAX_RETRIES..."
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$SCM_URL" --max-time 20 || echo "000")
+            echo "  SCM Site HTTP Status: $HTTP_STATUS"
+
+            if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "401" ] || [ "$HTTP_STATUS" = "302" ]; then
+              echo "✅ SCM site is now accessible - ready for deployment!"
+              break
+            elif [ "$HTTP_STATUS" = "403" ]; then
+              echo "⚠️  Still getting 403 - waiting longer for access rules to propagate..."
+              if [ "$i" -lt "$MAX_RETRIES" ]; then
+                sleep 30
+              fi
+            else
+              echo "⚠️  Unexpected status $HTTP_STATUS - retrying..."
+              if [ "$i" -lt "$MAX_RETRIES" ]; then
+                sleep 15
+              fi
+            fi
+          done
+
+          if [ "$HTTP_STATUS" != "200" ] && [ "$HTTP_STATUS" != "401" ] && [ "$HTTP_STATUS" != "302" ]; then
+            echo "❌ CRITICAL: SCM site still not accessible after configuration"
+            echo "::error::Unable to access SCM endpoint after configuring access rules. Status: $HTTP_STATUS"
+            exit 1
+          fi
 
       - name: 'Deploy to Azure Functions'
         shell: bash
@@ -299,41 +367,65 @@ jobs:
         if: always()
         shell: bash
         run: |
-          echo "Cleaning up temporary GitHub Actions access rules..."
+          echo "🧹 Cleaning up temporary GitHub Actions access rules..."
 
-          # Remove any GitHub Actions rules (cleanup old ones too)
+          # Remove the specific rule created during this deployment
+          if [ -n "${GITHUB_ACTIONS_RULE_NAME:-}" ]; then
+            echo "  Removing deployment rule: ${GITHUB_ACTIONS_RULE_NAME}"
+            az functionapp config access-restriction remove \
+              --resource-group rg-azpolicy-dev-eastus \
+              --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+              --rule-name "${GITHUB_ACTIONS_RULE_NAME}" --no-wait || true
+
+            echo "  Removing SCM deployment rule: ${GITHUB_ACTIONS_RULE_NAME}-SCM"
+            az functionapp config access-restriction remove \
+              --resource-group rg-azpolicy-dev-eastus \
+              --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+              --rule-name "${GITHUB_ACTIONS_RULE_NAME}-SCM" \
+              --scm-site --no-wait || true
+          fi          # Remove any remaining GitHub Actions rules (cleanup from failed runs)
+          echo "  Cleaning up any remaining GitHub Actions access rules..."
           az functionapp config access-restriction list \
             --resource-group rg-azpolicy-dev-eastus \
             --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
             --query "[?contains(name, 'GitHubActions')].name" -o tsv 2>/dev/null | \
           while read -r rule_name; do
             if [ -n "$rule_name" ]; then
-              echo "Removing rule: $rule_name"
+              echo "    Removing rule: $rule_name"
               az functionapp config access-restriction remove \
                 --resource-group rg-azpolicy-dev-eastus \
                 --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-                --rule-name "$rule_name" || true
+                --rule-name "$rule_name" --no-wait || true
             fi
           done
 
-          # Restore original public network access setting if it was disabled
-          echo "Checking if public network access should be restored..."
+          # Restore original public network access setting
+          echo "🔒 Restoring original public network access setting..."
+          if [ "${ORIGINAL_PUBLIC_ACCESS:-}" = "false" ]; then
+            echo "  Restoring public network access to: disabled"
+            az functionapp update \
+              --resource-group rg-azpolicy-dev-eastus \
+              --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+              --set publicNetworkAccessEnabled=false --no-wait || echo "Failed to restore public access setting"
+          else
+            echo "  Original setting was enabled, no restoration needed"
+          fi
 
-          # If VNet integration exists, we should disable public access for security
+          # If VNet integration exists, ensure private network access for security
           VNET_CONFIG=$(az functionapp vnet-integration show \
             --resource-group rg-azpolicy-dev-eastus \
             --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
             --query "vnetResourceId" -o tsv 2>/dev/null || echo "null")
 
           if [ "$VNET_CONFIG" != "null" ] && [ "$VNET_CONFIG" != "" ]; then
-            echo "VNet integration detected, restoring private network access..."
+            echo "🔐 VNet integration detected, ensuring private network access..."
             az functionapp update \
               --resource-group rg-azpolicy-dev-eastus \
               --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-              --set publicNetworkAccessEnabled=false || echo "Failed to disable public access"
+              --set publicNetworkAccessEnabled=false --no-wait || echo "Failed to secure with private access"
           fi
 
-          echo "Cleanup completed"
+          echo "✅ Cleanup completed"
   test-deployment:
     runs-on: ubuntu-latest
     needs: deploy
