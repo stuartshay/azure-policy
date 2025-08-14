@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: 'Checkout GitHub Action'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python ${{ env.PYTHON_VERSION }} Environment
         uses: actions/setup-python@v5
@@ -72,7 +72,7 @@ jobs:
 
     steps:
       - name: 'Download Function Package'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: function-package
           path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
