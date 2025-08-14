@@ -4,6 +4,177 @@
 # Description: Demonstrates Azure Policy remediation capabilities
 # Usage: ./08-remediation.sh
 
+# Function to create a remediation example
+create_remediation_example() {
+    echo ""
+    echo "🏗️  Creating Remediation Example"
+    echo "==============================="
+
+    # Use a simple tag policy for demonstration
+    POLICY_NAME="add-environment-tag-to-rg"
+
+    echo "Creating example policy: Add Environment tag to resource groups"
+
+    # Create a simple modify policy
+    cat > /tmp/modify-policy.json << 'EOF'
+{
+  "mode": "All",
+  "policyRule": {
+    "if": {
+      "allOf": [
+        {
+          "field": "type",
+          "equals": "Microsoft.Resources/resourceGroups"
+        },
+        {
+          "field": "tags['Environment']",
+          "exists": false
+        }
+      ]
+    },
+    "then": {
+      "effect": "modify",
+      "details": {
+        "roleDefinitionIds": [
+          "/subscriptions/{subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+        ],
+        "operations": [
+          {
+            "operation": "add",
+            "field": "tags['Environment']",
+            "value": "[parameters('tagValue')]"
+          }
+        ]
+      }
+    }
+  },
+  "parameters": {
+    "tagValue": {
+      "type": "String",
+      "metadata": {
+        "displayName": "Tag Value",
+        "description": "Value of the Environment tag to add"
+      },
+      "allowedValues": [
+        "Development",
+        "Test",
+        "Production"
+      ],
+      "defaultValue": "Development"
+    }
+  }
+}
+EOF
+
+    # Create the policy definition
+    echo "Creating policy definition..."
+    POLICY_ID=$(az policy definition create \
+        --name "$POLICY_NAME" \
+        --display-name "Add Environment tag to resource groups" \
+        --description "Adds an Environment tag to resource groups if it doesn't exist" \
+        --rules /tmp/modify-policy.json \
+        --mode All \
+        --query "id" --output tsv)
+
+    if [ $? -eq 0 ]; then
+        echo "✅ Policy created: $POLICY_ID"
+
+        # Get current subscription ID for role definition
+        SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+
+        # Update the policy with correct subscription ID
+        sed -i "s/{subscriptionId}/$SUBSCRIPTION_ID/g" /tmp/modify-policy.json
+
+        az policy definition update \
+            --name "$POLICY_NAME" \
+            --rules /tmp/modify-policy.json
+
+        echo "Creating policy assignment with managed identity..."
+
+        # Create assignment with managed identity
+        ASSIGNMENT_ID=$(az policy assignment create \
+            --name "add-env-tag-assignment" \
+            --display-name "Add Environment Tag to Resource Groups" \
+            --policy "$POLICY_ID" \
+            --assign-identity \
+            --identity-scope "/subscriptions/$SUBSCRIPTION_ID" \
+            --location "East US" \
+            --params '{"tagValue": {"value": "Development"}}' \
+            --query "id" --output tsv)
+
+        if [ $? -eq 0 ]; then
+            echo "✅ Assignment created: $ASSIGNMENT_ID"
+
+            # Get the principal ID of the managed identity
+            PRINCIPAL_ID=$(az policy assignment show \
+                --name "add-env-tag-assignment" \
+                --query "identity.principalId" --output tsv)
+
+            echo "📋 Assignment Details:"
+            echo "   Assignment ID: $ASSIGNMENT_ID"
+            echo "   Principal ID: $PRINCIPAL_ID"
+            echo ""
+
+            # Note about permissions
+            echo "⚠️  Important: The managed identity needs 'Contributor' role"
+            echo "   to modify resource group tags. You may need to assign this manually:"
+            echo "   az role assignment create --assignee $PRINCIPAL_ID --role Contributor"
+            echo ""
+
+            echo "✅ Ready for remediation!"
+        else
+            echo "❌ Failed to create assignment"
+        fi
+    else
+        echo "❌ Failed to create policy"
+    fi
+
+    # Cleanup temp file
+    rm -f /tmp/modify-policy.json
+}
+
+# Function to create a remediation task
+create_remediation_task() {
+    echo ""
+    echo "🔄 Creating Remediation Task"
+    echo "============================="
+
+    # List assignments that can be remediated
+    echo "Available assignments for remediation:"
+    az policy assignment list --query "[?identity != null].{Name:name,DisplayName:displayName,Policy:policyDefinitionId}" --output table
+
+    echo ""
+    read -p "Enter the assignment name to remediate: " ASSIGNMENT_NAME
+
+    if [ ! -z "$ASSIGNMENT_NAME" ]; then
+        echo "Creating remediation task for: $ASSIGNMENT_NAME"
+
+        # Create remediation task
+        REMEDIATION_ID=$(az policy remediation create \
+            --name "remediation-$(date +%s)" \
+            --policy-assignment "$ASSIGNMENT_NAME" \
+            --query "id" --output tsv)
+
+        if [ $? -eq 0 ]; then
+            echo "✅ Remediation task created: $REMEDIATION_ID"
+
+            echo ""
+            echo "📊 Checking remediation status..."
+            sleep 5
+
+            az policy remediation show --name "remediation-$(date +%s)" --policy-assignment "$ASSIGNMENT_NAME" --query "{Name:name,Status:provisioningState,ResourcesRemediated:deploymentSummary.totalDeploymentsSucceeded,ResourcesFailed:deploymentSummary.totalDeploymentsFailed}" --output table
+
+            echo ""
+            echo "💡 You can monitor remediation progress with:"
+            echo "   az policy remediation list --policy-assignment $ASSIGNMENT_NAME --output table"
+        else
+            echo "❌ Failed to create remediation task"
+        fi
+    else
+        echo "❌ No assignment name provided"
+    fi
+}
+
 echo "=== Azure Policy Learning Script ==="
 echo "Script: Policy Remediation"
 echo "Date: $(date)"
@@ -68,9 +239,12 @@ Scope: \(.scope)
     echo "📋 Existing Remediation Tasks:"
     echo "=============================="
 
-    for assignment in $(echo $REMEDIATION_ASSIGNMENTS | jq -r '.[].name'); do
-        echo "Checking remediation tasks for assignment: $assignment"
-        az policy remediation list --policy-assignment "$assignment" --output table 2>/dev/null || echo "No remediation tasks found for $assignment"
+    # Get assignment names for remediation task lookup
+    ASSIGNMENT_NAMES=$(echo $REMEDIATION_ASSIGNMENTS | jq -r '.[].name')
+
+    for assignment in $ASSIGNMENT_NAMES; do
+        echo "Assignment: $assignment"
+        az policy remediation list --policy-assignment $assignment --query "[].{Name:name,Status:provisioningState,Created:createdOn,Resources:deploymentSummary.totalDeploymentsSucceeded}" --output table 2>/dev/null || echo "  No remediation tasks found"
         echo ""
     done
 
@@ -83,149 +257,27 @@ Scope: \(.scope)
     fi
 fi
 
-# Function to create a remediation example
-create_remediation_example() {
-    echo ""
-    echo "🏗️  Creating Remediation Example"
-    echo "==============================="
-
-    # Use a simple tag policy for demonstration
-    POLICY_NAME="add-environment-tag-to-rg"
-
-    echo "Creating example policy: Add Environment tag to resource groups"
-
-    # Create a simple modify policy
-    cat > /tmp/modify-policy.json << 'EOF'
-{
-  "mode": "All",
-  "policyRule": {
-    "if": {
-      "allOf": [
-        {
-          "field": "type",
-          "equals": "Microsoft.Resources/resourceGroups"
-        },
-        {
-          "field": "tags['Environment']",
-          "exists": false
-        }
-      ]
-    },
-    "then": {
-      "effect": "modify",
-      "details": {
-        "roleDefinitionIds": [
-          "/subscriptions/{subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
-        ],
-        "operations": [
-          {
-            "operation": "add",
-            "field": "tags['Environment']",
-            "value": "[parameters('tagValue')]"
-          }
-        ]
-      }
-    }
-  },
-  "parameters": {
-    "tagValue": {
-      "type": "String",
-      "metadata": {
-        "displayName": "Tag Value",
-        "description": "Value of the Environment tag to add"
-      },
-      "defaultValue": "Unassigned"
-    }
-  }
-}
-EOF
-
-    # Create the policy
-    if az policy definition create \
-        --name "$POLICY_NAME" \
-        --display-name "Add Environment tag to resource groups" \
-        --description "Adds Environment tag to resource groups that don't have it" \
-        --rules /tmp/modify-policy.json \
-        --mode All; then
-
-        echo "✅ Policy created successfully!"
-
-        # Create assignment with managed identity
-        export SUBSCRIPTION_ID
-        SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-        ASSIGNMENT_NAME="add-env-tag-assignment"
-
-        echo ""
-        echo "Creating policy assignment with managed identity..."
-
-        if az policy assignment create \
-            --name "$ASSIGNMENT_NAME" \
-            --policy "$POLICY_NAME" \
-            --assign-identity \
-            --location "eastus" \
-            --params '{"tagValue": {"value": "Development"}}'; then
-
-            echo "✅ Assignment created with managed identity!"
-            echo ""
-            echo "⚠️  Note: You may need to assign permissions to the managed identity"
-            echo "   Role needed: Contributor or Tag Contributor"
-
-        else
-            echo "❌ Failed to create assignment"
-        fi
-    else
-        echo "❌ Failed to create policy"
-    fi
-
-    # Cleanup
-    rm -f /tmp/modify-policy.json
-}
-
-# Function to create a remediation task
-create_remediation_task() {
-    echo ""
-    echo "🔧 Creating Remediation Task"
-    echo "============================"
-
-    # List available assignments
-    echo "Available assignments for remediation:"
-    echo $REMEDIATION_ASSIGNMENTS | jq -r '.[] | "\(.name): \(.displayName // .name)"' | nl
-
-    read -p "Enter assignment name: " ASSIGNMENT_NAME
-    read -p "Enter remediation task name: " TASK_NAME
-
-    echo ""
-    echo "🚀 Creating remediation task..."
-
-    if az policy remediation create \
-        --name "$TASK_NAME" \
-        --policy-assignment "$ASSIGNMENT_NAME"; then
-
-        echo "✅ Remediation task created successfully!"
-        echo ""
-        echo "📊 Task details:"
-        az policy remediation show --name "$TASK_NAME" --policy-assignment "$ASSIGNMENT_NAME" --output table
-
-    else
-        echo "❌ Failed to create remediation task"
-        echo "💡 Check that the assignment exists and supports remediation"
-    fi
-}
+echo ""
+echo "🎯 Best Practices for Remediation"
+echo "================================="
+echo "• Always test policies in a development environment first"
+echo "• Use resource locks to prevent accidental changes"
+echo "• Monitor remediation tasks for failures"
+echo "• Ensure managed identities have minimal required permissions"
+echo "• Use parameterized policies for flexibility"
+echo "• Review compliance reports before running remediation"
 
 echo ""
-echo "📚 Remediation Best Practices:"
-echo "==============================="
-echo "1. Test policies in audit mode first"
-echo "2. Use resource groups or limited scopes for initial testing"
-echo "3. Monitor remediation tasks for failures"
-echo "4. Ensure managed identities have minimal required permissions"
-echo "5. Consider using DeployIfNotExists for new resources only"
+echo "📚 Additional Resources:"
+echo "• Azure Policy remediation documentation"
+echo "• Managed identity best practices"
+echo "• Policy assignment with managed identity"
+echo "• Remediation task monitoring"
 
 echo ""
-echo "🔍 Monitoring Remediation:"
-echo "========================="
-echo "• View remediation tasks: az policy remediation list"
-echo "• Check task status: az policy remediation show --name [task-name]"
+echo "⚠️  Important Notes:"
+echo "• Remediation can modify or delete resources"
+echo "• Always verify permissions before running"
 echo "• Monitor activity logs for remediation actions"
 echo "• Review compliance reports after remediation"
 
