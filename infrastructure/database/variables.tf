@@ -258,3 +258,36 @@ variable "maintenance_window" {
     error_message = "Maintenance window values must be valid: day_of_week (0-6), start_hour (0-23), start_minute (0-59)."
   }
 }
+
+# Key Vault Integration
+variable "enable_keyvault_integration" {
+  description = "Enable storing database credentials in Key Vault"
+  type        = bool
+  default     = false
+}
+
+variable "keyvault_name" {
+  description = "Name of the existing Key Vault"
+  type        = string
+  default     = ""
+}
+
+variable "keyvault_resource_group_name" {
+  description = "Resource group name where the Key Vault exists"
+  type        = string
+  default     = ""
+}
+
+variable "keyvault_secret_names" {
+  description = "Names for the secrets to be stored in Key Vault"
+  type = object({
+    admin_username    = optional(string, "postgres-admin-username")
+    admin_password    = optional(string, "postgres-admin-password") # pragma: allowlist secret
+    connection_string = optional(string, "postgres-connection-string")
+  })
+  default = {
+    admin_username    = "postgres-admin-username"
+    admin_password    = "postgres-admin-password" # pragma: allowlist secret
+    connection_string = "postgres-connection-string"
+  }
+}

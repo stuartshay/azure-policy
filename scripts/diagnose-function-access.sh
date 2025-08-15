@@ -109,20 +109,7 @@ fi
       echo "⚠️  WARNING: Authentication required (401) - checking credentials"
       echo "This might indicate missing or invalid deployment credentials."
     else
-  if [ "$HTTP_STATUS" != "200" ]; then
-    echo "SCM Site HTTP Status: $HTTP_STATUS"
-    if [ "$HTTP_STATUS" = "403" ]; then
-      echo "⚠️  INFO: SCM site blocked (403) - access restrictions are active"
-      echo "##[warning]SCM site returns 403 Forbidden due to access restrictions."
-      echo "This indicates the Function App has VNet integration and private network access configured."
-      echo "This is a security configuration that blocks external access to deployment endpoints."
-      echo "Deployment may require additional access rules or private deployment agents."
-      echo "Continuing with deployment attempt - access rules will be managed during deployment..."
-    elif [ "$HTTP_STATUS" = "401" ]; then
-      echo "⚠️  WARNING: Authentication required (401) - checking credentials"
-      echo "This might indicate missing or invalid deployment credentials."
-    else
-      echo "⚠️  WARNING: Unexpected status code: $HTTP_STATUS"
+      echo "⚠️  WARNING: Unexpected status code: $STATUS_CODE"
     fi
   else
     echo "✅ SCM site is accessible (200 OK)"

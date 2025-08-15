@@ -48,3 +48,15 @@ maintenance_window = {
   start_hour   = 2  # 2 AM UTC
   start_minute = 0
 }
+
+# Key Vault Integration (NEW)
+enable_keyvault_integration = true
+keyvault_name = "AzureConnectedServices"
+keyvault_resource_group_name = "AzureConnectedServices-RG"
+
+# Custom secret names (optional - defaults shown)
+keyvault_secret_names = {
+  admin_username    = "postgres-admin-username"
+  admin_password    = "postgres-admin-password"  # pragma: allowlist secret
+  connection_string = "postgres-connection-string"
+}
