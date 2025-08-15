@@ -27,7 +27,7 @@ output "postgresql_admin_username" {
 }
 
 output "postgresql_admin_password" {
-  description = "Administrator password for PostgreSQL server"
+  description = "Administrator password for PostgreSQL server" # pragma: allowlist secret
   value       = var.admin_password != null ? var.admin_password : random_password.postgres_admin.result
   sensitive   = true
 }
@@ -83,7 +83,7 @@ output "connection_components" {
     port     = "5432"
     database = azurerm_postgresql_flexible_server_database.app_database.name
     username = azurerm_postgresql_flexible_server.main.administrator_login
-    password = var.admin_password != null ? var.admin_password : random_password.postgres_admin.result
+    password = var.admin_password != null ? var.admin_password : random_password.postgres_admin.result # pragma: allowlist secret
     sslmode  = "require"
   }
   sensitive = true
@@ -97,7 +97,7 @@ output "database_config_for_functions" {
     server_fqdn    = azurerm_postgresql_flexible_server.main.fqdn
     database_name  = azurerm_postgresql_flexible_server_database.app_database.name
     admin_username = azurerm_postgresql_flexible_server.main.administrator_login
-    admin_password = var.admin_password != null ? var.admin_password : random_password.postgres_admin.result
+    admin_password = var.admin_password != null ? var.admin_password : random_password.postgres_admin.result # pragma: allowlist secret
     connection_string = format(
       "postgresql://%s:%s@%s:5432/%s?sslmode=require", # pragma: allowlist secret
       azurerm_postgresql_flexible_server.main.administrator_login,
@@ -162,5 +162,39 @@ output "monitoring_configuration" {
     performance_insights_enabled = var.enable_performance_insights
     log_min_duration_statement   = "1000ms"
     shared_preload_libraries     = "pg_stat_statements"
+  }
+}
+
+# Key Vault integration outputs
+output "keyvault_integration" {
+  description = "Key Vault integration information"
+  value = var.enable_keyvault_integration ? {
+    enabled                 = true
+    keyvault_name           = var.keyvault_name
+    keyvault_resource_group = var.keyvault_resource_group_name
+    secret_names = {
+      admin_username    = var.keyvault_secret_names.admin_username
+      admin_password    = var.keyvault_secret_names.admin_password # pragma: allowlist secret
+      connection_string = var.keyvault_secret_names.connection_string
+    }
+    secret_uris = {
+      admin_username    = "https://${var.keyvault_name}.vault.azure.net/secrets/${var.keyvault_secret_names.admin_username}/"
+      admin_password    = "https://${var.keyvault_name}.vault.azure.net/secrets/${var.keyvault_secret_names.admin_password}/" # pragma: allowlist secret
+      connection_string = "https://${var.keyvault_name}.vault.azure.net/secrets/${var.keyvault_secret_names.connection_string}/"
+    }
+    } : {
+    enabled                 = false
+    keyvault_name           = null
+    keyvault_resource_group = null
+    secret_names = {
+      admin_username    = null
+      admin_password    = null # pragma: allowlist secret
+      connection_string = null
+    }
+    secret_uris = {
+      admin_username    = null
+      admin_password    = null # pragma: allowlist secret
+      connection_string = null
+    }
   }
 }

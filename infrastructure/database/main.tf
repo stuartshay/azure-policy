@@ -39,6 +39,13 @@ resource "random_password" "postgres_admin" {
   numeric = true
 }
 
+# Data source to reference existing Key Vault
+data "azurerm_key_vault" "external" {
+  count               = var.enable_keyvault_integration ? 1 : 0
+  name                = var.keyvault_name
+  resource_group_name = var.keyvault_resource_group_name
+}
+
 # Data sources to get existing infrastructure
 data "azurerm_resource_group" "main" {
   name = var.resource_group_name
@@ -230,4 +237,54 @@ resource "azurerm_postgresql_flexible_server_configuration" "log_min_duration_st
   name      = "log_min_duration_statement"
   server_id = azurerm_postgresql_flexible_server.main.id
   value     = "1000" # Log queries taking longer than 1 second
+}
+
+# Store database credentials in Key Vault
+resource "azurerm_key_vault_secret" "postgres_admin_username" {
+  count        = var.enable_keyvault_integration ? 1 : 0
+  name         = var.keyvault_secret_names.admin_username
+  value        = azurerm_postgresql_flexible_server.main.administrator_login
+  key_vault_id = data.azurerm_key_vault.external[0].id
+
+  depends_on = [
+    azurerm_postgresql_flexible_server.main
+  ]
+
+  tags = merge(local.common_tags, {
+    SecretType = "database-credential" # pragma: allowlist secret
+    Database   = azurerm_postgresql_flexible_server.main.name
+  })
+}
+
+resource "azurerm_key_vault_secret" "postgres_admin_password" {
+  count        = var.enable_keyvault_integration ? 1 : 0
+  name         = var.keyvault_secret_names.admin_password                                                # pragma: allowlist secret
+  value        = var.admin_password != null ? var.admin_password : random_password.postgres_admin.result # pragma: allowlist secret
+  key_vault_id = data.azurerm_key_vault.external[0].id
+
+  depends_on = [
+    azurerm_postgresql_flexible_server.main
+  ]
+
+  tags = merge(local.common_tags, {
+    SecretType = "database-credential" # pragma: allowlist secret
+    Database   = azurerm_postgresql_flexible_server.main.name
+  })
+}
+
+resource "azurerm_key_vault_secret" "postgres_connection_string" {
+  count        = var.enable_keyvault_integration ? 1 : 0
+  name         = var.keyvault_secret_names.connection_string
+  value        = "Host=${azurerm_postgresql_flexible_server.main.fqdn};Database=${azurerm_postgresql_flexible_server_database.app_database.name};Username=${azurerm_postgresql_flexible_server.main.administrator_login};Password=${var.admin_password != null ? var.admin_password : random_password.postgres_admin.result};SslMode=Require;" # pragma: allowlist secret
+  key_vault_id = data.azurerm_key_vault.external[0].id
+
+  depends_on = [
+    azurerm_postgresql_flexible_server.main,
+    azurerm_postgresql_flexible_server_database.app_database
+  ]
+
+  tags = merge(local.common_tags, {
+    SecretType = "database-connection-string" # pragma: allowlist secret
+    Database   = azurerm_postgresql_flexible_server.main.name
+  })
 }

@@ -331,6 +331,9 @@ No modules.
 
 | Name | Type |
 |------|------|
+| [azurerm_key_vault_secret.postgres_admin_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.postgres_admin_username](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.postgres_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_postgresql_flexible_server.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/postgresql_flexible_server) | resource |
 | [azurerm_postgresql_flexible_server_configuration.log_min_duration_statement](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/postgresql_flexible_server_configuration) | resource |
 | [azurerm_postgresql_flexible_server_configuration.log_statement](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/postgresql_flexible_server_configuration) | resource |
@@ -343,6 +346,7 @@ No modules.
 | [azurerm_private_dns_zone.postgres](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) | resource |
 | [azurerm_private_dns_zone_virtual_network_link.postgres](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) | resource |
 | [random_password.postgres_admin](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
+| [azurerm_key_vault.external](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
 | [azurerm_resource_group.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) | data source |
 | [azurerm_subnet.functions](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subnet) | data source |
 | [azurerm_virtual_network.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/virtual_network) | data source |
@@ -360,10 +364,14 @@ No modules.
 | <a name="input_cost_center"></a> [cost\_center](#input\_cost\_center) | Cost center for resource billing | `string` | `"development"` | no |
 | <a name="input_database_name"></a> [database\_name](#input\_database\_name) | Name of the default database to create | `string` | `"azurepolicy"` | no |
 | <a name="input_dev_access_ip"></a> [dev\_access\_ip](#input\_dev\_access\_ip) | IP address for development access to the database | `string` | `null` | no |
+| <a name="input_enable_keyvault_integration"></a> [enable\_keyvault\_integration](#input\_enable\_keyvault\_integration) | Enable storing database credentials in Key Vault | `bool` | `false` | no |
 | <a name="input_enable_performance_insights"></a> [enable\_performance\_insights](#input\_enable\_performance\_insights) | Enable Performance Insights for monitoring | `bool` | `true` | no |
 | <a name="input_enable_query_store"></a> [enable\_query\_store](#input\_enable\_query\_store) | Enable Query Store for performance monitoring | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, staging, prod) | `string` | `"dev"` | no |
 | <a name="input_geo_redundant_backup_enabled"></a> [geo\_redundant\_backup\_enabled](#input\_geo\_redundant\_backup\_enabled) | Enable geo-redundant backup (increases cost) | `bool` | `true` | no |
+| <a name="input_keyvault_name"></a> [keyvault\_name](#input\_keyvault\_name) | Name of the existing Key Vault | `string` | `""` | no |
+| <a name="input_keyvault_resource_group_name"></a> [keyvault\_resource\_group\_name](#input\_keyvault\_resource\_group\_name) | Resource group name where the Key Vault exists | `string` | `""` | no |
+| <a name="input_keyvault_secret_names"></a> [keyvault\_secret\_names](#input\_keyvault\_secret\_names) | Names for the secrets to be stored in Key Vault | <pre>object({<br/>    admin_username    = optional(string, "postgres-admin-username")<br/>    admin_password    = optional(string, "postgres-admin-password") # pragma: allowlist secret<br/>    connection_string = optional(string, "postgres-connection-string")<br/>  })</pre> | <pre>{<br/>  "admin_password": "postgres-admin-password",<br/>  "admin_username": "postgres-admin-username",<br/>  "connection_string": "postgres-connection-string"<br/>}</pre> | no |
 | <a name="input_location"></a> [location](#input\_location) | Azure region for resources | `string` | `"East US"` | no |
 | <a name="input_maintenance_window"></a> [maintenance\_window](#input\_maintenance\_window) | Maintenance window configuration | <pre>object({<br/>    day_of_week  = optional(number, 0) # 0 = Sunday, 1 = Monday, etc.<br/>    start_hour   = optional(number, 2) # Hour in UTC (0-23)<br/>    start_minute = optional(number, 0) # Minute (0-59)<br/>  })</pre> | <pre>{<br/>  "day_of_week": 0,<br/>  "start_hour": 2,<br/>  "start_minute": 0<br/>}</pre> | no |
 | <a name="input_owner"></a> [owner](#input\_owner) | Owner of the resources (team name or email) | `string` | `"platform-team"` | no |
@@ -385,6 +393,7 @@ No modules.
 | <a name="output_cost_optimization_info"></a> [cost\_optimization\_info](#output\_cost\_optimization\_info) | Information about cost optimization settings |
 | <a name="output_database_config_for_functions"></a> [database\_config\_for\_functions](#output\_database\_config\_for\_functions) | Database configuration summary for Function App integration |
 | <a name="output_database_name"></a> [database\_name](#output\_database\_name) | Name of the default database |
+| <a name="output_keyvault_integration"></a> [keyvault\_integration](#output\_keyvault\_integration) | Key Vault integration information |
 | <a name="output_monitoring_configuration"></a> [monitoring\_configuration](#output\_monitoring\_configuration) | Monitoring and performance configuration |
 | <a name="output_network_configuration"></a> [network\_configuration](#output\_network\_configuration) | Network configuration details |
 | <a name="output_postgresql_admin_password"></a> [postgresql\_admin\_password](#output\_postgresql\_admin\_password) | Administrator password for PostgreSQL server |
