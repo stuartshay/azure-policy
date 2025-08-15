@@ -59,7 +59,9 @@ skip-check:
 
 # Skip parsing issues with complex policy definitions
 skip-path:
-  - /infrastructure/terraform/modules/policies/main.tf# Output format
+  - /infrastructure/terraform/modules/policies/main.tf
+
+# Output format
 output: cli
 
 # Quiet mode - only show failures
