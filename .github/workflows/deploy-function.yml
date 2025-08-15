@@ -473,7 +473,8 @@ jobs:
               --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
               --rule-name "${GITHUB_ACTIONS_RULE_NAME}-SCM" \
               --scm-site || true
-          fi          # Remove any remaining GitHub Actions rules (cleanup from failed runs)
+          # Remove any remaining GitHub Actions rules (cleanup from failed runs)
+          fi
           echo "  Cleaning up any remaining GitHub Actions access rules..."
 
           # Get remaining access restriction rules in a more resilient way
