@@ -2,12 +2,12 @@ name: Deploy Azure Function
 
 on:
   push:
-    branches: [master]
+    branches: [master, develop]
     paths:
       - 'functions/basic/**'
       - '.github/workflows/deploy-function.yml'
   pull_request:
-    branches: [master]
+    branches: [master, develop]
     paths:
       - 'functions/basic/**'
   workflow_dispatch:
@@ -75,6 +75,9 @@ jobs:
     if: (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch') && github.event_name != 'pull_request'
 
     steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@v5
+
       - name: 'Download Function Package'
         uses: actions/download-artifact@v5
         with:
@@ -335,6 +338,19 @@ jobs:
         run: |
           echo "Deploying function package using Azure CLI..."
           cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+
+          # Fix requirements.txt by resolving the relative path reference
+          echo "📦 Resolving requirements.txt relative path..."
+          if [ -f "requirements.txt" ] && grep -q "^-r " requirements.txt; then
+            echo "  Found relative path reference in requirements.txt"
+            # Copy the actual requirements content to replace the relative reference
+            cp ../../requirements/functions.txt requirements.txt
+            echo "  Resolved requirements.txt with actual dependencies"
+          fi
+
+          # Verify requirements.txt content
+          echo "📋 Final requirements.txt content:"
+          cat requirements.txt
 
           # Create zip package
           zip -r ../function-deploy.zip . -x "tests/*" "*/__pycache__/*" "*.pyc" ".coverage" "coverage.xml"
