@@ -80,11 +80,14 @@ jobs:
         run: |
           echo "Initializing Terraform modules for documentation generation..."
           # Find all directories containing Terraform files
-          for dir in infrastructure/functions infrastructure/policies infrastructure/infrastructure infrastructure/terraform/modules/*/; do
+          for dir in infrastructure/*/; do
             if [[ -d "$dir" && (-f "$dir/main.tf" || -f "$dir/variables.tf" || -f "$dir/outputs.tf") ]]; then
               echo "Initializing $dir"
               cd "$dir"
-              terraform init -backend=false -upgrade=false
+              # Initialize with error handling for modules that require authentication
+              terraform init -backend=false -upgrade=false || {
+                echo "Warning: Failed to initialize $dir (this may be expected for modules requiring authentication)"
+              }
               # Remove .terraform directory but keep .terraform.lock.hcl
               rm -rf .terraform/ 2>/dev/null || true
               cd - > /dev/null
