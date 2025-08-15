@@ -527,7 +527,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy
     name: Test Deployed Function
-    if: (github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch') && github.event_name != 'pull_request'
+    if: false  # Disabled - VNet integration prevents external endpoint testing
 
     steps:
       - name: 'Azure Login'
