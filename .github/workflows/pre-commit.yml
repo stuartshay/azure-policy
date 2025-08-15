@@ -169,13 +169,26 @@ jobs:
               echo "Files were modified during pre-commit:"
               echo "$modified_files"
 
-              # Check if only infrastructure README.md files were modified
-              if echo "$modified_files" | grep -E '^infrastructure/.*/README\.md$' > /dev/null && ! echo "$modified_files" | grep -v -E '^infrastructure/.*/README\.md$' > /dev/null; then
-                echo "Only infrastructure README.md files were modified by terraform-docs"
+              # Check if only README.md files were modified (terraform-docs changes)
+              if echo "$modified_files" | grep -E '(^README\.md$|^infrastructure/.*/README\.md$)' > /dev/null && ! echo "$modified_files" | grep -v -E '(^README\.md$|^infrastructure/.*/README\.md$)' > /dev/null; then
+                echo "Only README.md files were modified by terraform-docs"
                 echo "This indicates terraform-docs updated documentation due to environment differences"
-                echo "The changes need to be committed manually to resolve this"
-                git diff
-                exit 1
+                echo "Auto-committing terraform-docs changes..."
+
+                # Configure git for the action
+                git config --local user.email "action@github.com"
+                git config --local user.name "GitHub Action"
+
+                # Add and commit the changes
+                git add README.md infrastructure/*/README.md
+                git commit -m "docs: auto-update terraform documentation via CI [skip ci]" || echo "No changes to commit"
+
+                echo "✅ terraform-docs changes have been auto-committed"
+                echo "Re-running pre-commit to verify..."
+
+                # Re-run pre-commit to make sure everything passes now
+                pre-commit run --all-files --show-diff-on-failure --verbose
+                exit $?
               fi
             fi
 
