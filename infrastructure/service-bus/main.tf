@@ -243,7 +243,7 @@ resource "azurerm_key_vault_secret" "namespace_connection_string" {
   ]
 
   tags = merge(local.common_tags, {
-    SecretType = "servicebus-connection-string" # pragma: allowlist secret
+    SecretType = "servicebus-connection-string" # Suppress false positive: this is not a hardcoded secret. See project documentation.
     Namespace  = azurerm_servicebus_namespace.main.name
   })
 }
