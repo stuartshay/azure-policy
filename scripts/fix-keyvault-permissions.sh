@@ -17,7 +17,8 @@ KEYVAULT_NAME="AzureConnectedServices"
 KEYVAULT_RG="azureconnectedservices-rg"
 # SERVICE_PRINCIPAL_ID is kept for reference but currently unused
 # shellcheck disable=SC2034
-OBJECT_ID="c1957a68-2b8f-4c8e-8cd0-5b8bd6c359f9"
+# OBJECT_ID should be provided via environment variable for security and flexibility
+: "${OBJECT_ID:?Environment variable OBJECT_ID must be set (e.g., export OBJECT_ID=your-object-id)}"
 
 echo -e "${BLUE}=== Azure Key Vault Permissions Fix ===${RESET}"
 echo ""
