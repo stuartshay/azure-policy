@@ -123,7 +123,11 @@ update_file() {
         rm "$file.tmp"
 
         # Verify the change
-        if grep -q "version.*=.*\"~> $NEW_VERSION\"" "$file"; then
+        sed -i.tmp -E "s|^[[:space:]]*version[[:space:]]*=[[:space:]]*\"~> $OLD_VERSION\"|$new_value|g" "$file"
+        rm "$file.tmp"
+
+        # Verify the change
+        if grep -Eq "^[[:space:]]*version[[:space:]]*=[[:space:]]*\"~> $NEW_VERSION\"" "$file"; then
             echo -e "    ${GREEN}✓${NC} Successfully updated"
             rm "$file.backup"
         else
