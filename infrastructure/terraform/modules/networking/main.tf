@@ -2,7 +2,7 @@
 # This module creates VNet, Subnets, and Network Security Groups
 
 terraform {
-  required_version = ">= 1.0"
+  required_version = ">= 1.5"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
