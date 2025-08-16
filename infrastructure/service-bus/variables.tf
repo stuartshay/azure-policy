@@ -215,19 +215,6 @@ variable "keyvault_secret_expiration_days" {
 
   validation {
     condition     = var.keyvault_secret_expiration_days >= 30 && var.keyvault_secret_expiration_days <= 365
-# Constants for Key Vault secret expiration bounds
-locals {
-  keyvault_secret_expiration_days_min = 30
-  keyvault_secret_expiration_days_max = 365
-}
-
-variable "keyvault_secret_expiration_days" {
-  description = "Number of days until Key Vault secrets expire (${local.keyvault_secret_expiration_days_min}-${local.keyvault_secret_expiration_days_max} days recommended)"
-  type        = number
-  default     = 90
-
-  validation {
-    condition     = var.keyvault_secret_expiration_days >= local.keyvault_secret_expiration_days_min && var.keyvault_secret_expiration_days <= local.keyvault_secret_expiration_days_max
-    error_message = "Secret expiration days must be between ${local.keyvault_secret_expiration_days_min} and ${local.keyvault_secret_expiration_days_max} days."
+    error_message = "Secret expiration days must be between 30 and 365 days."
   }
 }
