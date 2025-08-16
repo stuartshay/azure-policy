@@ -315,6 +315,7 @@ For issues or questions:
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
 | <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | ~> 4.37 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.4 |
+| <a name="requirement_time"></a> [time](#requirement\_time) | ~> 0.9 |
 
 ## Providers
 
@@ -322,6 +323,7 @@ For issues or questions:
 |------|---------|
 | <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.39.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
+| <a name="provider_time"></a> [time](#provider\_time) | 0.13.1 |
 
 ## Modules
 
@@ -346,6 +348,7 @@ No modules.
 | [azurerm_private_dns_zone.postgres](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) | resource |
 | [azurerm_private_dns_zone_virtual_network_link.postgres](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) | resource |
 | [random_password.postgres_admin](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
+| [time_rotating.keyvault_secret_rotation](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/rotating) | resource |
 | [azurerm_key_vault.external](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
 | [azurerm_resource_group.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) | data source |
 | [azurerm_subnet.functions](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subnet) | data source |
@@ -371,6 +374,7 @@ No modules.
 | <a name="input_geo_redundant_backup_enabled"></a> [geo\_redundant\_backup\_enabled](#input\_geo\_redundant\_backup\_enabled) | Enable geo-redundant backup (increases cost) | `bool` | `true` | no |
 | <a name="input_keyvault_name"></a> [keyvault\_name](#input\_keyvault\_name) | Name of the existing Key Vault | `string` | `""` | no |
 | <a name="input_keyvault_resource_group_name"></a> [keyvault\_resource\_group\_name](#input\_keyvault\_resource\_group\_name) | Resource group name where the Key Vault exists | `string` | `""` | no |
+| <a name="input_keyvault_secret_expiration_days"></a> [keyvault\_secret\_expiration\_days](#input\_keyvault\_secret\_expiration\_days) | Number of days until Key Vault secrets expire (90-365 days recommended) | `number` | `90` | no |
 | <a name="input_keyvault_secret_names"></a> [keyvault\_secret\_names](#input\_keyvault\_secret\_names) | Names for the secrets to be stored in Key Vault | <pre>object({<br/>    admin_username    = optional(string, "postgres-admin-username")<br/>    admin_password    = optional(string, "postgres-admin-password") # pragma: allowlist secret<br/>    connection_string = optional(string, "postgres-connection-string")<br/>  })</pre> | <pre>{<br/>  "admin_password": "postgres-admin-password",<br/>  "admin_username": "postgres-admin-username",<br/>  "connection_string": "postgres-connection-string"<br/>}</pre> | no |
 | <a name="input_location"></a> [location](#input\_location) | Azure region for resources | `string` | `"East US"` | no |
 | <a name="input_maintenance_window"></a> [maintenance\_window](#input\_maintenance\_window) | Maintenance window configuration | <pre>object({<br/>    day_of_week  = optional(number, 0) # 0 = Sunday, 1 = Monday, etc.<br/>    start_hour   = optional(number, 2) # Hour in UTC (0-23)<br/>    start_minute = optional(number, 0) # Minute (0-59)<br/>  })</pre> | <pre>{<br/>  "day_of_week": 0,<br/>  "start_hour": 2,<br/>  "start_minute": 0<br/>}</pre> | no |

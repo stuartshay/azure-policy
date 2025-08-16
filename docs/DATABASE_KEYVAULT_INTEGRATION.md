@@ -8,11 +8,16 @@ This guide shows how to configure your PostgreSQL database deployment to automat
 
 When you deploy the database with Key Vault integration enabled, the following secrets are automatically created:
 
-| Secret Name | Content | Purpose |
-|-------------|---------|---------|
-| `postgres-admin-username` | Database administrator username | For application authentication |
-| `postgres-admin-password` | Auto-generated secure password | For application authentication |
-| `postgres-connection-string` | Complete PostgreSQL connection string | For easy application integration |
+| Secret Name | Content | Purpose | Expiration |
+|-------------|---------|---------|------------|
+| `postgres-admin-username` | Database administrator username | For application authentication | 90 days (configurable) |
+| `postgres-admin-password` | Auto-generated secure password | For application authentication | 90 days (configurable) |
+| `postgres-connection-string` | Complete PostgreSQL connection string | For easy application integration | 90 days (configurable) |
+
+**Security Features:**
+- ✅ All secrets have expiration dates set (90 days by default)
+- ✅ Content types are properly configured for each secret type
+- ✅ Automatic rotation schedule managed by Terraform
 
 ## 🚀 Deployment Steps
 
@@ -97,6 +102,8 @@ app_settings = {
 }
 ```
 
+**Note**: The connection string is stored in PostgreSQL URL format: `postgresql://username:password@host:5432/database?sslmode=require` <!-- pragma: allowlist secret -->
+
 ### Option 2: Azure SDK in Python
 
 ```python
@@ -151,6 +158,7 @@ psql "$CONNECTION_STRING" -c "SELECT version();"
 
 ## 🔧 Customization
 
+### Secret Names
 You can customize secret names by modifying the `keyvault_secret_names` variable:
 
 ```hcl
@@ -160,6 +168,25 @@ keyvault_secret_names = {
   connection_string = "my-db-connection"
 }
 ```
+
+### Secret Expiration Period
+You can configure how long secrets remain valid before expiring:
+
+```hcl
+# Set secrets to expire after 180 days (6 months)
+keyvault_secret_expiration_days = 180
+
+# Or set to 30 days for high-security environments
+keyvault_secret_expiration_days = 30
+```
+
+**Expiration Options:**
+- **30 days**: High-security environments with frequent rotation
+- **90 days**: Default - good balance of security and operational overhead
+- **180 days**: Lower-security environments or stable production systems
+- **365 days**: Maximum allowed - use only for long-term stable systems
+
+⚠️ **Important**: When secrets expire, they become inaccessible. Plan your rotation strategy accordingly.
 
 ## 🐛 Troubleshooting
 

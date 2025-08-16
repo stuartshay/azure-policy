@@ -291,3 +291,14 @@ variable "keyvault_secret_names" {
     connection_string = "postgres-connection-string"
   }
 }
+
+variable "keyvault_secret_expiration_days" {
+  description = "Number of days until Key Vault secrets expire (90-365 days recommended)"
+  type        = number
+  default     = 90
+
+  validation {
+    condition     = var.keyvault_secret_expiration_days >= 30 && var.keyvault_secret_expiration_days <= 365
+    error_message = "Secret expiration days must be between 30 and 365 days."
+  }
+}
