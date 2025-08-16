@@ -75,7 +75,37 @@ extract_provider_versions() {
             echo "  $provider: $provider_version"
         fi
     done
+    # Get the directory of the file
+    local dir
+    dir=$(dirname "$file")
 
+    echo -e "${BLUE}📁 $module_name${NC}"
+
+    # Run terraform providers in the module directory and parse output
+    if [ -d "$dir" ]; then
+        (
+            cd "$dir" || exit
+            if terraform providers 2>/dev/null | grep -q "Providers required by configuration:"; then
+                terraform providers 2>/dev/null | awk '
+                    BEGIN { in_block=0 }
+                    /Providers required by configuration:/ { in_block=1; next }
+                    /^$/ { in_block=0 }
+                    in_block && /^[[:space:]]+\*/ {
+                        gsub(/^[[:space:]]+\* /, "", $0);
+                        split($0, arr, " ");
+                        provider=arr[1];
+                        version=arr[2];
+                        gsub(/[\(\)]/, "", version);
+                        printf "  %s: %s\n", provider, version;
+                    }
+                '
+            else
+                echo "  (No providers found or terraform init not run)"
+            fi
+        )
+    else
+        echo "  (Module directory not found)"
+    fi
     echo ""
 }
 
