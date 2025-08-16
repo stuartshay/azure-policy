@@ -85,3 +85,69 @@ output "service_bus_config_for_functions" {
   }
   sensitive = true
 }
+
+# Key Vault integration outputs
+output "keyvault_integration" {
+  description = "Key Vault integration information"
+  value = var.enable_keyvault_integration ? {
+    enabled                 = true
+    keyvault_name           = var.keyvault_name
+    keyvault_resource_group = var.keyvault_resource_group_name
+    secret_names = {
+      namespace_connection_string    = var.keyvault_secret_names.namespace_connection_string
+      function_app_connection_string = var.keyvault_secret_names.function_app_connection_string
+      read_only_connection_string    = var.keyvault_secret_names.read_only_connection_string
+      admin_connection_string        = var.keyvault_secret_names.admin_connection_string
+    }
+    secret_uris = {
+      namespace_connection_string    = "https://${var.keyvault_name}.vault.azure.net/secrets/${var.keyvault_secret_names.namespace_connection_string}/"
+      function_app_connection_string = "https://${var.keyvault_name}.vault.azure.net/secrets/${var.keyvault_secret_names.function_app_connection_string}/"
+      read_only_connection_string    = "https://${var.keyvault_name}.vault.azure.net/secrets/${var.keyvault_secret_names.read_only_connection_string}/"
+      admin_connection_string        = "https://${var.keyvault_name}.vault.azure.net/secrets/${var.keyvault_secret_names.admin_connection_string}/"
+    }
+    } : {
+    enabled                 = false
+    keyvault_name           = null
+    keyvault_resource_group = null
+    secret_names = {
+      namespace_connection_string    = null
+      function_app_connection_string = null
+      read_only_connection_string    = null
+      admin_connection_string        = null
+    }
+    secret_uris = {
+      namespace_connection_string    = null
+      function_app_connection_string = null
+      read_only_connection_string    = null
+      admin_connection_string        = null
+    }
+  }
+}
+
+# Service Bus configuration details
+output "service_bus_configuration" {
+  description = "Service Bus configuration details"
+  value = {
+    namespace_name           = azurerm_servicebus_namespace.main.name
+    sku                      = var.service_bus_sku
+    premium_messaging_units  = var.service_bus_sku == "Premium" ? var.premium_messaging_units : null
+    zone_redundancy_enabled  = var.service_bus_sku == "Premium" ? var.enable_zone_redundancy : false
+    private_endpoint_enabled = var.enable_private_endpoint
+    queue_count              = length(keys(azurerm_servicebus_queue.queues))
+    topic_count              = length(keys(azurerm_servicebus_topic.topics))
+    partitioning_enabled     = var.enable_partitioning
+    duplicate_detection      = var.enable_duplicate_detection
+  }
+}
+
+# Cost optimization information
+output "cost_optimization_info" {
+  description = "Information about cost optimization settings"
+  value = {
+    sku                        = var.service_bus_sku
+    premium_messaging_units    = var.service_bus_sku == "Premium" ? var.premium_messaging_units : null
+    partitioning_enabled       = var.enable_partitioning
+    estimated_monthly_cost_usd = var.service_bus_sku == "Basic" ? "5-10" : var.service_bus_sku == "Standard" ? "10-50" : "200-500"
+    cost_optimization_notes    = "Basic SKU for development, Standard for production messaging, Premium for high-throughput scenarios"
+  }
+}

@@ -172,3 +172,49 @@ variable "create_admin_access_rule" {
   type        = bool
   default     = false
 }
+
+# Key Vault Integration
+variable "enable_keyvault_integration" {
+  description = "Enable storing Service Bus connection strings in Key Vault"
+  type        = bool
+  default     = false
+}
+
+variable "keyvault_name" {
+  description = "Name of the existing Key Vault"
+  type        = string
+  default     = ""
+}
+
+variable "keyvault_resource_group_name" {
+  description = "Resource group name where the Key Vault exists"
+  type        = string
+  default     = ""
+}
+
+variable "keyvault_secret_names" {
+  description = "Names for the secrets to be stored in Key Vault"
+  type = object({
+    namespace_connection_string    = optional(string, "servicebus-namespace-connection-string")
+    function_app_connection_string = optional(string, "servicebus-function-app-connection-string")
+    read_only_connection_string    = optional(string, "servicebus-read-only-connection-string")
+    admin_connection_string        = optional(string, "servicebus-admin-connection-string")
+  })
+  default = {
+    namespace_connection_string    = "servicebus-namespace-connection-string"
+    function_app_connection_string = "servicebus-function-app-connection-string"
+    read_only_connection_string    = "servicebus-read-only-connection-string"
+    admin_connection_string        = "servicebus-admin-connection-string"
+  }
+}
+
+variable "keyvault_secret_expiration_days" {
+  description = "Number of days until Key Vault secrets expire (30-365 days recommended)"
+  type        = number
+  default     = 90
+
+  validation {
+    condition     = var.keyvault_secret_expiration_days >= 30 && var.keyvault_secret_expiration_days <= 365
+    error_message = "Secret expiration days must be between 30 and 365 days."
+  }
+}
