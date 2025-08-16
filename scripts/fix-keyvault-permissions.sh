@@ -17,7 +17,6 @@ KEYVAULT_NAME="AzureConnectedServices"
 KEYVAULT_RG="azureconnectedservices-rg"
 # SERVICE_PRINCIPAL_ID is kept for reference but currently unused
 # shellcheck disable=SC2034
-SERVICE_PRINCIPAL_ID="50ac2ed1-1ea1-46e6-9992-6c5de5f5da24"
 OBJECT_ID="c1957a68-2b8f-4c8e-8cd0-5b8bd6c359f9"
 
 echo -e "${BLUE}=== Azure Key Vault Permissions Fix ===${RESET}"
