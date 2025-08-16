@@ -12,6 +12,10 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.4"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9"
+    }
   }
 
   # Local backend for deployment
@@ -239,12 +243,20 @@ resource "azurerm_postgresql_flexible_server_configuration" "log_min_duration_st
   value     = "1000" # Log queries taking longer than 1 second
 }
 
+# Time rotation for Key Vault secret expiration
+resource "time_rotating" "keyvault_secret_rotation" {
+  count         = var.enable_keyvault_integration ? 1 : 0
+  rotation_days = var.keyvault_secret_expiration_days
+}
+
 # Store database credentials in Key Vault
 resource "azurerm_key_vault_secret" "postgres_admin_username" {
-  count        = var.enable_keyvault_integration ? 1 : 0
-  name         = var.keyvault_secret_names.admin_username
-  value        = azurerm_postgresql_flexible_server.main.administrator_login
-  key_vault_id = data.azurerm_key_vault.external[0].id
+  count           = var.enable_keyvault_integration ? 1 : 0
+  name            = var.keyvault_secret_names.admin_username
+  value           = azurerm_postgresql_flexible_server.main.administrator_login
+  key_vault_id    = data.azurerm_key_vault.external[0].id
+  content_type    = "text/plain"
+  expiration_date = time_rotating.keyvault_secret_rotation[0].rotation_rfc3339
 
   depends_on = [
     azurerm_postgresql_flexible_server.main
@@ -257,10 +269,12 @@ resource "azurerm_key_vault_secret" "postgres_admin_username" {
 }
 
 resource "azurerm_key_vault_secret" "postgres_admin_password" {
-  count        = var.enable_keyvault_integration ? 1 : 0
-  name         = var.keyvault_secret_names.admin_password                                                # pragma: allowlist secret
-  value        = var.admin_password != null ? var.admin_password : random_password.postgres_admin.result # pragma: allowlist secret
-  key_vault_id = data.azurerm_key_vault.external[0].id
+  count           = var.enable_keyvault_integration ? 1 : 0
+  name            = var.keyvault_secret_names.admin_password                                                # pragma: allowlist secret
+  value           = var.admin_password != null ? var.admin_password : random_password.postgres_admin.result # pragma: allowlist secret
+  key_vault_id    = data.azurerm_key_vault.external[0].id
+  content_type    = "text/plain"
+  expiration_date = time_rotating.keyvault_secret_rotation[0].rotation_rfc3339
 
   depends_on = [
     azurerm_postgresql_flexible_server.main
@@ -273,10 +287,12 @@ resource "azurerm_key_vault_secret" "postgres_admin_password" {
 }
 
 resource "azurerm_key_vault_secret" "postgres_connection_string" {
-  count        = var.enable_keyvault_integration ? 1 : 0
-  name         = var.keyvault_secret_names.connection_string
-  value        = "Host=${azurerm_postgresql_flexible_server.main.fqdn};Database=${azurerm_postgresql_flexible_server_database.app_database.name};Username=${azurerm_postgresql_flexible_server.main.administrator_login};Password=${var.admin_password != null ? var.admin_password : random_password.postgres_admin.result};SslMode=Require;" # pragma: allowlist secret
-  key_vault_id = data.azurerm_key_vault.external[0].id
+  count           = var.enable_keyvault_integration ? 1 : 0
+  name            = var.keyvault_secret_names.connection_string
+  value           = "postgresql://${azurerm_postgresql_flexible_server.main.administrator_login}:${var.admin_password != null ? var.admin_password : random_password.postgres_admin.result}@${azurerm_postgresql_flexible_server.main.fqdn}:5432/${azurerm_postgresql_flexible_server_database.app_database.name}?sslmode=require" # pragma: allowlist secret
+  key_vault_id    = data.azurerm_key_vault.external[0].id
+  content_type    = "application/x-postgresql-connection-string"
+  expiration_date = time_rotating.keyvault_secret_rotation[0].rotation_rfc3339
 
   depends_on = [
     azurerm_postgresql_flexible_server.main,

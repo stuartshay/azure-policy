@@ -45,11 +45,12 @@ done
 echo ""
 echo "🔗 Testing connection string format..."
 if connection_string=$(az keyvault secret show --vault-name "$KEYVAULT_NAME" --name "postgres-connection-string" --query "value" -o tsv 2>/dev/null); then
-    if [[ "$connection_string" == *"Host="* ]] && [[ "$connection_string" == *"Database="* ]]; then
-        echo "✅ Connection string format is valid"
-        echo "    Contains: Host, Database, Username, Password, SslMode parameters"
+    if [[ "$connection_string" == postgresql://* ]] && [[ "$connection_string" == *"sslmode=require"* ]]; then
+        echo "✅ Connection string format is valid (URL format)"
+        echo "    Format: postgresql://username:password@host:5432/database?sslmode=require" # pragma: allowlist secret
     else
         echo "❌ Connection string format is invalid"
+        echo "    Expected: postgresql://... format with sslmode=require"
     fi
 else
     echo "❌ Could not retrieve connection string"
@@ -59,7 +60,7 @@ fi
 echo ""
 echo "💡 Usage in Function App Settings:"
 echo "=================================================="
-echo 'DATABASE_HOST="@Microsoft.KeyVault(SecretUri=https://azureconnectedservices.vault.azure.net/secrets/postgres-admin-username/)"'
+echo 'DATABASE_USERNAME="@Microsoft.KeyVault(SecretUri=https://azureconnectedservices.vault.azure.net/secrets/postgres-admin-username/)"'
 echo 'DATABASE_PASSWORD="@Microsoft.KeyVault(SecretUri=https://azureconnectedservices.vault.azure.net/secrets/postgres-admin-password/)"'
 echo 'DATABASE_CONNECTION_STRING="@Microsoft.KeyVault(SecretUri=https://azureconnectedservices.vault.azure.net/secrets/postgres-connection-string/)"'
 
