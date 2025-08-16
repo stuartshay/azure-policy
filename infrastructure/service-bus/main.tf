@@ -8,6 +8,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.37"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9"
+    }
   }
 
   # Local backend for deployment
@@ -29,6 +33,13 @@ provider "azurerm" {
 # Data sources to get existing infrastructure
 data "azurerm_resource_group" "main" {
   name = var.resource_group_name
+}
+
+# Data source to reference existing Key Vault
+data "azurerm_key_vault" "external" {
+  count               = var.enable_keyvault_integration ? 1 : 0
+  name                = var.keyvault_name
+  resource_group_name = var.keyvault_resource_group_name
 }
 
 # Data source to get VNet information from core infrastructure (for private endpoint support)
@@ -210,4 +221,86 @@ resource "azurerm_servicebus_namespace_authorization_rule" "admin_access" {
   listen = true
   send   = true
   manage = true
+}
+
+# Time rotation for Key Vault secret expiration
+resource "time_rotating" "keyvault_secret_rotation" {
+  count         = var.enable_keyvault_integration ? 1 : 0
+  rotation_days = var.keyvault_secret_expiration_days
+}
+
+# Store Service Bus connection strings in Key Vault
+resource "azurerm_key_vault_secret" "namespace_connection_string" {
+  count           = var.enable_keyvault_integration ? 1 : 0
+  name            = var.keyvault_secret_names.namespace_connection_string
+  value           = azurerm_servicebus_namespace.main.default_primary_connection_string
+  key_vault_id    = data.azurerm_key_vault.external[0].id
+  content_type    = "text/plain"
+  expiration_date = time_rotating.keyvault_secret_rotation[0].rotation_rfc3339
+
+  depends_on = [
+    azurerm_servicebus_namespace.main
+  ]
+
+  tags = merge(local.common_tags, {
+    SecretType = "servicebus-connection-string" # pragma: allowlist secret
+    Namespace  = azurerm_servicebus_namespace.main.name
+  })
+}
+
+resource "azurerm_key_vault_secret" "function_app_connection_string" {
+  count           = var.enable_keyvault_integration ? 1 : 0
+  name            = var.keyvault_secret_names.function_app_connection_string
+  value           = azurerm_servicebus_namespace_authorization_rule.function_app_access.primary_connection_string
+  key_vault_id    = data.azurerm_key_vault.external[0].id
+  content_type    = "text/plain"
+  expiration_date = time_rotating.keyvault_secret_rotation[0].rotation_rfc3339
+
+  depends_on = [
+    azurerm_servicebus_namespace_authorization_rule.function_app_access
+  ]
+
+  tags = merge(local.common_tags, {
+    SecretType = "servicebus-connection-string" # pragma: allowlist secret
+    Namespace  = azurerm_servicebus_namespace.main.name
+    AccessType = "function-app"
+  })
+}
+
+resource "azurerm_key_vault_secret" "read_only_connection_string" {
+  count           = var.enable_keyvault_integration ? 1 : 0
+  name            = var.keyvault_secret_names.read_only_connection_string
+  value           = azurerm_servicebus_namespace_authorization_rule.read_only.primary_connection_string
+  key_vault_id    = data.azurerm_key_vault.external[0].id
+  content_type    = "text/plain"
+  expiration_date = time_rotating.keyvault_secret_rotation[0].rotation_rfc3339
+
+  depends_on = [
+    azurerm_servicebus_namespace_authorization_rule.read_only
+  ]
+
+  tags = merge(local.common_tags, {
+    SecretType = "servicebus-connection-string" # pragma: allowlist secret
+    Namespace  = azurerm_servicebus_namespace.main.name
+    AccessType = "read-only"
+  })
+}
+
+resource "azurerm_key_vault_secret" "admin_connection_string" {
+  count           = var.enable_keyvault_integration && var.create_admin_access_rule ? 1 : 0
+  name            = var.keyvault_secret_names.admin_connection_string
+  value           = azurerm_servicebus_namespace_authorization_rule.admin_access[0].primary_connection_string
+  key_vault_id    = data.azurerm_key_vault.external[0].id
+  content_type    = "text/plain"
+  expiration_date = time_rotating.keyvault_secret_rotation[0].rotation_rfc3339
+
+  depends_on = [
+    azurerm_servicebus_namespace_authorization_rule.admin_access
+  ]
+
+  tags = merge(local.common_tags, {
+    SecretType = "servicebus-connection-string" # pragma: allowlist secret
+    Namespace  = azurerm_servicebus_namespace.main.name
+    AccessType = "admin"
+  })
 }

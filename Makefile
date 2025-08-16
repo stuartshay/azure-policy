@@ -267,6 +267,49 @@ define load-terraform-env
 	fi
 endef
 
+terraform-version: ## Show current Terraform version and tfenv status
+	@echo "$(YELLOW)Checking Terraform version...$(RESET)"
+	@./scripts/terraform-version-check.sh
+
+terraform-check-versions: terraform-version ## Check Terraform and provider versions (alias)
+
+terraform-update-providers: ## Update provider versions across all modules
+	@echo "$(YELLOW)Updating Terraform providers...$(RESET)"
+	@echo "Usage: make terraform-update-providers OLD_VERSION=4.37 NEW_VERSION=4.39"
+	@if [ -z "$(OLD_VERSION)" ] || [ -z "$(NEW_VERSION)" ]; then \
+		echo "$(RED)Error: OLD_VERSION and NEW_VERSION are required$(RESET)"; \
+		echo "Example: make terraform-update-providers OLD_VERSION=4.37 NEW_VERSION=4.39"; \
+		exit 1; \
+	fi
+	@./scripts/terraform-update-providers.sh --old-version $(OLD_VERSION) --new-version $(NEW_VERSION)
+
+terraform-update-providers-dry-run: ## Preview provider version updates without making changes
+	@echo "$(YELLOW)Previewing Terraform provider updates...$(RESET)"
+	@if [ -z "$(OLD_VERSION)" ] || [ -z "$(NEW_VERSION)" ]; then \
+		echo "$(RED)Error: OLD_VERSION and NEW_VERSION are required$(RESET)"; \
+		echo "Example: make terraform-update-providers-dry-run OLD_VERSION=4.37 NEW_VERSION=4.39"; \
+		exit 1; \
+	fi
+	@./scripts/terraform-update-providers.sh --old-version $(OLD_VERSION) --new-version $(NEW_VERSION) --dry-run
+
+terraform-set-version: ## Set Terraform version for the project using tfenv
+	@echo "$(YELLOW)Setting Terraform version...$(RESET)"
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Error: VERSION is required$(RESET)"; \
+		echo "Example: make terraform-set-version VERSION=1.10.3"; \
+		exit 1; \
+	fi
+	@if command -v tfenv >/dev/null 2>&1; then \
+		echo "$(BLUE)Installing Terraform $(VERSION) via tfenv...$(RESET)"; \
+		tfenv install $(VERSION); \
+		tfenv use $(VERSION); \
+		echo "$(VERSION)" > .terraform-version; \
+		echo "$(GREEN)Terraform version set to $(VERSION)$(RESET)"; \
+	else \
+		echo "$(RED)Error: tfenv is not installed. Install it first with: make setup$(RESET)"; \
+		exit 1; \
+	fi
+
 terraform-login: ## Configure Terraform Cloud authentication from .env
 	@echo "$(YELLOW)Configuring Terraform Cloud authentication...$(RESET)"
 	@if [ -f .env ]; then \

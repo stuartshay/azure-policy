@@ -202,13 +202,72 @@ install_powershell() {
   fi
 }
 
-# Function to install Terraform
+# Function to install tfenv (Terraform Version Manager)
+install_tfenv() {
+  # Check if tfenv is already installed
+  if command -v tfenv >/dev/null 2>&1; then
+    echo "tfenv is already installed: $(tfenv --version)"
+    return 0
+  fi
+
+  echo "Installing tfenv (Terraform Version Manager)..."
+
+  if [[ "$OS" == "Linux" ]]; then
+    # Install tfenv via git clone
+    if [ ! -d "$HOME/.tfenv" ]; then
+      echo "Cloning tfenv repository..."
+      git clone --depth=1 https://github.com/tfutils/tfenv.git ~/.tfenv
+    else
+      echo "tfenv directory already exists, updating..."
+      cd ~/.tfenv && git pull
+    fi
+
+    # Add tfenv to PATH in shell profiles
+    echo "Adding tfenv to PATH..."
+
+    # For bash
+    if [ -f "$HOME/.bashrc" ] && ! grep -q "tfenv" "$HOME/.bashrc"; then
+      echo 'export PATH="$HOME/.tfenv/bin:$PATH"' >> "$HOME/.bashrc"
+    fi
+
+    # For zsh
+    if [ -f "$HOME/.zshrc" ] && ! grep -q "tfenv" "$HOME/.zshrc"; then
+      echo 'export PATH="$HOME/.tfenv/bin:$PATH"' >> "$HOME/.zshrc"
+    fi
+
+    # Add to current session
+    export PATH="$HOME/.tfenv/bin:$PATH"
+
+  elif [[ "$OS" == "Darwin" ]]; then
+    echo "Installing tfenv using Homebrew..."
+    brew install tfenv
+  fi
+
+  # Verify installation
+  if command -v tfenv >/dev/null 2>&1; then
+    echo "tfenv installed successfully: $(tfenv --version)"
+
+    # Install latest Terraform version
+    echo "Installing latest Terraform version..."
+    tfenv install latest
+    tfenv use latest
+
+    echo "Terraform installation via tfenv complete."
+  else
+    echo "Warning: tfenv installation may have failed. You may need to restart your shell." >&2
+    echo "After restarting, run: tfenv install latest && tfenv use latest"
+  fi
+}
+
+# Function to install Terraform (fallback if tfenv fails)
 install_terraform() {
   # Check if Terraform is already installed
   if command -v terraform >/dev/null 2>&1; then
     echo "Terraform is already installed: $(terraform --version | head -n1)"
     return 0
   fi
+
+  echo "Installing Terraform directly (fallback method)..."
 
   if [[ "$OS" == "Linux" ]]; then
     if command -v apt >/dev/null 2>&1; then
@@ -939,8 +998,15 @@ echo "=== Setting up GitHub CLI ==="
 setup_github_cli
 
 echo ""
-echo "=== Installing Terraform ==="
-install_terraform
+echo "=== Installing tfenv (Terraform Version Manager) ==="
+install_tfenv
+
+echo ""
+echo "=== Installing Terraform (fallback) ==="
+# Only install Terraform directly if tfenv failed
+if ! command -v terraform >/dev/null 2>&1; then
+  install_terraform
+fi
 
 echo ""
 echo "=== Installing Terragrunt ==="

@@ -1,0 +1,49 @@
+# Azure Service Bus - Example Terraform Variables
+# Copy this file to terraform.tfvars and customize the values
+
+# Azure Configuration
+subscription_id = "your-subscription-id-here"
+
+# Environment Configuration
+environment = "dev"
+workload    = "azpolicy"
+location    = "East US"
+
+# Tagging
+cost_center = "development"
+owner       = "platform-team"
+
+# Infrastructure Dependencies
+resource_group_name = "rg-azpolicy-dev-eastus"
+
+# Service Bus Configuration
+service_bus_sku              = "Standard"
+premium_messaging_units      = 1
+enable_zone_redundancy       = false
+enable_partitioning          = false
+enable_duplicate_detection   = true
+max_delivery_count          = 10
+max_queue_size_mb           = 1024
+max_topic_size_mb           = 1024
+
+# Custom Queues and Topics (optional)
+custom_queues = []
+custom_topics = []
+
+# Security Configuration
+enable_private_endpoint    = false
+create_admin_access_rule   = false
+
+# Key Vault Integration (Example - Enable for testing)
+enable_keyvault_integration      = true
+keyvault_name                   = "AzureConnectedServices"
+keyvault_resource_group_name    = "AzureConnectedServices-RG"
+keyvault_secret_expiration_days = 90
+
+# Key Vault Secret Names (optional - uses defaults if not specified)
+keyvault_secret_names = {
+  namespace_connection_string    = "servicebus-namespace-connection-string"
+  function_app_connection_string = "servicebus-function-app-connection-string"
+  read_only_connection_string    = "servicebus-read-only-connection-string"
+  admin_connection_string        = "servicebus-admin-connection-string"
+}
