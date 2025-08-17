@@ -17,40 +17,40 @@ The core infrastructure module provides:
 ### Network Topology
 
 ```mermaid
-graph TB
-    subgraph "Azure Subscription"
-        subgraph "Resource Group: rg-azpolicy-dev-eastus"
-            subgraph "VNet: vnet-azpolicy-dev-eastus-001"
-                subgraph "Address Space: 10.0.0.0/16"
+flowchart TB
+    subgraph Azure["🏢 Azure Subscription"]
+        subgraph RG["📁 Resource Group: rg-azpolicy-dev-eastus"]
+            subgraph VNet["🌐 VNet: vnet-azpolicy-dev-eastus-001"]
+                subgraph AddressSpace["Address Space: 10.0.0.0/16"]
 
-                    subgraph "Default Subnet"
-                        DS[snet-default-azpolicy-dev-eastus-001<br/>10.0.1.0/24]
-                        NSG1[nsg-azpolicy-default-dev-eastus-001]
+                    subgraph DefaultSub["Default Subnet"]
+                        DS["snet-default-azpolicy-dev-eastus-001<br/>10.0.1.0/24"]
+                        NSG1["nsg-azpolicy-default-dev-eastus-001"]
                         DS -.-> NSG1
                     end
 
-                    subgraph "Functions Subnet"
-                        FS[snet-functions-azpolicy-dev-eastus-001<br/>10.0.2.0/24]
-                        NSG2[nsg-azpolicy-functions-dev-eastus-001]
-                        DEL[🔗 Delegated to Microsoft.Web/serverFarms]
-                        SE[📡 Service Endpoints:<br/>• Microsoft.Storage<br/>• Microsoft.KeyVault]
+                    subgraph FuncSub["Functions Subnet"]
+                        FS["snet-functions-azpolicy-dev-eastus-001<br/>10.0.2.0/24"]
+                        NSG2["nsg-azpolicy-functions-dev-eastus-001"]
+                        DEL["🔗 Delegated to Microsoft.Web/serverFarms"]
+                        SE["📡 Service Endpoints:<br/>• Microsoft.Storage<br/>• Microsoft.KeyVault"]
                         FS -.-> NSG2
                         FS --> DEL
                         FS --> SE
                     end
 
-                    subgraph "Private Endpoints Subnet"
-                        PES[snet-privateendpoints-azpolicy-dev-eastus-001<br/>10.0.4.0/24]
-                        NSG3[nsg-azpolicy-privateendpoints-dev-eastus-001]
+                    subgraph PESub["Private Endpoints Subnet"]
+                        PES["snet-privateendpoints-azpolicy-dev-eastus-001<br/>10.0.4.0/24"]
+                        NSG3["nsg-azpolicy-privateendpoints-dev-eastus-001"]
                         PES -.-> NSG3
                     end
                 end
             end
 
-            subgraph "Monitoring & Security"
-                NW[Network Watcher<br/>nw-azpolicy-dev-eastus-001]
-                SA[Storage Account<br/>stflowlogsazpolicydev001]
-                FL[VNet Flow Logs<br/>fl-vnet-azpolicy-dev]
+            subgraph Monitor["🔍 Monitoring & Security"]
+                NW["Network Watcher<br/>nw-azpolicy-dev-eastus-001"]
+                SA["Storage Account<br/>stflowlogsazpolicydev001"]
+                FL["VNet Flow Logs<br/>fl-vnet-azpolicy-dev"]
 
                 NW --> FL
                 FL --> SA
@@ -58,14 +58,15 @@ graph TB
         end
     end
 
-    subgraph "Security Rules (All NSGs)"
-        SR1[✅ Allow HTTPS Inbound (443)]
-        SR2[❌ Deny HTTP Inbound (80)]
-        SR3[✅ Allow HTTPS Outbound (443)]
-        SR4[✅ Allow DNS Outbound (53)]
-        SR5[✅ Allow App Service Management (454-455)]
+    subgraph Rules["🛡️ Security Rules (All NSGs)"]
+        SR1["✅ Allow HTTPS Inbound (443)"]
+        SR2["❌ Deny HTTP Inbound (80)"]
+        SR3["✅ Allow HTTPS Outbound (443)"]
+        SR4["✅ Allow DNS Outbound (53)"]
+        SR5["✅ Allow App Service Management (454-455)"]
     end
 
+    %% NSG to Rules connections
     NSG1 -.-> SR1
     NSG1 -.-> SR2
     NSG1 -.-> SR3
@@ -82,11 +83,11 @@ graph TB
     NSG3 -.-> SR3
     NSG3 -.-> SR4
 
-    classDef vnet fill:#e1f5fe
-    classDef subnet fill:#f3e5f5
-    classDef nsg fill:#fff3e0
-    classDef monitoring fill:#e8f5e8
-    classDef security fill:#ffebee
+    %% Styling
+    classDef subnet fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    classDef nsg fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    classDef monitoring fill:#e8f5e8,stroke:#4caf50,stroke-width:2px
+    classDef security fill:#ffebee,stroke:#f44336,stroke-width:2px
 
     class DS,FS,PES subnet
     class NSG1,NSG2,NSG3 nsg
