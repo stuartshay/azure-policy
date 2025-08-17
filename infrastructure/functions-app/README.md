@@ -218,7 +218,7 @@ After deploying the Function App:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.39.0 |
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.40.0 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules

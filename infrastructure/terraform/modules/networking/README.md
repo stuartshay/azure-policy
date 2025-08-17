@@ -85,7 +85,7 @@ module "networking" {
 
 | Name | Version |
 |------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.38.1 |
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.40.0 |
 
 ## Modules
 
