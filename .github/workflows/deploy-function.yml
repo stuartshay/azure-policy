@@ -68,10 +68,9 @@ jobs:
           echo "FUNCTION_TYPE=$FUNCTION_TYPE" >> "$GITHUB_ENV"
 
           # Set dynamic environment variables based on function type
-          # Use the same function app for both basic and advanced functions
           if [ "$FUNCTION_TYPE" = "advanced" ]; then
             {
-              echo "AZURE_FUNCTIONAPP_NAME=func-azpolicy-dev-001"
+              echo "AZURE_FUNCTIONAPP_NAME=func-azpolicy-advanced-dev-001"
               echo "AZURE_FUNCTIONAPP_PACKAGE_PATH=./functions/advanced"
               echo "FUNCTION_DISPLAY_NAME=Advanced Timer Function"
             } >> "$GITHUB_ENV"
