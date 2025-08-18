@@ -22,7 +22,6 @@ from function_app import (  # noqa: E402
 )
 
 
-
 class TestServiceBusManager(unittest.TestCase):
     """Test cases for ServiceBusManager class."""
 
