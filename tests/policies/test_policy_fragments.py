@@ -252,7 +252,7 @@ class TestPolicyFragmentNaming:
         all_files = list(policies_dir.glob("*.json"))
 
         # Group files by potential prefixes
-        prefix_groups = {}
+        prefix_groups: dict[str, list[str]] = {}
 
         for policy_file in all_files:
             parts = policy_file.stem.split("-")

@@ -27,7 +27,7 @@ message_counter = 0
 class ServiceBusManager:
     """Manages Service Bus operations with error handling and retry logic."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.connection_string = os.environ.get("ServiceBusConnectionString")
         self.queue_name = os.environ.get(
             "PolicyNotificationsQueue", "policy-notifications"
@@ -146,9 +146,7 @@ def policy_notification_timer(timer: func.TimerRequest) -> None:
                 "function_name": "PolicyNotificationTimer",
                 "schedule": "every-10-seconds",
                 "past_due": timer.past_due,
-                "next_occurrence": (
-                    timer.schedule_status.next if timer.schedule_status else None
-                ),
+                "next_occurrence": None,  # schedule_status not available in current Azure Functions version
             },
         }
 
