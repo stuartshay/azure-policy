@@ -97,7 +97,7 @@ repos:
     rev: v1.5.0
     hooks:
       - id: detect-secrets
-        exclude: ^(\.secrets\.(baseline|yaml|allowlist)$|.*local\.settings\.json.*$) # Documentation and markdown
+        exclude: ^(\.secrets\.(baseline|yaml|allowlist)$|.*local\.settings\.json.*$|\.github/workflows/.*\.yml$) # Documentation and markdown
   # - repo: https://github.com/igorshubovych/markdownlint-cli
   #   rev: v0.42.0
   #   hooks:

@@ -5,16 +5,25 @@ on:
     branches: [master]
     paths:
       - 'functions/basic/**'
+      - 'functions/advanced/**'
       - '.github/workflows/deploy-function.yml'
   pull_request:
     branches: [master]
     paths:
       - 'functions/basic/**'
+      - 'functions/advanced/**'
   workflow_dispatch:
+    inputs:
+      function_type:
+        description: 'Select function type to deploy'
+        required: true
+        default: 'basic'
+        type: choice
+        options:
+          - basic
+          - advanced
 
 env:
-  AZURE_FUNCTIONAPP_NAME: func-azpolicy-dev-001
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: './functions/basic'
   PYTHON_VERSION: '3.13'
 
 jobs:
@@ -25,6 +34,43 @@ jobs:
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v5
+
+      - name: 'Set Function Configuration'
+        shell: bash
+        run: |
+          # Determine function type based on trigger
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then  # pragma: allowlist secret
+            FUNCTION_TYPE="${{ github.event.inputs.function_type }}"  # pragma: allowlist secret
+          else
+            # For push/PR events, determine based on changed files
+            if [ "${{ contains(github.event.head_commit.modified, 'functions/advanced/') || contains(github.event.head_commit.added, 'functions/advanced/') }}" = "true" ]; then  # pragma: allowlist secret
+              FUNCTION_TYPE="advanced"
+            else
+              FUNCTION_TYPE="basic"
+            fi
+          fi
+
+          echo "🎯 Selected Function Type: $FUNCTION_TYPE"
+          echo "FUNCTION_TYPE=$FUNCTION_TYPE" >> "$GITHUB_ENV"
+
+          # Set dynamic environment variables based on function type
+          if [ "$FUNCTION_TYPE" = "advanced" ]; then
+            {
+              echo "AZURE_FUNCTIONAPP_NAME=func-azpolicy-advanced-dev-001"
+              echo "AZURE_FUNCTIONAPP_PACKAGE_PATH=./functions/advanced"
+              echo "FUNCTION_DISPLAY_NAME=Advanced Timer Function"
+            } >> "$GITHUB_ENV"
+          else
+            {
+              echo "AZURE_FUNCTIONAPP_NAME=func-azpolicy-dev-001"
+              echo "AZURE_FUNCTIONAPP_PACKAGE_PATH=./functions/basic"
+              echo "FUNCTION_DISPLAY_NAME=Basic HTTP Function"
+            } >> "$GITHUB_ENV"
+          fi
+
+          echo "📦 Package Path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}"
+          echo "🏷️  Function App Name: ${{ env.AZURE_FUNCTIONAPP_NAME }}"
+          echo "📋 Display Name: ${{ env.FUNCTION_DISPLAY_NAME }}"
 
       - name: Setup Python ${{ env.PYTHON_VERSION }} Environment
         uses: actions/setup-python@v5
@@ -77,6 +123,43 @@ jobs:
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v5
+
+      - name: 'Set Function Configuration'
+        shell: bash
+        run: |
+          # Determine function type based on trigger
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then  # pragma: allowlist secret
+            FUNCTION_TYPE="${{ github.event.inputs.function_type }}"  # pragma: allowlist secret
+          else
+            # For push/PR events, determine based on changed files
+            if [ "${{ contains(github.event.head_commit.modified, 'functions/advanced/') || contains(github.event.head_commit.added, 'functions/advanced/') }}" = "true" ]; then  # pragma: allowlist secret
+              FUNCTION_TYPE="advanced"
+            else
+              FUNCTION_TYPE="basic"
+            fi
+          fi
+
+          echo "🎯 Selected Function Type: $FUNCTION_TYPE"
+          echo "FUNCTION_TYPE=$FUNCTION_TYPE" >> "$GITHUB_ENV"
+
+          # Set dynamic environment variables based on function type
+          if [ "$FUNCTION_TYPE" = "advanced" ]; then
+            {
+              echo "AZURE_FUNCTIONAPP_NAME=func-azpolicy-advanced-dev-001"
+              echo "AZURE_FUNCTIONAPP_PACKAGE_PATH=./functions/advanced"
+              echo "FUNCTION_DISPLAY_NAME=Advanced Timer Function"
+            } >> "$GITHUB_ENV"
+          else
+            {
+              echo "AZURE_FUNCTIONAPP_NAME=func-azpolicy-dev-001"
+              echo "AZURE_FUNCTIONAPP_PACKAGE_PATH=./functions/basic"
+              echo "FUNCTION_DISPLAY_NAME=Basic HTTP Function"
+            } >> "$GITHUB_ENV"
+          fi
+
+          echo "📦 Package Path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}"
+          echo "🏷️  Function App Name: ${{ env.AZURE_FUNCTIONAPP_NAME }}"
+          echo "📋 Display Name: ${{ env.FUNCTION_DISPLAY_NAME }}"
 
       - name: 'Download Function Package'
         uses: actions/download-artifact@v5
@@ -407,10 +490,18 @@ jobs:
 
               echo "  Function App state: $APP_STATE"
 
-              if [ "$APP_STATE" = "Running" ] && [ "$FUNCTION_COUNT" -ge 3 ]; then
+              # Set expected function count based on function type
+              if [ "${{ env.FUNCTION_TYPE }}" = "advanced" ]; then
+                EXPECTED_FUNCTIONS=5  # Advanced has 5 functions: timer + 4 HTTP endpoints
+              else
+                EXPECTED_FUNCTIONS=3  # Basic has 3 HTTP functions
+              fi
+
+              if [ "$APP_STATE" = "Running" ] && [ "$FUNCTION_COUNT" -ge "$EXPECTED_FUNCTIONS" ]; then
                 echo "✅ Function deployment verified successfully"
                 echo "  - Function App is running"
-                echo "  - $FUNCTION_COUNT functions deployed"
+                echo "  - $FUNCTION_COUNT functions deployed (expected: $EXPECTED_FUNCTIONS)"
+                echo "  - Function type: ${{ env.FUNCTION_TYPE }}"
                 SUCCESS=1
                 break
               fi

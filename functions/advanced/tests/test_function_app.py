@@ -12,9 +12,6 @@ import unittest
 from unittest.mock import Mock, patch
 
 from azure.servicebus.exceptions import ServiceBusError
-
-# Import the function app components
-
 from function_app import (  # noqa: E402
     ServiceBusManager,
     function_info,
@@ -23,6 +20,8 @@ from function_app import (  # noqa: E402
     send_test_message,
     service_bus_health,
 )
+
+# Import the function app components
 
 
 class TestServiceBusManager(unittest.TestCase):
