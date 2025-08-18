@@ -1,167 +1,133 @@
-#!/usr/bin/env bash
-# Terraform Provider Update Script
-# This script updates provider versions across all Terraform modules
+#!/bin/bash
+
+# Script to update Terraform provider versions across all modules
+# This ensures consistency across the entire project
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+echo "🔄 Updating Terraform provider versions across all modules..."
 
-# Default values
-DRY_RUN=false
-PROVIDER="azurerm"
-OLD_VERSION=""
-NEW_VERSION=""
+# Define the new provider versions
+AZURERM_VERSION="~> 4.40"
+RANDOM_VERSION="~> 3.7"
 
-# Usage function
-usage() {
-    echo "Usage: $0 [OPTIONS]"
-    echo ""
-    echo "Options:"
-    echo "  -p, --provider PROVIDER    Provider to update (default: azurerm)"
-    echo "  -o, --old-version VERSION  Old version to replace (e.g., 4.37)"
-    echo "  -n, --new-version VERSION  New version to use (e.g., 4.39)"
-    echo "  -d, --dry-run             Show what would be changed without making changes"
-    echo "  -h, --help                Show this help message"
-    echo ""
-    echo "Examples:"
-    echo "  $0 --old-version 4.37 --new-version 4.39"
-    echo "  $0 --provider azurerm --old-version 4.37 --new-version 4.39 --dry-run"
-    echo ""
-}
+# List of directories containing Terraform configurations
+TERRAFORM_DIRS=(
+    "infrastructure/terraform"
+    "infrastructure/core"
+    "infrastructure/app-service"
+    "infrastructure/database"
+    "infrastructure/functions-app"
+    "infrastructure/policies"
+    "infrastructure/github-runner"
+)
 
-# Parse command line arguments
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -p|--provider)
-            PROVIDER="$2"
-            shift 2
-            ;;
-        -o|--old-version)
-            OLD_VERSION="$2"
-            shift 2
-            ;;
-        -n|--new-version)
-            NEW_VERSION="$2"
-            shift 2
-            ;;
-        -d|--dry-run)
-            DRY_RUN=true
-            shift
-            ;;
-        -h|--help)
-            usage
-            exit 0
-            ;;
-        *)
-            echo "Unknown option: $1"
-            usage
-            exit 1
-            ;;
-    esac
-done
-
-# Validate required parameters
-if [ -z "$OLD_VERSION" ] || [ -z "$NEW_VERSION" ]; then
-    echo -e "${RED}❌ Error: Both --old-version and --new-version are required${NC}"
-    usage
-    exit 1
-fi
-
-echo -e "${GREEN}=== Terraform Provider Update ===${NC}"
-echo -e "${BLUE}Provider:${NC} $PROVIDER"
-echo -e "${BLUE}Old Version:${NC} $OLD_VERSION"
-echo -e "${BLUE}New Version:${NC} $NEW_VERSION"
-echo -e "${BLUE}Dry Run:${NC} $DRY_RUN"
-echo ""
-
-# Find all Terraform files with the specified provider
-terraform_files=$(find infrastructure -name "*.tf" -exec grep -l "hashicorp/$PROVIDER" {} \;)
-
-if [ -z "$terraform_files" ]; then
-    echo -e "${YELLOW}⚠️  No Terraform files found with $PROVIDER provider${NC}"
-    exit 0
-fi
-
-echo -e "${BLUE}Files to be updated:${NC}"
-echo "$terraform_files" | while read -r file; do
-    # Check if the file contains the old version
-    if grep -q "version.*=.*\"~> $OLD_VERSION\"" "$file"; then
-        echo -e "  ${GREEN}✓${NC} $file"
-    else
-        echo -e "  ${YELLOW}⚠${NC} $file (no matching version found)"
-    fi
-done
-echo ""
-
-# Function to update a single file
-update_file() {
+# Function to update provider version in a file
+update_provider_version() {
     local file="$1"
-    local old_pattern="version.*=.*\"~> $OLD_VERSION\""
-    local new_value="version = \"~> $NEW_VERSION\""
+    local provider="$2"
+    local new_version="$3"
 
-    if ! grep -q "$old_pattern" "$file"; then
-        echo -e "  ${YELLOW}⚠${NC} No matching version pattern found in $file"
-        return
-    fi
+    if [[ -f "$file" ]]; then
+        echo "  📝 Updating $provider version in $file"
+        sed -i.bak "s|version = \"~> [0-9]\+\.[0-9]\+\"|version = \"$new_version\"|g" "$file"
 
-    if [ "$DRY_RUN" = true ]; then
-        echo -e "  ${BLUE}[DRY RUN]${NC} Would update $file:"
-        echo -e "    ${RED}-${NC} $(grep "$old_pattern" "$file" | sed 's/^[[:space:]]*//')"
-        echo -e "    ${GREEN}+${NC} $(echo "$new_value" | sed 's/^[[:space:]]*/      /')"
-    else
-        echo -e "  ${GREEN}✓${NC} Updating $file"
-        # Create backup
-        cp "$file" "$file.backup"
-
-        # Update the file
-        sed -i.tmp "s|version.*=.*\"~> $OLD_VERSION\"|$new_value|g" "$file"
-        rm "$file.tmp"
-
-        # Verify the change
-        sed -i.tmp -E "s|^[[:space:]]*version[[:space:]]*=[[:space:]]*\"~> $OLD_VERSION\"|$new_value|g" "$file"
-        rm "$file.tmp"
-
-        # Verify the change
-        if grep -Eq "^[[:space:]]*version[[:space:]]*=[[:space:]]*\"~> $NEW_VERSION\"" "$file"; then
-            echo -e "    ${GREEN}✓${NC} Successfully updated"
-            rm "$file.backup"
-        else
-            echo -e "    ${RED}❌${NC} Update failed, restoring backup"
-            mv "$file.backup" "$file"
+        # More specific replacement for azurerm
+        if [[ "$provider" == "azurerm" ]]; then
+            sed -i.bak2 "/source.*hashicorp\/azurerm/,/}/ s|version = \"~> [0-9]\+\.[0-9]\+\"|version = \"$new_version\"|" "$file"
         fi
+
+        # More specific replacement for random
+        if [[ "$provider" == "random" ]]; then
+            sed -i.bak3 "/source.*hashicorp\/random/,/}/ s|version = \"~> [0-9]\+\.[0-9]\+\"|version = \"$new_version\"|" "$file"
+        fi
+
+        # Clean up backup files
+        rm -f "$file.bak" "$file.bak2" "$file.bak3" 2>/dev/null || true
     fi
 }
 
-# Update each file
-echo -e "${BLUE}Updating files:${NC}"
-echo "$terraform_files" | while read -r file; do
-    update_file "$file"
+# Function to run terraform init -upgrade in a directory
+upgrade_terraform_dir() {
+    local dir="$1"
+
+    if [[ -d "$dir" && -f "$dir/main.tf" ]]; then
+        echo "  🚀 Running terraform init -upgrade in $dir"
+
+        # Check if directory uses Terraform Cloud
+        if grep -q "cloud {" "$dir/main.tf"; then
+            echo "    ⚠️  Skipping $dir - uses Terraform Cloud (requires authentication)"
+            return 0
+        fi
+
+        cd "$dir"
+
+        # Clean up any existing .terraform directory to force re-initialization
+        rm -rf .terraform .terraform.lock.hcl 2>/dev/null || true
+
+        # Initialize and upgrade
+        if terraform init -upgrade; then
+            echo "    ✅ Successfully updated providers in $dir"
+        else
+            echo "    ❌ Failed to update providers in $dir"
+        fi
+
+        cd - > /dev/null
+    fi
+}
+
+# Update provider versions in all main.tf files
+echo "📋 Updating provider version constraints..."
+for dir in "${TERRAFORM_DIRS[@]}"; do
+    if [[ -d "$dir" ]]; then
+        echo "🔍 Processing $dir..."
+
+        # Update azurerm provider version
+        update_provider_version "$dir/main.tf" "azurerm" "$AZURERM_VERSION"
+
+        # Update random provider version (if it exists)
+        if grep -q "hashicorp/random" "$dir/main.tf" 2>/dev/null; then
+            update_provider_version "$dir/main.tf" "random" "$RANDOM_VERSION"
+        fi
+
+        # Also check modules subdirectory
+        if [[ -d "$dir/modules" ]]; then
+            for module_dir in "$dir"/modules/*/; do
+                if [[ -f "$module_dir/main.tf" ]]; then
+                    echo "  🔍 Processing module $module_dir..."
+                    update_provider_version "$module_dir/main.tf" "azurerm" "$AZURERM_VERSION"
+
+                    if grep -q "hashicorp/random" "$module_dir/main.tf" 2>/dev/null; then
+                        update_provider_version "$module_dir/main.tf" "random" "$RANDOM_VERSION"
+                    fi
+                fi
+            done
+        fi
+    else
+        echo "⚠️  Directory $dir not found, skipping..."
+    fi
 done
 
 echo ""
+echo "🔄 Upgrading Terraform providers..."
 
-if [ "$DRY_RUN" = true ]; then
-    echo -e "${YELLOW}=== Dry Run Complete ===${NC}"
-    echo "No files were modified. Run without --dry-run to apply changes."
-else
-    echo -e "${GREEN}=== Update Complete ===${NC}"
-    echo ""
-    echo -e "${BLUE}Next steps:${NC}"
-    echo "1. Review the changes: git diff"
-    echo "2. Run terraform init in affected modules to download new provider versions"
-    echo "3. Run terraform plan to verify compatibility"
-    echo "4. Commit the changes: git add . && git commit -m 'Update $PROVIDER provider to $NEW_VERSION'"
-    echo ""
-    echo -e "${YELLOW}Recommended commands:${NC}"
-    echo "  make terraform-all-init    # Initialize all workspaces"
-    echo "  make terraform-all-plan    # Plan all workspaces"
-    echo "  make terraform-check-versions  # Verify the updates"
-fi
+# Run terraform init -upgrade in directories with local backends
+for dir in "${TERRAFORM_DIRS[@]}"; do
+    if [[ -d "$dir" ]]; then
+        upgrade_terraform_dir "$dir"
+    fi
+done
 
 echo ""
-echo -e "${GREEN}✅ Provider update script complete${NC}"
+echo "✅ Provider update process completed!"
+echo ""
+echo "📋 Summary:"
+echo "  - Updated azurerm provider to: $AZURERM_VERSION"
+echo "  - Updated random provider to: $RANDOM_VERSION"
+echo "  - Directories using Terraform Cloud were skipped (require manual authentication)"
+echo ""
+echo "🔍 Next steps:"
+echo "  1. Review the changes with: git diff"
+echo "  2. Test the configurations in a development environment"
+echo "  3. Commit the updated .terraform.lock.hcl files"
+echo "  4. For Terraform Cloud workspaces, run 'terraform login' and update manually"

@@ -18,6 +18,7 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref || github.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -152,16 +153,27 @@ jobs:
       - name: Run pre-commit on all files
         id: precommit
         continue-on-error: true
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          REF_NAME: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           echo "Running pre-commit checks on all files..."
           echo "Working directory: $(pwd)"
-          echo "Files in directory:"
-          find . -maxdepth 1 -type f | head -10 || true
+          echo "Current branch: $(git branch --show-current)"
+          echo "Git status before pre-commit:"
+          git status --porcelain
           echo "Pre-commit config validation:"
           pre-commit validate-config
           echo "Starting pre-commit run..."
-          pre-commit run --all-files --show-diff-on-failure --verbose || {
-            echo "Pre-commit failed with exit code: $?"
+
+          # Run pre-commit and capture exit code
+          if pre-commit run --all-files --show-diff-on-failure --verbose; then
+            echo "✅ All pre-commit checks passed!"
+            exit 0
+          else
+            precommit_exit_code=$?
+            echo "Pre-commit failed with exit code: $precommit_exit_code"
 
             # Check if files were modified by terraform-docs
             if ! git diff --quiet; then
@@ -180,21 +192,45 @@ jobs:
                 git config --local user.name "GitHub Action"
 
                 # Add and commit the changes
-                git add README.md infrastructure/*/README.md
-                git commit -m "docs: auto-update terraform documentation via CI [skip ci]" || echo "No changes to commit"
+                git add README.md infrastructure/*/README.md 2>/dev/null || true
+                if git commit -m "docs: auto-update terraform documentation via CI [skip ci]"; then
+                  echo "✅ terraform-docs changes have been committed"
 
-                echo "✅ terraform-docs changes have been auto-committed"
-                echo "Re-running pre-commit to verify..."
+                  # Push the changes back to the repository
+                  if [ "$EVENT_NAME" = "pull_request" ]; then
+                    # For pull requests, push to the PR branch
+                    git push origin HEAD:"$HEAD_REF"
+                    echo "✅ Changes pushed to PR branch: $HEAD_REF"
+                  else
+                    # For push events, push to the current branch
+                    git push origin HEAD:"$REF_NAME"
+                    echo "✅ Changes pushed to branch: $REF_NAME"
+                  fi
 
-                # Re-run pre-commit to make sure everything passes now
-                pre-commit run --all-files --show-diff-on-failure --verbose
-                exit $?
+                  echo "Re-running pre-commit to verify..."
+                  # Re-run pre-commit to make sure everything passes now
+                  if pre-commit run --all-files --show-diff-on-failure --verbose; then
+                    echo "✅ All checks passed after auto-commit!"
+                    exit 0
+                  else
+                    echo "❌ Pre-commit still failing after auto-commit"
+                    exit 1
+                  fi
+                else
+                  echo "No changes to commit"
+                fi
+              else
+                echo "Non-terraform-docs files were modified or other issues detected"
+                echo "Modified files:"
+                echo "$modified_files"
+                git diff --name-status
+                exit $precommit_exit_code
               fi
+            else
+              echo "No files were modified, but pre-commit failed"
+              exit $precommit_exit_code
             fi
-
-            echo "Pre-commit failed with genuine errors"
-            exit 1
-          }
+          fi
 
       - name: Debug terraform-docs after pre-commit failure
         if: failure()

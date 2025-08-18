@@ -1,4 +1,4 @@
-# Azure Policy Infrastructure - Main Configuration
+# Azure Policy Infrastructure - Main Configuration (Local Backend)
 # This file defines the core infrastructure for the Azure Policy project
 
 terraform {
@@ -15,13 +15,9 @@ terraform {
     }
   }
 
-  # Terraform Cloud backend for state management
-  cloud {
-    organization = "azure-policy-cloud"
-
-    workspaces {
-      name = "azure-policy-infrastructure"
-    }
+  # Local backend for testing provider updates
+  backend "local" {
+    path = "terraform.tfstate"
   }
 }
 
