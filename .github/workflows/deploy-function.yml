@@ -43,7 +43,21 @@ jobs:
             FUNCTION_TYPE="${{ github.event.inputs.function_type }}"  # pragma: allowlist secret
           else
             # For push/PR events, determine based on changed files
-            if [ "${{ contains(github.event.head_commit.modified, 'functions/advanced/') || contains(github.event.head_commit.added, 'functions/advanced/') }}" = "true" ]; then  # pragma: allowlist secret
+            # For push/PR events, determine based on changed files using git diff
+            if [ "${{ github.event_name }}" = "push" ]; then
+              BASE_SHA="${{ github.event.before }}"
+              HEAD_SHA="${{ github.sha }}"
+            elif [ "${{ github.event_name }}" = "pull_request" ]; then
+              BASE_SHA="${{ github.event.pull_request.base.sha }}"
+              HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+            else
+              echo "Unsupported event: ${{ github.event_name }}"
+              exit 1
+            fi
+
+            echo "Comparing changes between $BASE_SHA and $HEAD_SHA"
+            CHANGED_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+            if echo "$CHANGED_FILES" | grep -q '^functions/advanced/'; then
               FUNCTION_TYPE="advanced"
             else
               FUNCTION_TYPE="basic"
