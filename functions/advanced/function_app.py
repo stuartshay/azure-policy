@@ -29,7 +29,9 @@ class ServiceBusManager:
 
     def __init__(self):
         self.connection_string = os.environ.get("ServiceBusConnectionString")
-        self.queue_name = os.environ.get("PolicyNotificationsQueue", "policy-notifications")
+        self.queue_name = os.environ.get(
+            "PolicyNotificationsQueue", "policy-notifications"
+        )
         self.client: Optional[ServiceBusClient] = None
 
     def _get_client(self) -> ServiceBusClient:
@@ -38,7 +40,9 @@ class ServiceBusManager:
             raise ValueError("ServiceBusConnectionString not configured")
 
         if not self.client:
-            self.client = ServiceBusClient.from_connection_string(self.connection_string)
+            self.client = ServiceBusClient.from_connection_string(
+                self.connection_string
+            )
 
         return self.client
 
@@ -59,7 +63,9 @@ class ServiceBusManager:
             with client.get_queue_sender(self.queue_name) as sender:
                 sender.send_messages(message)
 
-            logging.info(f"Message sent successfully to queue '{self.queue_name}': {message_data['id']}")
+            logging.info(
+                f"Message sent successfully to queue '{self.queue_name}': {message_data['id']}"
+            )
             return True
 
         except ServiceBusError as e:
@@ -86,14 +92,14 @@ class ServiceBusManager:
             return {
                 "status": "healthy",
                 "queue_name": self.queue_name,
-                "connection": "successful"
+                "connection": "successful",
             }
         except Exception as e:
             return {
                 "status": "unhealthy",
                 "queue_name": self.queue_name,
                 "connection": "failed",
-                "error": str(e)
+                "error": str(e),
             }
 
 
@@ -134,12 +140,16 @@ def policy_notification_timer(timer: func.TimerRequest) -> None:
             "iteration": message_counter,
             "data": {
                 "message": "Scheduled policy notification check",
-                "environment": os.environ.get("AZURE_FUNCTIONS_ENVIRONMENT", "Development"),
+                "environment": os.environ.get(
+                    "AZURE_FUNCTIONS_ENVIRONMENT", "Development"
+                ),
                 "function_name": "PolicyNotificationTimer",
                 "schedule": "every-10-seconds",
                 "past_due": timer.past_due,
-                "next_occurrence": timer.schedule_status.next if timer.schedule_status else None
-            }
+                "next_occurrence": (
+                    timer.schedule_status.next if timer.schedule_status else None
+                ),
+            },
         }
 
         # Send message to Service Bus
@@ -148,7 +158,9 @@ def policy_notification_timer(timer: func.TimerRequest) -> None:
         if success:
             logging.info(f"Successfully processed timer trigger #{message_counter}")
         else:
-            logging.error(f"Failed to send message for timer trigger #{message_counter}")
+            logging.error(
+                f"Failed to send message for timer trigger #{message_counter}"
+            )
 
     except Exception as e:
         logging.error(f"Error in timer trigger #{message_counter}: {str(e)}")
@@ -173,7 +185,9 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
         service_bus_status = service_bus_manager.test_connection()
 
         # Overall health determination
-        overall_status = "healthy" if service_bus_status["status"] == "healthy" else "unhealthy"
+        overall_status = (
+            "healthy" if service_bus_status["status"] == "healthy" else "unhealthy"
+        )
         status_code = 200 if overall_status == "healthy" else 503
 
         health_data = {
@@ -185,20 +199,22 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
                 "timer_function": {
                     "status": "healthy",
                     "message_counter": message_counter,
-                    "schedule": "every 10 seconds"
+                    "schedule": "every 10 seconds",
                 },
                 "service_bus": service_bus_status,
                 "configuration": {
                     "queue_name": service_bus_manager.queue_name,
-                    "connection_configured": bool(service_bus_manager.connection_string)
-                }
-            }
+                    "connection_configured": bool(
+                        service_bus_manager.connection_string
+                    ),
+                },
+            },
         }
 
         return func.HttpResponse(
             json.dumps(health_data, indent=2),
             status_code=status_code,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
     except Exception as e:
@@ -208,13 +224,13 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
             "status": "unhealthy",
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "error": "Health check failed",
-            "message": str(e)
+            "message": str(e),
         }
 
         return func.HttpResponse(
             json.dumps(error_response, indent=2),
             status_code=503,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
 
@@ -241,14 +257,16 @@ def service_bus_health(req: func.HttpRequest) -> func.HttpResponse:
             "service_bus": status,
             "configuration": {
                 "queue_name": service_bus_manager.queue_name,
-                "connection_string_configured": bool(service_bus_manager.connection_string)
-            }
+                "connection_string_configured": bool(
+                    service_bus_manager.connection_string
+                ),
+            },
         }
 
         return func.HttpResponse(
             json.dumps(response_data, indent=2),
             status_code=status_code,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
     except Exception as e:
@@ -257,13 +275,13 @@ def service_bus_health(req: func.HttpRequest) -> func.HttpResponse:
         error_response = {
             "status": "error",
             "timestamp": datetime.utcnow().isoformat() + "Z",
-            "error": str(e)
+            "error": str(e),
         }
 
         return func.HttpResponse(
             json.dumps(error_response, indent=2),
             status_code=500,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
 
@@ -292,37 +310,37 @@ def function_info(req: func.HttpRequest) -> func.HttpResponse:
                 "type": "timer",
                 "schedule": "every 10 seconds",
                 "description": "Sends messages to Service Bus policy-notifications queue",
-                "message_counter": message_counter
+                "message_counter": message_counter,
             }
         },
         "endpoints": {
             "health": {
                 "path": "/api/health",
                 "methods": ["GET"],
-                "description": "Comprehensive health check"
+                "description": "Comprehensive health check",
             },
             "servicebus_health": {
                 "path": "/api/health/servicebus",
                 "methods": ["GET"],
-                "description": "Service Bus connection health check"
+                "description": "Service Bus connection health check",
             },
             "info": {
                 "path": "/api/info",
                 "methods": ["GET"],
-                "description": "Function app information"
-            }
+                "description": "Function app information",
+            },
         },
         "configuration": {
             "service_bus_queue": service_bus_manager.queue_name,
-            "environment": os.environ.get("AZURE_FUNCTIONS_ENVIRONMENT", "Development")
+            "environment": os.environ.get("AZURE_FUNCTIONS_ENVIRONMENT", "Development"),
         },
-        "timestamp": datetime.utcnow().isoformat() + "Z"
+        "timestamp": datetime.utcnow().isoformat() + "Z",
     }
 
     return func.HttpResponse(
         json.dumps(info_data, indent=2),
         status_code=200,
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "application/json"},
     )
 
 
@@ -359,8 +377,10 @@ def send_test_message(req: func.HttpRequest) -> func.HttpResponse:
             "data": {
                 "message": "Manual test message",
                 "custom_data": custom_data,
-                "environment": os.environ.get("AZURE_FUNCTIONS_ENVIRONMENT", "Development")
-            }
+                "environment": os.environ.get(
+                    "AZURE_FUNCTIONS_ENVIRONMENT", "Development"
+                ),
+            },
         }
 
         # Send message
@@ -372,7 +392,7 @@ def send_test_message(req: func.HttpRequest) -> func.HttpResponse:
                 "message": "Test message sent successfully",
                 "message_id": test_message["id"],
                 "queue": service_bus_manager.queue_name,
-                "timestamp": test_message["timestamp"]
+                "timestamp": test_message["timestamp"],
             }
             status_code = 200
         else:
@@ -380,14 +400,14 @@ def send_test_message(req: func.HttpRequest) -> func.HttpResponse:
                 "status": "error",
                 "message": "Failed to send test message",
                 "queue": service_bus_manager.queue_name,
-                "timestamp": datetime.utcnow().isoformat() + "Z"
+                "timestamp": datetime.utcnow().isoformat() + "Z",
             }
             status_code = 500
 
         return func.HttpResponse(
             json.dumps(response_data, indent=2),
             status_code=status_code,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
     except Exception as e:
@@ -397,11 +417,11 @@ def send_test_message(req: func.HttpRequest) -> func.HttpResponse:
             "status": "error",
             "message": "Error sending test message",
             "error": str(e),
-            "timestamp": datetime.utcnow().isoformat() + "Z"
+            "timestamp": datetime.utcnow().isoformat() + "Z",
         }
 
         return func.HttpResponse(
             json.dumps(error_response, indent=2),
             status_code=500,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )

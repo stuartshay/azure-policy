@@ -9,22 +9,20 @@ import json
 import os
 import sys
 import unittest
-from datetime import datetime
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
-import azure.functions as func
 from azure.servicebus.exceptions import ServiceBusError
 
 # Import the function app components
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from function_app import (
+from function_app import (  # noqa: E402
     ServiceBusManager,
-    policy_notification_timer,
-    health_check,
-    service_bus_health,
     function_info,
-    send_test_message
+    health_check,
+    policy_notification_timer,
+    send_test_message,
+    service_bus_health,
 )
 
 
@@ -35,43 +33,55 @@ class TestServiceBusManager(unittest.TestCase):
         """Set up test fixtures."""
         self.manager = ServiceBusManager()
 
-    @patch.dict(os.environ, {
-        'ServiceBusConnectionString': 'Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=test;SharedAccessKey=test',
-        'PolicyNotificationsQueue': 'test-queue'
-    })
+    @patch.dict(
+        os.environ,
+        {
+            "ServiceBusConnectionString": "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=test;SharedAccessKey=test",
+            "PolicyNotificationsQueue": "test-queue",
+        },
+    )
     def test_init_with_environment_variables(self):
         """Test ServiceBusManager initialization with environment variables."""
         manager = ServiceBusManager()
-        self.assertEqual(manager.connection_string, 'Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=test;SharedAccessKey=test')
-        self.assertEqual(manager.queue_name, 'test-queue')
+        self.assertEqual(
+            manager.connection_string,
+            "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=test;SharedAccessKey=test",
+        )
+        self.assertEqual(manager.queue_name, "test-queue")
 
     @patch.dict(os.environ, {}, clear=True)
     def test_init_without_environment_variables(self):
         """Test ServiceBusManager initialization without environment variables."""
         manager = ServiceBusManager()
         self.assertIsNone(manager.connection_string)
-        self.assertEqual(manager.queue_name, 'policy-notifications')
+        self.assertEqual(manager.queue_name, "policy-notifications")
 
-    @patch.dict(os.environ, {'ServiceBusConnectionString': ''})
+    @patch.dict(os.environ, {"ServiceBusConnectionString": ""})
     def test_get_client_without_connection_string(self):
         """Test _get_client raises ValueError when connection string is not set."""
         manager = ServiceBusManager()
         with self.assertRaises(ValueError) as context:
             manager._get_client()
-        self.assertIn("ServiceBusConnectionString not configured", str(context.exception))
+        self.assertIn(
+            "ServiceBusConnectionString not configured", str(context.exception)
+        )
 
-    @patch('function_app.ServiceBusClient')
-    @patch.dict(os.environ, {'ServiceBusConnectionString': 'test-connection-string'})
+    @patch("function_app.ServiceBusClient")
+    @patch.dict(os.environ, {"ServiceBusConnectionString": "test-connection-string"})
     def test_get_client_creates_client(self, mock_service_bus_client):
         """Test _get_client creates and returns ServiceBusClient."""
         manager = ServiceBusManager()
         client = manager._get_client()
 
-        mock_service_bus_client.from_connection_string.assert_called_once_with('test-connection-string')
-        self.assertEqual(client, mock_service_bus_client.from_connection_string.return_value)
+        mock_service_bus_client.from_connection_string.assert_called_once_with(
+            "test-connection-string"
+        )
+        self.assertEqual(
+            client, mock_service_bus_client.from_connection_string.return_value
+        )
 
-    @patch('function_app.ServiceBusClient')
-    @patch.dict(os.environ, {'ServiceBusConnectionString': 'test-connection-string'})
+    @patch("function_app.ServiceBusClient")
+    @patch.dict(os.environ, {"ServiceBusConnectionString": "test-connection-string"})
     def test_send_message_success(self, mock_service_bus_client):
         """Test successful message sending."""
         # Setup mocks
@@ -88,8 +98,8 @@ class TestServiceBusManager(unittest.TestCase):
         self.assertTrue(result)
         mock_sender.send_messages.assert_called_once()
 
-    @patch('function_app.ServiceBusClient')
-    @patch.dict(os.environ, {'ServiceBusConnectionString': 'test-connection-string'})
+    @patch("function_app.ServiceBusClient")
+    @patch.dict(os.environ, {"ServiceBusConnectionString": "test-connection-string"})
     def test_send_message_service_bus_error(self, mock_service_bus_client):
         """Test message sending with ServiceBusError."""
         # Setup mocks to raise ServiceBusError
@@ -106,14 +116,16 @@ class TestServiceBusManager(unittest.TestCase):
 
         self.assertFalse(result)
 
-    @patch('function_app.ServiceBusClient')
-    @patch.dict(os.environ, {'ServiceBusConnectionString': 'test-connection-string'})
+    @patch("function_app.ServiceBusClient")
+    @patch.dict(os.environ, {"ServiceBusConnectionString": "test-connection-string"})
     def test_test_connection_success(self, mock_service_bus_client):
         """Test successful connection test."""
         # Setup mocks
         mock_client = Mock()
         mock_receiver = Mock()
-        mock_client.get_queue_receiver.return_value.__enter__.return_value = mock_receiver
+        mock_client.get_queue_receiver.return_value.__enter__.return_value = (
+            mock_receiver
+        )
         mock_service_bus_client.from_connection_string.return_value = mock_client
 
         manager = ServiceBusManager()
@@ -122,16 +134,18 @@ class TestServiceBusManager(unittest.TestCase):
         expected = {
             "status": "healthy",
             "queue_name": "policy-notifications",
-            "connection": "successful"
+            "connection": "successful",
         }
         self.assertEqual(result, expected)
 
-    @patch('function_app.ServiceBusClient')
-    @patch.dict(os.environ, {'ServiceBusConnectionString': 'test-connection-string'})
+    @patch("function_app.ServiceBusClient")
+    @patch.dict(os.environ, {"ServiceBusConnectionString": "test-connection-string"})
     def test_test_connection_failure(self, mock_service_bus_client):
         """Test connection test failure."""
         # Setup mocks to raise exception
-        mock_service_bus_client.from_connection_string.side_effect = Exception("Connection failed")
+        mock_service_bus_client.from_connection_string.side_effect = Exception(
+            "Connection failed"
+        )
 
         manager = ServiceBusManager()
         result = manager.test_connection()
@@ -144,7 +158,7 @@ class TestServiceBusManager(unittest.TestCase):
 class TestTimerFunction(unittest.TestCase):
     """Test cases for timer trigger function."""
 
-    @patch('function_app.service_bus_manager')
+    @patch("function_app.service_bus_manager")
     def test_policy_notification_timer_success(self, mock_service_bus_manager):
         """Test successful timer trigger execution."""
         # Setup mocks
@@ -165,7 +179,7 @@ class TestTimerFunction(unittest.TestCase):
         self.assertIn("id", call_args)
         self.assertIn("timestamp", call_args)
 
-    @patch('function_app.service_bus_manager')
+    @patch("function_app.service_bus_manager")
     def test_policy_notification_timer_past_due(self, mock_service_bus_manager):
         """Test timer trigger when past due."""
         # Setup mocks
@@ -183,7 +197,7 @@ class TestTimerFunction(unittest.TestCase):
 
         self.assertTrue(call_args["data"]["past_due"])
 
-    @patch('function_app.service_bus_manager')
+    @patch("function_app.service_bus_manager")
     def test_policy_notification_timer_send_failure(self, mock_service_bus_manager):
         """Test timer trigger when message sending fails."""
         # Setup mocks
@@ -201,14 +215,14 @@ class TestTimerFunction(unittest.TestCase):
 class TestHealthCheckEndpoints(unittest.TestCase):
     """Test cases for health check endpoints."""
 
-    @patch('function_app.service_bus_manager')
+    @patch("function_app.service_bus_manager")
     def test_health_check_healthy(self, mock_service_bus_manager):
         """Test health check endpoint when all components are healthy."""
         # Setup mocks
         mock_service_bus_manager.test_connection.return_value = {
             "status": "healthy",
             "queue_name": "policy-notifications",
-            "connection": "successful"
+            "connection": "successful",
         }
         mock_service_bus_manager.queue_name = "policy-notifications"
         mock_service_bus_manager.connection_string = "test-connection"
@@ -222,9 +236,11 @@ class TestHealthCheckEndpoints(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         response_data = json.loads(response.get_body())
         self.assertEqual(response_data["status"], "healthy")
-        self.assertEqual(response_data["components"]["service_bus"]["status"], "healthy")
+        self.assertEqual(
+            response_data["components"]["service_bus"]["status"], "healthy"
+        )
 
-    @patch('function_app.service_bus_manager')
+    @patch("function_app.service_bus_manager")
     def test_health_check_unhealthy(self, mock_service_bus_manager):
         """Test health check endpoint when Service Bus is unhealthy."""
         # Setup mocks
@@ -232,7 +248,7 @@ class TestHealthCheckEndpoints(unittest.TestCase):
             "status": "unhealthy",
             "queue_name": "policy-notifications",
             "connection": "failed",
-            "error": "Connection timeout"
+            "error": "Connection timeout",
         }
         mock_service_bus_manager.queue_name = "policy-notifications"
         mock_service_bus_manager.connection_string = "test-connection"
@@ -247,14 +263,14 @@ class TestHealthCheckEndpoints(unittest.TestCase):
         response_data = json.loads(response.get_body())
         self.assertEqual(response_data["status"], "unhealthy")
 
-    @patch('function_app.service_bus_manager')
+    @patch("function_app.service_bus_manager")
     def test_service_bus_health_check(self, mock_service_bus_manager):
         """Test dedicated Service Bus health check endpoint."""
         # Setup mocks
         mock_service_bus_manager.test_connection.return_value = {
             "status": "healthy",
             "queue_name": "policy-notifications",
-            "connection": "successful"
+            "connection": "successful",
         }
         mock_service_bus_manager.queue_name = "policy-notifications"
         mock_service_bus_manager.connection_string = "test-connection"
@@ -279,14 +295,16 @@ class TestHealthCheckEndpoints(unittest.TestCase):
         # Verify response
         self.assertEqual(response.status_code, 200)
         response_data = json.loads(response.get_body())
-        self.assertEqual(response_data["name"], "Azure Functions - Advanced Timer with Service Bus")
+        self.assertEqual(
+            response_data["name"], "Azure Functions - Advanced Timer with Service Bus"
+        )
         self.assertIn("PolicyNotificationTimer", response_data["functions"])
 
 
 class TestSendTestMessage(unittest.TestCase):
     """Test cases for send test message endpoint."""
 
-    @patch('function_app.service_bus_manager')
+    @patch("function_app.service_bus_manager")
     def test_send_test_message_success(self, mock_service_bus_manager):
         """Test successful test message sending."""
         # Setup mocks
@@ -305,7 +323,7 @@ class TestSendTestMessage(unittest.TestCase):
         self.assertEqual(response_data["status"], "success")
         self.assertIn("message_id", response_data)
 
-    @patch('function_app.service_bus_manager')
+    @patch("function_app.service_bus_manager")
     def test_send_test_message_failure(self, mock_service_bus_manager):
         """Test test message sending failure."""
         # Setup mocks
@@ -323,7 +341,7 @@ class TestSendTestMessage(unittest.TestCase):
         response_data = json.loads(response.get_body())
         self.assertEqual(response_data["status"], "error")
 
-    @patch('function_app.service_bus_manager')
+    @patch("function_app.service_bus_manager")
     def test_send_test_message_invalid_json(self, mock_service_bus_manager):
         """Test test message sending with invalid JSON."""
         # Setup mocks
@@ -342,5 +360,5 @@ class TestSendTestMessage(unittest.TestCase):
         self.assertEqual(response_data["status"], "success")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
