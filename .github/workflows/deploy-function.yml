@@ -153,7 +153,16 @@ jobs:
             FUNCTION_TYPE="${{ github.event.inputs.function_type }}"  # pragma: allowlist secret
           else
             # For push/PR events, determine based on changed files
-            if [ "${{ contains(github.event.head_commit.modified, 'functions/advanced/') || contains(github.event.head_commit.added, 'functions/advanced/') }}" = "true" ]; then  # pragma: allowlist secret
+            # For push/PR events, determine based on changed files using git diff
+            # Get the list of changed files between base and head
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              # For PRs, compare base and head
+              CHANGED_FILES=$(git diff --name-only origin/"${{ github.event.pull_request.base.ref }}"...HEAD)
+            else
+              # For push, compare previous commit and current
+              CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+            fi
+            if echo "$CHANGED_FILES" | grep -q '^functions/advanced/'; then
               FUNCTION_TYPE="advanced"
             else
               FUNCTION_TYPE="basic"
