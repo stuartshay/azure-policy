@@ -14,14 +14,34 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 import azure.functions as func
-from azure.servicebus import ServiceBusClient, ServiceBusMessage
-from azure.servicebus.exceptions import ServiceBusError
 
 # Initialize the function app
 app = func.FunctionApp()
 
 # Global counter for message tracking
 message_counter = 0
+
+# Lazy import for Service Bus to avoid import errors during cold start
+ServiceBusClient = None
+ServiceBusMessage = None
+ServiceBusError = None
+
+
+def _ensure_servicebus_imports() -> None:
+    """Ensure Service Bus modules are imported when needed."""
+    global ServiceBusClient, ServiceBusMessage, ServiceBusError
+    if ServiceBusClient is None:
+        try:
+            from azure.servicebus import ServiceBusClient as _ServiceBusClient
+            from azure.servicebus import ServiceBusMessage as _ServiceBusMessage
+            from azure.servicebus.exceptions import ServiceBusError as _ServiceBusError
+
+            ServiceBusClient = _ServiceBusClient
+            ServiceBusMessage = _ServiceBusMessage
+            ServiceBusError = _ServiceBusError
+        except ImportError as e:
+            logging.error(f"Failed to import Service Bus modules: {e}")
+            raise
 
 
 class ServiceBusManager:
@@ -32,17 +52,22 @@ class ServiceBusManager:
         self.queue_name = os.environ.get(
             "PolicyNotificationsQueue", "policy-notifications"
         )
-        self.client: Optional[ServiceBusClient] = None
+        self.client: Optional[Any] = None
 
-    def _get_client(self) -> ServiceBusClient:
+    def _get_client(self) -> Any:
         """Get or create Service Bus client."""
         if not self.connection_string:
             raise ValueError("ServiceBusConnectionString not configured")
 
+        _ensure_servicebus_imports()
+
         if not self.client:
-            self.client = ServiceBusClient.from_connection_string(
-                self.connection_string
-            )
+            if ServiceBusClient is not None:
+                self.client = ServiceBusClient.from_connection_string(
+                    self.connection_string
+                )
+            else:
+                raise RuntimeError("ServiceBusClient not available")
 
         return self.client
 
@@ -57,6 +82,7 @@ class ServiceBusManager:
             bool: True if message sent successfully, False otherwise
         """
         try:
+            _ensure_servicebus_imports()
             client = self._get_client()
             message = ServiceBusMessage(json.dumps(message_data))
 
@@ -68,11 +94,11 @@ class ServiceBusManager:
             )
             return True
 
-        except ServiceBusError as e:
-            logging.error(f"Service Bus error sending message: {str(e)}")
-            return False
         except Exception as e:
-            logging.error(f"Unexpected error sending message: {str(e)}")
+            if ServiceBusError and isinstance(e, ServiceBusError):
+                logging.error(f"Service Bus error sending message: {str(e)}")
+            else:
+                logging.error(f"Error sending message: {str(e)}")
             return False
 
     def test_connection(self) -> Dict[str, Any]:
@@ -83,9 +109,10 @@ class ServiceBusManager:
             Dict containing connection test results
         """
         try:
+            _ensure_servicebus_imports()
             client = self._get_client()
             # Try to get queue properties to test connection
-            with client.get_queue_receiver(self.queue_name) as receiver:
+            with client.get_queue_receiver(self.queue_name):
                 # Just testing connection, not actually receiving
                 pass
 
@@ -268,7 +295,7 @@ def service_bus_health(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     except Exception as e:
-        logging.error(f"Error in Service Bus health check: {str(e)}")
+        logging.error("Error in Service Bus health check: %s", str(e))
 
         error_response = {
             "status": "error",
