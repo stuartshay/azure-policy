@@ -85,7 +85,10 @@ class TestServiceBusManager(unittest.TestCase):
         # Setup mocks
         mock_client = Mock()
         mock_sender = Mock()
-        mock_client.get_queue_sender.return_value.__enter__.return_value = mock_sender
+        mock_context_manager = Mock()
+        mock_context_manager.__enter__ = Mock(return_value=mock_sender)
+        mock_context_manager.__exit__ = Mock(return_value=None)
+        mock_client.get_queue_sender.return_value = mock_context_manager
         mock_service_bus_client.from_connection_string.return_value = mock_client
 
         manager = ServiceBusManager()
@@ -104,7 +107,10 @@ class TestServiceBusManager(unittest.TestCase):
         mock_client = Mock()
         mock_sender = Mock()
         mock_sender.send_messages.side_effect = ServiceBusError("Service Bus error")
-        mock_client.get_queue_sender.return_value.__enter__.return_value = mock_sender
+        mock_context_manager = Mock()
+        mock_context_manager.__enter__ = Mock(return_value=mock_sender)
+        mock_context_manager.__exit__ = Mock(return_value=None)
+        mock_client.get_queue_sender.return_value = mock_context_manager
         mock_service_bus_client.from_connection_string.return_value = mock_client
 
         manager = ServiceBusManager()
@@ -121,9 +127,10 @@ class TestServiceBusManager(unittest.TestCase):
         # Setup mocks
         mock_client = Mock()
         mock_receiver = Mock()
-        mock_client.get_queue_receiver.return_value.__enter__.return_value = (
-            mock_receiver
-        )
+        mock_context_manager = Mock()
+        mock_context_manager.__enter__ = Mock(return_value=mock_receiver)
+        mock_context_manager.__exit__ = Mock(return_value=None)
+        mock_client.get_queue_receiver.return_value = mock_context_manager
         mock_service_bus_client.from_connection_string.return_value = mock_client
 
         manager = ServiceBusManager()
