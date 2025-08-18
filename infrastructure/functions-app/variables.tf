@@ -64,7 +64,13 @@ variable "python_version" {
 }
 
 variable "function_app_settings" {
-  description = "Additional app settings for the Function App"
+  description = "Additional app settings for the Basic Function App"
+  type        = map(string)
+  default     = {}
+}
+
+variable "advanced_function_app_settings" {
+  description = "Additional app settings for the Advanced Function App"
   type        = map(string)
   default     = {}
 }

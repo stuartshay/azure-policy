@@ -229,7 +229,8 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [azurerm_linux_function_app.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app) | resource |
+| [azurerm_linux_function_app.advanced](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app) | resource |
+| [azurerm_linux_function_app.basic](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app) | resource |
 | [azurerm_resource_group.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) | data source |
 | [azurerm_storage_account.functions](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) | data source |
 | [terraform_remote_state.app_service](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/data-sources/remote_state) | data source |
@@ -238,10 +239,11 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_advanced_function_app_settings"></a> [advanced\_function\_app\_settings](#input\_advanced\_function\_app\_settings) | Additional app settings for the Advanced Function App | `map(string)` | `{}` | no |
 | <a name="input_always_ready_instances"></a> [always\_ready\_instances](#input\_always\_ready\_instances) | Number of always ready instances for EP1 (must match app-service module) | `number` | `1` | no |
 | <a name="input_cost_center"></a> [cost\_center](#input\_cost\_center) | Cost center for resource billing | `string` | `"development"` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, staging, prod) | `string` | `"dev"` | no |
-| <a name="input_function_app_settings"></a> [function\_app\_settings](#input\_function\_app\_settings) | Additional app settings for the Function App | `map(string)` | `{}` | no |
+| <a name="input_function_app_settings"></a> [function\_app\_settings](#input\_function\_app\_settings) | Additional app settings for the Basic Function App | `map(string)` | `{}` | no |
 | <a name="input_functions_sku_name"></a> [functions\_sku\_name](#input\_functions\_sku\_name) | SKU name for the Functions App Service Plan (must match app-service module) | `string` | `"EP1"` | no |
 | <a name="input_maximum_elastic_worker_count"></a> [maximum\_elastic\_worker\_count](#input\_maximum\_elastic\_worker\_count) | Maximum number of elastic workers for EP1 (must match app-service module) | `number` | `3` | no |
 | <a name="input_owner"></a> [owner](#input\_owner) | Owner of the resources (team name or email) | `string` | `"platform-team"` | no |
@@ -254,13 +256,22 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_advanced_function_app_default_hostname"></a> [advanced\_function\_app\_default\_hostname](#output\_advanced\_function\_app\_default\_hostname) | Default hostname of the Advanced Function App |
+| <a name="output_advanced_function_app_id"></a> [advanced\_function\_app\_id](#output\_advanced\_function\_app\_id) | ID of the Advanced Function App |
+| <a name="output_advanced_function_app_name"></a> [advanced\_function\_app\_name](#output\_advanced\_function\_app\_name) | Name of the Advanced Function App |
+| <a name="output_advanced_function_app_url"></a> [advanced\_function\_app\_url](#output\_advanced\_function\_app\_url) | URL of the Advanced Function App |
 | <a name="output_app_settings_summary"></a> [app\_settings\_summary](#output\_app\_settings\_summary) | Summary of key app settings |
-| <a name="output_function_app_default_hostname"></a> [function\_app\_default\_hostname](#output\_function\_app\_default\_hostname) | Default hostname of the Function App |
-| <a name="output_function_app_id"></a> [function\_app\_id](#output\_function\_app\_id) | ID of the deployed Function App |
-| <a name="output_function_app_kind"></a> [function\_app\_kind](#output\_function\_app\_kind) | Kind of the Function App |
-| <a name="output_function_app_name"></a> [function\_app\_name](#output\_function\_app\_name) | Name of the deployed Function App |
-| <a name="output_function_app_url"></a> [function\_app\_url](#output\_function\_app\_url) | URL of the Function App |
-| <a name="output_python_version"></a> [python\_version](#output\_python\_version) | Python version used by the Function App |
-| <a name="output_service_plan_id"></a> [service\_plan\_id](#output\_service\_plan\_id) | ID of the App Service Plan used by the Function App |
-| <a name="output_storage_account_name"></a> [storage\_account\_name](#output\_storage\_account\_name) | Name of the storage account used by the Function App |
+| <a name="output_basic_function_app_default_hostname"></a> [basic\_function\_app\_default\_hostname](#output\_basic\_function\_app\_default\_hostname) | Default hostname of the Basic Function App |
+| <a name="output_basic_function_app_id"></a> [basic\_function\_app\_id](#output\_basic\_function\_app\_id) | ID of the Basic Function App |
+| <a name="output_basic_function_app_name"></a> [basic\_function\_app\_name](#output\_basic\_function\_app\_name) | Name of the Basic Function App |
+| <a name="output_basic_function_app_url"></a> [basic\_function\_app\_url](#output\_basic\_function\_app\_url) | URL of the Basic Function App |
+| <a name="output_function_app_default_hostname"></a> [function\_app\_default\_hostname](#output\_function\_app\_default\_hostname) | Default hostname of the Function App (legacy - points to basic) |
+| <a name="output_function_app_id"></a> [function\_app\_id](#output\_function\_app\_id) | ID of the deployed Function App (legacy - points to basic) |
+| <a name="output_function_app_kind"></a> [function\_app\_kind](#output\_function\_app\_kind) | Kind of the Function App (legacy - points to basic) |
+| <a name="output_function_app_name"></a> [function\_app\_name](#output\_function\_app\_name) | Name of the deployed Function App (legacy - points to basic) |
+| <a name="output_function_app_url"></a> [function\_app\_url](#output\_function\_app\_url) | URL of the Function App (legacy - points to basic) |
+| <a name="output_function_apps_summary"></a> [function\_apps\_summary](#output\_function\_apps\_summary) | Summary of both function apps |
+| <a name="output_python_version"></a> [python\_version](#output\_python\_version) | Python version used by the Function Apps |
+| <a name="output_service_plan_id"></a> [service\_plan\_id](#output\_service\_plan\_id) | ID of the App Service Plan used by the Function Apps |
+| <a name="output_storage_account_name"></a> [storage\_account\_name](#output\_storage\_account\_name) | Name of the storage account used by the Function Apps |
 <!-- END_TF_DOCS -->
