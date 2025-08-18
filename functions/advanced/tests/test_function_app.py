@@ -14,7 +14,6 @@ from unittest.mock import Mock, patch
 from azure.servicebus.exceptions import ServiceBusError
 
 # Import the function app components
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from function_app import (  # noqa: E402
     ServiceBusManager,
