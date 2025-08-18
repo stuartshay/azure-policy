@@ -53,6 +53,12 @@ class TestAzurePolicyIntegration:
             with open(policy_file, "r", encoding="utf-8") as f:
                 policy = json.load(f)
 
+            # Skip fragment files as they are not complete policy definitions
+            if policy_file.name.endswith(
+                "-parameters.json"
+            ) or policy_file.name.endswith("-rule.json"):
+                continue
+
             # Simulate az policy definition create command validation
             definition_name = f"test-{policy_file.stem}"
 
@@ -186,8 +192,20 @@ class TestAzurePolicyIntegration:
         if not policy_files:
             pytest.skip("No policy files found to test")
 
-        # Test assignment simulation for first policy
-        policy_file = policy_files[0]
+        # Filter out fragment files
+        complete_policy_files = [
+            f
+            for f in policy_files
+            if not (
+                f.name.endswith("-parameters.json") or f.name.endswith("-rule.json")
+            )
+        ]
+
+        if not complete_policy_files:
+            pytest.skip("No complete policy files found to test")
+
+        # Test assignment simulation for first complete policy
+        policy_file = complete_policy_files[0]
         with open(policy_file, "r", encoding="utf-8") as f:
             policy = json.load(f)
 
@@ -257,6 +275,12 @@ class TestPolicyValidationWithAzureCLI:
         policy_files = list(policies_dir.glob("*.json"))
 
         for policy_file in policy_files:
+            # Skip fragment files as they are not complete policy definitions
+            if policy_file.name.endswith(
+                "-parameters.json"
+            ) or policy_file.name.endswith("-rule.json"):
+                continue
+
             # Simulate what Azure CLI would validate
             with open(policy_file, "r", encoding="utf-8") as f:
                 policy_content = f.read()
@@ -296,6 +320,12 @@ class TestPolicyValidationWithAzureCLI:
         policy_files = list(policies_dir.glob("*.json"))
 
         for policy_file in policy_files:
+            # Skip fragment files as they are not complete policy definitions
+            if policy_file.name.endswith(
+                "-parameters.json"
+            ) or policy_file.name.endswith("-rule.json"):
+                continue
+
             with open(policy_file, "r", encoding="utf-8") as f:
                 policy = json.load(f)
 
@@ -317,18 +347,17 @@ class TestPolicyDeploymentScenarios:
             pytest.skip("No storage naming policies found")
 
         for policy_file in storage_policies:
+            # Skip fragment files as they are not complete policy definitions
+            if policy_file.name.endswith(
+                "-parameters.json"
+            ) or policy_file.name.endswith("-rule.json"):
+                continue
+
             with open(policy_file, "r", encoding="utf-8") as f:
                 policy = json.load(f)
 
             # Simulate deployment scenario
-            deployment_steps = [
-                "Create policy definition",
-                "Assign to resource group",
-                "Test with compliant resource",
-                "Test with non-compliant resource",
-                "Check compliance state",
-            ]
-
+            # Steps: Create policy definition, Assign to resource group, Test compliance
             # Verify policy supports this workflow
             assert "policyRule" in policy, "Policy must have rules for deployment"
 

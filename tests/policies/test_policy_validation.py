@@ -34,6 +34,12 @@ class TestPolicyJSONValidation:
         policy_files = list(policies_dir.glob("*.json"))
 
         for policy_file in policy_files:
+            # Skip fragment files as they have different validation rules
+            if policy_file.name.endswith(
+                "-parameters.json"
+            ) or policy_file.name.endswith("-rule.json"):
+                continue
+
             with open(policy_file, "r", encoding="utf-8") as f:
                 policy = json.load(f)
 
@@ -84,6 +90,12 @@ class TestPolicyJSONValidation:
         policy_files = list(policies_dir.glob("*.json"))
 
         for policy_file in policy_files:
+            # Skip fragment files as they have different validation rules
+            if policy_file.name.endswith(
+                "-parameters.json"
+            ) or policy_file.name.endswith("-rule.json"):
+                continue
+
             with open(policy_file, "r", encoding="utf-8") as f:
                 policy = json.load(f)
 
@@ -196,6 +208,10 @@ class TestPolicyCompliance:
         storage_policy_files = [f for f in policies_dir.glob("storage-*.json")]
 
         for policy_file in storage_policy_files:
+            # Skip parameters fragment as it only contains parameter definitions
+            if policy_file.name.endswith("-parameters.json"):
+                continue
+
             with open(policy_file, "r", encoding="utf-8") as f:
                 policy = json.load(f)
 

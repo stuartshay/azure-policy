@@ -1,20 +1,25 @@
 {
-  "if": {
-    "allOf": [
-      {
-        "field": "type",
-        "equals": "Microsoft.Storage/storageAccounts"
-      },
-      {
-        "not": {
-          "field": "name",
-          "match": "[parameters('namePattern')]"
+  "displayName": "Storage Account Naming Convention",
+  "description": "Enforces naming conventions for storage accounts to ensure consistency and compliance with organizational standards.",
+  "mode": "Indexed",
+  "policyRule": {
+    "if": {
+      "allOf": [
+        {
+          "field": "type",
+          "equals": "Microsoft.Storage/storageAccounts"
+        },
+        {
+          "not": {
+            "field": "name",
+            "match": "[parameters('namePattern')]"
+          }
         }
-      }
-    ]
-  },
-  "then": {
-    "effect": "[parameters('effect')]"
+      ]
+    },
+    "then": {
+      "effect": "[parameters('effect')]"
+    }
   },
   "parameters": {
     "namePattern": {

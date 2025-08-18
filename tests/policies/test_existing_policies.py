@@ -67,9 +67,14 @@ class TestExistingPolicyFiles:
         with open(policy_file, "r", encoding="utf-8") as f:
             policy = json.load(f)
 
-        # Should have parameters since it's a parameters policy
-        assert "parameters" in policy
-        assert len(policy["parameters"]) > 0
+        # This is a parameters fragment file - should contain parameter definitions
+        # Each key should be a parameter with proper structure
+        for param_name, param_def in policy.items():
+            assert isinstance(
+                param_def, dict
+            ), f"Parameter {param_name} should be an object"
+            assert "type" in param_def, f"Parameter {param_name} missing type"
+            assert "metadata" in param_def, f"Parameter {param_name} missing metadata"
 
     def test_storage_naming_rule_policy(self, policies_dir):
         """Test the storage naming rule policy."""
@@ -80,10 +85,9 @@ class TestExistingPolicyFiles:
         with open(policy_file, "r", encoding="utf-8") as f:
             policy = json.load(f)
 
-        # Basic structure validation
-        assert "policyRule" in policy
-        assert "if" in policy["policyRule"]
-        assert "then" in policy["policyRule"]
+        # This is a rule fragment file - should contain if/then structure at root
+        assert "if" in policy, "Rule fragment missing 'if' condition"
+        assert "then" in policy, "Rule fragment missing 'then' action"
 
     def test_all_existing_policies_have_consistent_structure(self, policies_dir):
         """Test that all existing policies follow consistent structure."""
@@ -96,7 +100,13 @@ class TestExistingPolicyFiles:
             with open(policy_file, "r", encoding="utf-8") as f:
                 policy = json.load(f)
 
-            # All policies should have these basic fields
+            # Skip fragment files as they have different structures
+            if policy_file.name.endswith(
+                "-parameters.json"
+            ) or policy_file.name.endswith("-rule.json"):
+                continue
+
+            # All complete policies should have these basic fields
             required_fields = ["displayName", "description"]
             for field in required_fields:
                 assert field in policy, f"Policy {policy_file.name} missing {field}"
@@ -125,6 +135,12 @@ class TestPolicyIntegration:
         for policy_file in policy_files:
             with open(policy_file, "r", encoding="utf-8") as f:
                 policy = json.load(f)
+
+            # Skip fragment files as they are not complete policy definitions
+            if policy_file.name.endswith(
+                "-parameters.json"
+            ) or policy_file.name.endswith("-rule.json"):
+                continue
 
             # Simulate what Azure CLI would expect
             required_for_cli = ["displayName", "description", "policyRule"]

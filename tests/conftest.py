@@ -7,11 +7,17 @@ that can be used across different test modules.
 
 import json
 import os
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, List
 
 import pytest
+
+# Add function app directories to Python path for test discovery
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root / "functions" / "basic"))
+sys.path.insert(0, str(project_root / "functions" / "advanced"))
 
 
 @pytest.fixture
