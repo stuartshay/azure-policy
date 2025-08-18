@@ -9,7 +9,7 @@ This module tests the specific policy files that exist in the project:
 """
 
 import json
-from pathlib import Path
+import warnings
 
 import pytest
 
@@ -136,7 +136,7 @@ class TestPolicyIntegration:
             # Mode is required for policy definitions
             if "mode" not in policy:
                 # Default mode should be assumed as "Indexed"
-                pytest.warn(
+                warnings.warn(
                     f"Policy {policy_file.name} missing mode field, will default to 'Indexed'"
                 )
 
@@ -171,7 +171,7 @@ class TestPolicyIntegration:
 
                 # This is a warning rather than failure since there might be newer resource types
                 if not found_valid_pattern:
-                    pytest.warn(
+                    warnings.warn(
                         f"Policy {policy_file.name} references Microsoft resources but no common patterns found"
                     )
 
@@ -230,6 +230,6 @@ class TestPolicyNamingStandards:
                 purpose in "-".join(filename_parts) for purpose in valid_purposes
             )
             if not purpose_found:
-                pytest.warn(
+                warnings.warn(
                     f"Storage policy {policy_file.name} purpose not clear from filename"
                 )

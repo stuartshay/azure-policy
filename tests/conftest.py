@@ -104,7 +104,7 @@ class PolicyTestHelper:
         Returns:
             List of validation errors (empty if valid)
         """
-        errors = []
+        errors: list[str] = []
         required_fields = ["displayName", "description", "mode", "policyRule"]
 
         for field in required_fields:
@@ -146,7 +146,7 @@ class PolicyTestHelper:
         Returns:
             List of parameter validation errors
         """
-        errors = []
+        errors: list[str] = []
 
         if "parameters" not in policy:
             return errors  # Parameters are optional

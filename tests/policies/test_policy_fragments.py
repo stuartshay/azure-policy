@@ -9,7 +9,7 @@ combined into complete policies, such as:
 """
 
 import json
-from pathlib import Path
+import warnings
 
 import pytest
 
@@ -163,7 +163,7 @@ class TestPolicyFragments:
 
             if len(related_files) > 1:
                 # We have multiple fragments for the same concept
-                fragment_types = [f.stem.split("-")[-1] for f in related_files]
+                [f.stem.split("-")[-1] for f in related_files]
 
                 # Collect all content from related fragments
                 combined_content = {}
@@ -244,7 +244,7 @@ class TestPolicyFragmentNaming:
                     ]
 
                     if resource_type not in common_resource_types:
-                        pytest.warn(
+                        warnings.warn(
                             f"Fragment {policy_file.name} uses uncommon resource type: {resource_type}"
                         )
 
@@ -253,7 +253,7 @@ class TestPolicyFragmentNaming:
         all_files = list(policies_dir.glob("*.json"))
 
         # Group files by potential prefixes
-        prefix_groups = {}
+        prefix_groups: dict[str, list[str]] = {}
 
         for policy_file in all_files:
             parts = policy_file.stem.split("-")
@@ -300,7 +300,7 @@ class TestPolicyFragmentIntegration:
                 for param_name in parameters.keys():
                     param_reference = f"parameters('{param_name}')"
                     if param_reference.lower() not in rule_str:
-                        pytest.warn(
+                        warnings.warn(
                             f"Parameter {param_name} not referenced in {rule_file.name}"
                         )
 

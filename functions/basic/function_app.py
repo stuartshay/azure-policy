@@ -8,7 +8,7 @@ programming model with proper logging and error handling.
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 import azure.functions as func
@@ -53,7 +53,7 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
         # Create response data
         response_data: Dict[str, Any] = {
             "message": f"Hello, {name}!",
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "method": req.method,
             "url": req.url,
             "function_name": "HelloWorld",
@@ -83,7 +83,7 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
         error_response = {
             "error": "Internal server error",
             "message": "An error occurred while processing your request",
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "status": "error",
         }
 
@@ -110,7 +110,7 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
 
     health_data = {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "service": "Azure Functions - Basic",
         "version": "1.0.0",
         "uptime": "Available",
@@ -160,7 +160,7 @@ def info(req: func.HttpRequest) -> func.HttpResponse:
                 "description": "Function app information",
             },
         },
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
 
     return func.HttpResponse(

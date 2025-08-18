@@ -10,12 +10,8 @@ This module tests the validity of Azure Policy definitions including:
 """
 
 import json
-from pathlib import Path
-from typing import Any, Dict
 
 import pytest
-
-from tests.conftest import PolicyTestHelper
 
 
 class TestPolicyJSONValidation:

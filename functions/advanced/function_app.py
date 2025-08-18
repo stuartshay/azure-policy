@@ -10,7 +10,7 @@ import json
 import logging
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 import azure.functions as func
@@ -27,7 +27,7 @@ message_counter = 0
 class ServiceBusManager:
     """Manages Service Bus operations with error handling and retry logic."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.connection_string = os.environ.get("ServiceBusConnectionString")
         self.queue_name = os.environ.get(
             "PolicyNotificationsQueue", "policy-notifications"
@@ -124,7 +124,7 @@ def policy_notification_timer(timer: func.TimerRequest) -> None:
     message_counter += 1
 
     # Log timer execution
-    utc_timestamp = datetime.utcnow()
+    utc_timestamp = datetime.now(timezone.utc)
     logging.info(f"Timer trigger executed at {utc_timestamp.isoformat()}Z")
 
     if timer.past_due:
@@ -146,9 +146,7 @@ def policy_notification_timer(timer: func.TimerRequest) -> None:
                 "function_name": "PolicyNotificationTimer",
                 "schedule": "every-10-seconds",
                 "past_due": timer.past_due,
-                "next_occurrence": (
-                    timer.schedule_status.next if timer.schedule_status else None
-                ),
+                "next_occurrence": None,  # schedule_status not available in current Azure Functions version
             },
         }
 
@@ -192,7 +190,7 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
 
         health_data = {
             "status": overall_status,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "service": "Azure Functions - Advanced Timer",
             "version": "1.0.0",
             "components": {
@@ -222,7 +220,7 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
 
         error_response = {
             "status": "unhealthy",
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "error": "Health check failed",
             "message": str(e),
         }
@@ -253,7 +251,7 @@ def service_bus_health(req: func.HttpRequest) -> func.HttpResponse:
         status_code = 200 if status["status"] == "healthy" else 503
 
         response_data = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "service_bus": status,
             "configuration": {
                 "queue_name": service_bus_manager.queue_name,
@@ -274,7 +272,7 @@ def service_bus_health(req: func.HttpRequest) -> func.HttpResponse:
 
         error_response = {
             "status": "error",
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "error": str(e),
         }
 
@@ -334,7 +332,7 @@ def function_info(req: func.HttpRequest) -> func.HttpResponse:
             "service_bus_queue": service_bus_manager.queue_name,
             "environment": os.environ.get("AZURE_FUNCTIONS_ENVIRONMENT", "Development"),
         },
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
 
     return func.HttpResponse(
@@ -371,7 +369,7 @@ def send_test_message(req: func.HttpRequest) -> func.HttpResponse:
         # Create test message
         test_message = {
             "id": str(uuid.uuid4()),
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "type": "test-message",
             "source": "manual-trigger",
             "data": {
@@ -400,7 +398,9 @@ def send_test_message(req: func.HttpRequest) -> func.HttpResponse:
                 "status": "error",
                 "message": "Failed to send test message",
                 "queue": service_bus_manager.queue_name,
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": datetime.now(timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z"),
             }
             status_code = 500
 
@@ -417,7 +417,7 @@ def send_test_message(req: func.HttpRequest) -> func.HttpResponse:
             "status": "error",
             "message": "Error sending test message",
             "error": str(e),
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         }
 
         return func.HttpResponse(
