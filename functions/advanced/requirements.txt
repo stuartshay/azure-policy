@@ -4,7 +4,7 @@
 -r ../../requirements/functions.txt
 
 # Service Bus integration
-azure-servicebus==7.12.3
+azure-servicebus==7.14.2
 
 # Additional utilities for advanced functionality
-azure-core==1.32.0
+azure-core==1.35.0
