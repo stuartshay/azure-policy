@@ -90,7 +90,8 @@ jobs:
 
           # For testing, also install test dependencies to the current environment
           
-          pip install -r requirements-test.txt  # For testing, also install test dependencies to the current environment
+          # For testing, also install test dependencies to the current environment
+          pip install -r requirements-test.txt
           popd
 
       - name: 'Run Unit Tests'
