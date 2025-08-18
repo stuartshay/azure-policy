@@ -1,4 +1,4 @@
-# Azure Policy Infrastructure - Main Configuration
+# Azure Policy Infrastructure - Main Configuration (Local Backend)
 # This file defines the core infrastructure for the Azure Policy project
 
 terraform {
@@ -7,21 +7,17 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.40"
+      version = "~> 4.39"
     }
     random = {
       source  = "hashicorp/random"
-      version = "~> 3.7"
+      version = "~> 3.4"
     }
   }
 
-  # Terraform Cloud backend for state management
-  cloud {
-    organization = "azure-policy-cloud"
-
-    workspaces {
-      name = "azure-policy-infrastructure"
-    }
+  # Local backend for testing provider updates
+  backend "local" {
+    path = "terraform.tfstate"
   }
 }
 
