@@ -35,7 +35,7 @@ jobs:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0  # Fetch full history to enable git diff comparisons
+          fetch-depth: 0 # Fetch full history to enable git diff comparisons
 
       - name: 'Set Function Configuration'
         shell: bash
@@ -147,7 +147,7 @@ jobs:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0  # Fetch full history to enable git diff comparisons
+          fetch-depth: 0 # Fetch full history to enable git diff comparisons
 
       - name: 'Set Function Configuration'
         shell: bash
