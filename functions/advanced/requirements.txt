@@ -1,0 +1,10 @@
+# Azure Functions requirements for advanced timer function with Service Bus integration
+# This file references the centralized functions requirements and adds Service Bus support
+
+-r ../../requirements/functions.txt
+
+# Service Bus integration
+azure-servicebus==7.12.3
+
+# Additional utilities for advanced functionality
+azure-core==1.32.0
