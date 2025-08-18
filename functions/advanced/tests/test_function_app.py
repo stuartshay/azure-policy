@@ -75,9 +75,12 @@ class TestServiceBusManager(unittest.TestCase):
             client, mock_service_bus_client.from_connection_string.return_value
         )
 
+    @patch("function_app.ServiceBusMessage")
     @patch("function_app.ServiceBusClient")
     @patch.dict(os.environ, {"ServiceBusConnectionString": "test-connection-string"})
-    def test_send_message_success(self, mock_service_bus_client):
+    def test_send_message_success(
+        self, mock_service_bus_client, mock_service_bus_message
+    ):
         """Test successful message sending."""
         # Setup mocks
         mock_client = Mock()
@@ -88,17 +91,25 @@ class TestServiceBusManager(unittest.TestCase):
         mock_client.get_queue_sender.return_value = mock_context_manager
         mock_service_bus_client.from_connection_string.return_value = mock_client
 
+        # Mock the ServiceBusMessage constructor
+        mock_message = Mock()
+        mock_service_bus_message.return_value = mock_message
+
         manager = ServiceBusManager()
         message_data = {"id": "test-id", "message": "test message"}
 
         result = manager.send_message(message_data)
 
         self.assertTrue(result)
-        mock_sender.send_messages.assert_called_once()
+        mock_sender.send_messages.assert_called_once_with(mock_message)
+        mock_service_bus_message.assert_called_once()
 
+    @patch("function_app.ServiceBusMessage")
     @patch("function_app.ServiceBusClient")
     @patch.dict(os.environ, {"ServiceBusConnectionString": "test-connection-string"})
-    def test_send_message_service_bus_error(self, mock_service_bus_client):
+    def test_send_message_service_bus_error(
+        self, mock_service_bus_client, mock_service_bus_message
+    ):
         """Test message sending with ServiceBusError."""
         # Setup mocks to raise ServiceBusError
         mock_client = Mock()
@@ -109,6 +120,10 @@ class TestServiceBusManager(unittest.TestCase):
         mock_context_manager.__exit__ = Mock(return_value=None)
         mock_client.get_queue_sender.return_value = mock_context_manager
         mock_service_bus_client.from_connection_string.return_value = mock_client
+
+        # Mock the ServiceBusMessage constructor
+        mock_message = Mock()
+        mock_service_bus_message.return_value = mock_message
 
         manager = ServiceBusManager()
         message_data = {"id": "test-id", "message": "test message"}
