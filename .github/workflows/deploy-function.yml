@@ -84,7 +84,8 @@ jobs:
           python -m pip install --upgrade pip
 
           # Install runtime dependencies for deployment
-          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+          
+          pip install -r requirements.txt --target=".python_packages/lib/site-packages" # Install runtime dependencies for deployment
 
           # For testing, also install test dependencies to the current environment
           pip install -r requirements-test.txt
