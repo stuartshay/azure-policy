@@ -9,7 +9,6 @@ combined into complete policies, such as:
 """
 
 import json
-from pathlib import Path
 
 import pytest
 
@@ -163,7 +162,7 @@ class TestPolicyFragments:
 
             if len(related_files) > 1:
                 # We have multiple fragments for the same concept
-                fragment_types = [f.stem.split("-")[-1] for f in related_files]
+                [f.stem.split("-")[-1] for f in related_files]
 
                 # Collect all content from related fragments
                 combined_content = {}

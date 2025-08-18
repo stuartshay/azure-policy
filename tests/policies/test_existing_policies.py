@@ -9,7 +9,6 @@ This module tests the specific policy files that exist in the project:
 """
 
 import json
-from pathlib import Path
 
 import pytest
 

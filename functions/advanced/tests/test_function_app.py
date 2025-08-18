@@ -7,7 +7,6 @@ including timer triggers, Service Bus operations, and health checks.
 
 import json
 import os
-import sys
 import unittest
 from unittest.mock import Mock, patch
 

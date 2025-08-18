@@ -11,8 +11,6 @@ or "live mode" when Azure CLI is authenticated and available.
 import json
 import os
 import subprocess
-from pathlib import Path
-from typing import Any, Dict, List
 
 import pytest
 
@@ -233,7 +231,7 @@ class TestAzurePolicyIntegration:
 
     def test_policy_compliance_check_simulation(self, test_resource_group):
         """Simulate policy compliance checking."""
-        scope = f"/subscriptions/test-sub/resourceGroups/{test_resource_group}"
+        f"/subscriptions/test-sub/resourceGroups/{test_resource_group}"
 
         # Simulate compliance check command
         cli_command = [
