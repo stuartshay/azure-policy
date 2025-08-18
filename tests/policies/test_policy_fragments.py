@@ -9,6 +9,7 @@ combined into complete policies, such as:
 """
 
 import json
+import warnings
 
 import pytest
 
@@ -243,7 +244,7 @@ class TestPolicyFragmentNaming:
                     ]
 
                     if resource_type not in common_resource_types:
-                        pytest.warn(
+                        warnings.warn(
                             f"Fragment {policy_file.name} uses uncommon resource type: {resource_type}"
                         )
 
@@ -299,7 +300,7 @@ class TestPolicyFragmentIntegration:
                 for param_name in parameters.keys():
                     param_reference = f"parameters('{param_name}')"
                     if param_reference.lower() not in rule_str:
-                        pytest.warn(
+                        warnings.warn(
                             f"Parameter {param_name} not referenced in {rule_file.name}"
                         )
 
