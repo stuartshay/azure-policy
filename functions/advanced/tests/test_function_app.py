@@ -21,7 +21,6 @@ from function_app import (  # noqa: E402
     service_bus_health,
 )
 
-# Import the function app components
 
 
 class TestServiceBusManager(unittest.TestCase):
