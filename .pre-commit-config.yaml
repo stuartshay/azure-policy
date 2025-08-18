@@ -43,12 +43,12 @@ repos:
       - id: autoflake
         args:
           [
-            "--in-place",
-            "--remove-all-unused-imports",
-            "--remove-unused-variables",
-            "--remove-duplicate-keys",
-            "--ignore-init-module-imports",
-            "--recursive",
+            '--in-place',
+            '--remove-all-unused-imports',
+            '--remove-unused-variables',
+            '--remove-duplicate-keys',
+            '--ignore-init-module-imports',
+            '--recursive',
           ]
         exclude: '^(.*/__pycache__/|\.venv/|venv/|migrations/|site-packages/|azurite-data/)'
         language_version: python3
@@ -63,7 +63,7 @@ repos:
     rev: v1.16.1
     hooks:
       - id: mypy
-        args: ["--config-file=mypy.ini", "--disable-error-code=misc"]
+        args: ['--config-file=mypy.ini', '--disable-error-code=misc']
         additional_dependencies:
           - types-requests
           - types-PyYAML
@@ -73,20 +73,19 @@ repos:
     rev: v1.1.402
     hooks:
       - id: pyright
-        args: ["--project", "pyrightconfig-precommit.json"]
+        args: ['--project', 'pyrightconfig-precommit.json']
         additional_dependencies:
           - types-requests==2.32.0.20241016
           - pydantic==2.10.3
           - requests==2.32.4
           - azure-functions==1.23.0
           - azure-storage-blob==12.26.0
-          - azure-identity==1.23.1
-          - azure-keyvault-secrets==4.9.0
+          - azure-identity==1.24.0
+          - azure-keyvault-secrets==4.10.0
           - azure-servicebus==7.12.3
           - aiohttp==3.12.15
           - python-dotenv==1.1.1
           - pytest==8.3.4
-
 
   # Jupyter notebook output clearing
   - repo: https://github.com/kynan/nbstripout
