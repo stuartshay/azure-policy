@@ -231,6 +231,10 @@ No modules.
 |------|------|
 | [azurerm_linux_function_app.advanced](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app) | resource |
 | [azurerm_linux_function_app.basic](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app) | resource |
+| [azurerm_linux_function_app.infrastructure](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app) | resource |
+| [azurerm_role_assignment.infrastructure_keyvault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.infrastructure_servicebus](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
+| [azurerm_key_vault.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
 | [azurerm_resource_group.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) | data source |
 | [azurerm_storage_account.functions](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) | data source |
 | [terraform_remote_state.app_service](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/data-sources/remote_state) | data source |
@@ -242,13 +246,21 @@ No modules.
 | <a name="input_advanced_function_app_settings"></a> [advanced\_function\_app\_settings](#input\_advanced\_function\_app\_settings) | Additional app settings for the Advanced Function App | `map(string)` | `{}` | no |
 | <a name="input_always_ready_instances"></a> [always\_ready\_instances](#input\_always\_ready\_instances) | Number of always ready instances for EP1 (must match app-service module) | `number` | `1` | no |
 | <a name="input_cost_center"></a> [cost\_center](#input\_cost\_center) | Cost center for resource billing | `string` | `"development"` | no |
+| <a name="input_enable_infrastructure_function"></a> [enable\_infrastructure\_function](#input\_enable\_infrastructure\_function) | Enable the infrastructure function for secret rotation | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, staging, prod) | `string` | `"dev"` | no |
 | <a name="input_function_app_settings"></a> [function\_app\_settings](#input\_function\_app\_settings) | Additional app settings for the Basic Function App | `map(string)` | `{}` | no |
 | <a name="input_functions_sku_name"></a> [functions\_sku\_name](#input\_functions\_sku\_name) | SKU name for the Functions App Service Plan (must match app-service module) | `string` | `"EP1"` | no |
+| <a name="input_infrastructure_function_app_settings"></a> [infrastructure\_function\_app\_settings](#input\_infrastructure\_function\_app\_settings) | Additional app settings for the Infrastructure Function App | `map(string)` | `{}` | no |
+| <a name="input_key_vault_name"></a> [key\_vault\_name](#input\_key\_vault\_name) | Name of the Key Vault for secret storage | `string` | `""` | no |
+| <a name="input_key_vault_resource_group_name"></a> [key\_vault\_resource\_group\_name](#input\_key\_vault\_resource\_group\_name) | Resource group name containing the Key Vault | `string` | `""` | no |
 | <a name="input_maximum_elastic_worker_count"></a> [maximum\_elastic\_worker\_count](#input\_maximum\_elastic\_worker\_count) | Maximum number of elastic workers for EP1 (must match app-service module) | `number` | `3` | no |
 | <a name="input_owner"></a> [owner](#input\_owner) | Owner of the resources (team name or email) | `string` | `"platform-team"` | no |
 | <a name="input_python_version"></a> [python\_version](#input\_python\_version) | Python version for Functions | `string` | `"3.13"` | no |
 | <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name) | Name of the existing resource group (created by app-service module) | `string` | n/a | yes |
+| <a name="input_rotate_admin_access"></a> [rotate\_admin\_access](#input\_rotate\_admin\_access) | Include admin access rule in rotation | `string` | `"false"` | no |
+| <a name="input_rotation_enabled"></a> [rotation\_enabled](#input\_rotation\_enabled) | Enable automatic secret rotation | `string` | `"true"` | no |
+| <a name="input_service_bus_namespace_name"></a> [service\_bus\_namespace\_name](#input\_service\_bus\_namespace\_name) | Name of the Service Bus namespace | `string` | `""` | no |
+| <a name="input_service_bus_resource_group_name"></a> [service\_bus\_resource\_group\_name](#input\_service\_bus\_resource\_group\_name) | Resource group name containing the Service Bus namespace | `string` | `""` | no |
 | <a name="input_subscription_id"></a> [subscription\_id](#input\_subscription\_id) | Azure subscription ID | `string` | n/a | yes |
 | <a name="input_workload"></a> [workload](#input\_workload) | Name of the workload or application | `string` | `"azpolicy"` | no |
 
@@ -271,6 +283,11 @@ No modules.
 | <a name="output_function_app_name"></a> [function\_app\_name](#output\_function\_app\_name) | Name of the deployed Function App (legacy - points to basic) |
 | <a name="output_function_app_url"></a> [function\_app\_url](#output\_function\_app\_url) | URL of the Function App (legacy - points to basic) |
 | <a name="output_function_apps_summary"></a> [function\_apps\_summary](#output\_function\_apps\_summary) | Summary of both function apps |
+| <a name="output_infrastructure_function_app_hostname"></a> [infrastructure\_function\_app\_hostname](#output\_infrastructure\_function\_app\_hostname) | Hostname of the Infrastructure Function App |
+| <a name="output_infrastructure_function_app_id"></a> [infrastructure\_function\_app\_id](#output\_infrastructure\_function\_app\_id) | ID of the Infrastructure Function App |
+| <a name="output_infrastructure_function_app_identity_principal_id"></a> [infrastructure\_function\_app\_identity\_principal\_id](#output\_infrastructure\_function\_app\_identity\_principal\_id) | Principal ID of the Infrastructure Function App managed identity |
+| <a name="output_infrastructure_function_app_name"></a> [infrastructure\_function\_app\_name](#output\_infrastructure\_function\_app\_name) | Name of the Infrastructure Function App |
+| <a name="output_infrastructure_function_enabled"></a> [infrastructure\_function\_enabled](#output\_infrastructure\_function\_enabled) | Whether the infrastructure function is enabled |
 | <a name="output_python_version"></a> [python\_version](#output\_python\_version) | Python version used by the Function Apps |
 | <a name="output_service_plan_id"></a> [service\_plan\_id](#output\_service\_plan\_id) | ID of the App Service Plan used by the Function Apps |
 | <a name="output_storage_account_name"></a> [storage\_account\_name](#output\_storage\_account\_name) | Name of the storage account used by the Function Apps |

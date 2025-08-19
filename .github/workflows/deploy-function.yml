@@ -11,6 +11,7 @@ on:
         options:
           - basic
           - advanced
+          - infrastructure
 
 env:
   PYTHON_VERSION: '3.13'
@@ -41,6 +42,12 @@ jobs:
               echo "AZURE_FUNCTIONAPP_NAME=func-azpolicy-advanced-dev-001"
               echo "AZURE_FUNCTIONAPP_PACKAGE_PATH=./functions/advanced"
               echo "FUNCTION_DISPLAY_NAME=Advanced Timer Function"
+            } >> "$GITHUB_ENV"
+          elif [ "$FUNCTION_TYPE" = "infrastructure" ]; then
+            {
+              echo "AZURE_FUNCTIONAPP_NAME=func-azpolicy-infrastructure-dev-001"
+              echo "AZURE_FUNCTIONAPP_PACKAGE_PATH=./functions/infrastructure"
+              echo "FUNCTION_DISPLAY_NAME=Infrastructure Secret Rotation Function"
             } >> "$GITHUB_ENV"
           else
             {
@@ -130,6 +137,12 @@ jobs:
               echo "AZURE_FUNCTIONAPP_NAME=func-azpolicy-advanced-dev-001"
               echo "AZURE_FUNCTIONAPP_PACKAGE_PATH=./functions/advanced"
               echo "FUNCTION_DISPLAY_NAME=Advanced Timer Function"
+            } >> "$GITHUB_ENV"
+          elif [ "$FUNCTION_TYPE" = "infrastructure" ]; then
+            {
+              echo "AZURE_FUNCTIONAPP_NAME=func-azpolicy-infrastructure-dev-001"
+              echo "AZURE_FUNCTIONAPP_PACKAGE_PATH=./functions/infrastructure"
+              echo "FUNCTION_DISPLAY_NAME=Infrastructure Secret Rotation Function"
             } >> "$GITHUB_ENV"
           else
             {
@@ -475,6 +488,8 @@ jobs:
               # Set expected function count based on function type
               if [ "${{ env.FUNCTION_TYPE }}" = "advanced" ]; then
                 EXPECTED_FUNCTIONS=5  # Advanced has 5 functions: timer + 4 HTTP endpoints
+              elif [ "${{ env.FUNCTION_TYPE }}" = "infrastructure" ]; then
+                EXPECTED_FUNCTIONS=3  # Infrastructure has 3 functions: timer + 2 HTTP endpoints
               else
                 EXPECTED_FUNCTIONS=3  # Basic has 3 HTTP functions
               fi

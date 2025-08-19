@@ -97,3 +97,65 @@ variable "maximum_elastic_worker_count" {
     error_message = "Maximum elastic worker count must be between 1 and 20."
   }
 }
+
+# Infrastructure Function Configuration
+variable "enable_infrastructure_function" {
+  description = "Enable the infrastructure function for secret rotation"
+  type        = bool
+  default     = true
+}
+
+variable "infrastructure_function_app_settings" {
+  description = "Additional app settings for the Infrastructure Function App"
+  type        = map(string)
+  default     = {}
+}
+
+# Key Vault Configuration for Infrastructure Function
+variable "key_vault_name" {
+  description = "Name of the Key Vault for secret storage"
+  type        = string
+  default     = ""
+}
+
+variable "key_vault_resource_group_name" {
+  description = "Resource group name containing the Key Vault"
+  type        = string
+  default     = ""
+}
+
+# Service Bus Configuration for Infrastructure Function
+variable "service_bus_resource_group_name" {
+  description = "Resource group name containing the Service Bus namespace"
+  type        = string
+  default     = ""
+}
+
+variable "service_bus_namespace_name" {
+  description = "Name of the Service Bus namespace"
+  type        = string
+  default     = ""
+}
+
+# Secret Rotation Configuration
+variable "rotation_enabled" {
+  description = "Enable automatic secret rotation"
+  type        = string
+  default     = "true"
+
+  validation {
+    condition     = contains(["true", "false"], var.rotation_enabled)
+    error_message = "Rotation enabled must be 'true' or 'false'."
+  }
+}
+
+variable "rotate_admin_access" {
+  description = "Include admin access rule in rotation"
+  type        = string
+  default     = "false"
+
+  validation {
+    condition     = contains(["true", "false"], var.rotate_admin_access)
+    error_message = "Rotate admin access must be 'true' or 'false'."
+  }
+}
