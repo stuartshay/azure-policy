@@ -1,4 +1,6 @@
 {
+  "displayName": "Resource Group Naming Convention",
+  "description": "Enforces naming conventions for resource groups to ensure consistent organizational structure and identification.",
   "mode": "All",
   "policyRule": {
     "if": {

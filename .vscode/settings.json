@@ -16,6 +16,10 @@
     },
     "python.defaultInterpreterPath": "./functions/basic/.venv/bin/python",
     "python.terminal.activateEnvironment": true,
+    "python.analysis.extraPaths": [
+        "./functions/basic",
+        "./functions/advanced"
+    ],
     "azureFunctions.deploySubpath": "functions/basic",
     "azureFunctions.pythonVenv": ".venv",
     "azureFunctions.projectLanguage": "Python",
@@ -48,6 +52,8 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestArgs": [
         "tests",
+        "functions/basic/tests",
+        "functions/advanced/tests",
         "-v",
         "--tb=short",
         "--strict-config",
@@ -56,7 +62,9 @@
     "python.testing.cwd": "${workspaceFolder}",
     "python.testing.autoTestDiscoverOnSaveEnabled": true,
     "testExplorer.useNativeTesting": true,
-    "python.testing.pytestPath": "pytest",
+    "python.testing.pytestPath": "./functions/basic/.venv/bin/pytest",
+    "python.testing.debugPort": 3000,
+    "python.envFile": "${workspaceFolder}/.env",
     "chat.tools.autoApprove": true,
     "chat.agent.maxRequests": 20
 }

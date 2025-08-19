@@ -318,6 +318,64 @@
       "options": {
         "cwd": "${workspaceFolder}/functions/basic"
       }
+    },
+    {
+      "label": "Test: Basic Functions",
+      "type": "shell",
+      "command": "${workspaceFolder}/functions/basic/.venv/bin/pytest",
+      "args": [
+        "tests/",
+        "-v",
+        "--tb=short"
+      ],
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}/functions/basic"
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": "$python"
+    },
+    {
+      "label": "Test: Advanced Functions",
+      "type": "shell",
+      "command": "${workspaceFolder}/functions/advanced/.venv/bin/pytest",
+      "args": [
+        "tests/",
+        "-v",
+        "--tb=short"
+      ],
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}/functions/advanced"
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": "$python"
+    },
+    {
+      "label": "Test: All Function Tests",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Test: Basic Functions",
+        "Test: Advanced Functions"
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
     }
   ]
 }

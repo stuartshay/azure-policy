@@ -7,21 +7,27 @@ that can be used across different test modules.
 
 import json
 import os
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, List
 
 import pytest
 
+# Add function app directories to Python path for test discovery
+root_path = Path(__file__).parent.parent
+sys.path.insert(0, str(root_path / "functions" / "basic"))
+sys.path.insert(0, str(root_path / "functions" / "advanced"))
+
 
 @pytest.fixture
-def project_root():
+def project_root() -> Path:
     """Get the project root directory."""
     return Path(__file__).parent.parent
 
 
 @pytest.fixture
-def policies_dir(project_root):
+def policies_dir(project_root: Path) -> Path:
     """Get the policies directory."""
     return project_root / "policies"
 
