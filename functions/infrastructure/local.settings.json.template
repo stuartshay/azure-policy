@@ -1,0 +1,14 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "FUNCTIONS_EXTENSION_VERSION": "~4",
+    "AZURE_SUBSCRIPTION_ID": "your-subscription-id",
+    "SERVICE_BUS_RESOURCE_GROUP": "rg-azpolicy-dev-eastus",
+    "SERVICE_BUS_NAMESPACE": "sb-azpolicy-dev-eastus-001",
+    "KEY_VAULT_URI": "https://kv-azpolicy-dev.vault.azure.net/",
+    "ROTATION_ENABLED": "true",
+    "ROTATE_ADMIN_ACCESS": "false"
+  }
+}

@@ -10,7 +10,8 @@
     "**/node_modules",
     "**/.terraform",
     "**/site-packages",
-    "**/azurite-data"
+    "**/azurite-data",
+    "**/tests"
   ],
   "pythonVersion": "3.13",
   "pythonPlatform": "Linux",
@@ -18,6 +19,16 @@
   "useLibraryCodeForTypes": true,
   "reportMissingImports": true,
   "reportMissingTypeStubs": false,
+  "reportImportCycles": false,
+  "reportPrivateImportUsage": false,
+  "pythonPath": [
+    "functions"
+  ],
+  "extraPaths": [
+    "functions/basic",
+    "functions/advanced",
+    "functions/infrastructure"
+  ],
   "reportUnusedImport": false,
   "reportUnusedClass": false,
   "reportUnusedFunction": false,

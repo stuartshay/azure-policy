@@ -108,5 +108,35 @@ output "function_apps_summary" {
       name = azurerm_linux_function_app.advanced.name
       url  = "https://${azurerm_linux_function_app.advanced.default_hostname}"
     }
+    infrastructure = var.enable_infrastructure_function ? {
+      name = azurerm_linux_function_app.infrastructure[0].name
+      url  = "https://${azurerm_linux_function_app.infrastructure[0].default_hostname}"
+    } : null
   }
+}
+
+# Infrastructure Function App Outputs
+output "infrastructure_function_app_id" {
+  description = "ID of the Infrastructure Function App"
+  value       = var.enable_infrastructure_function ? azurerm_linux_function_app.infrastructure[0].id : null
+}
+
+output "infrastructure_function_app_name" {
+  description = "Name of the Infrastructure Function App"
+  value       = var.enable_infrastructure_function ? azurerm_linux_function_app.infrastructure[0].name : null
+}
+
+output "infrastructure_function_app_hostname" {
+  description = "Hostname of the Infrastructure Function App"
+  value       = var.enable_infrastructure_function ? azurerm_linux_function_app.infrastructure[0].default_hostname : null
+}
+
+output "infrastructure_function_app_identity_principal_id" {
+  description = "Principal ID of the Infrastructure Function App managed identity"
+  value       = var.enable_infrastructure_function ? azurerm_linux_function_app.infrastructure[0].identity[0].principal_id : null
+}
+
+output "infrastructure_function_enabled" {
+  description = "Whether the infrastructure function is enabled"
+  value       = var.enable_infrastructure_function
 }

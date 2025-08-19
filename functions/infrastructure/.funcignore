@@ -1,0 +1,14 @@
+.git*
+.vscode
+local.settings.json
+test
+.venv
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+*.log
