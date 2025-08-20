@@ -69,12 +69,15 @@ class TestSecretRotationManager:
         mock_client = Mock()
         mock_client_class.return_value = mock_client
 
-        with patch.object(self.manager, "_get_credential") as mock_get_cred:
-            mock_credential = Mock()
-            mock_get_cred.return_value = mock_credential
+        with patch.dict(os.environ, {"AZURE_SUBSCRIPTION_ID": "test-sub"}):
+            # Create a new manager instance with the environment variable set
+            manager = SecretRotationManager()
 
-            with patch.dict(os.environ, {"AZURE_SUBSCRIPTION_ID": "test-sub"}):
-                client = self.manager._get_servicebus_client()
+            with patch.object(manager, "_get_credential") as mock_get_cred:
+                mock_credential = Mock()
+                mock_get_cred.return_value = mock_credential
+
+                client = manager._get_servicebus_client()
 
                 mock_imports.assert_called_once()
                 mock_get_cred.assert_called_once()
