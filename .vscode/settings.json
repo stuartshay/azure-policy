@@ -16,28 +16,6 @@
     },
     "python.defaultInterpreterPath": "./functions/basic/.venv/bin/python",
     "python.terminal.activateEnvironment": true,
-    "python.analysis.typeCheckingMode": "basic",
-    "python.analysis.diagnosticSeverityOverrides": {
-        "reportMissingImports": "warning",
-        "reportImportCycles": "warning",
-        "reportPrivateImportUsage": "none",
-        "reportUnusedImport": "none",
-        "reportUnusedClass": "none",
-        "reportUnusedFunction": "none",
-        "reportUnusedVariable": "none",
-        "reportGeneralTypeIssues": "warning",
-        "reportOptionalSubscript": "none",
-        "reportOptionalMemberAccess": "none",
-        "reportOptionalCall": "none",
-        "reportOptionalIterable": "none",
-        "reportOptionalContextManager": "none",
-        "reportOptionalOperand": "none"
-    },
-    "python.analysis.extraPaths": [
-        "./functions/basic",
-        "./functions/advanced",
-        "./functions/common"
-    ],
     "python.linting.enabled": true,
     "python.linting.flake8Enabled": true,
     "python.linting.pylintEnabled": false,
