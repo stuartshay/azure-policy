@@ -14,9 +14,10 @@ from unittest.mock import Mock, patch
 from azure.servicebus.exceptions import ServiceBusError
 
 # Add the parent directory to the path to import the function app module
+# (must be after all stdlib/third-party imports, before local imports for flake8 E402 compliance)
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from function_app import (  # pyright: ignore  # noqa: E402
+from functions.advanced.function_app import (  # noqa: E402
     ServiceBusManager,
     function_info,
     health_check,
@@ -26,42 +27,54 @@ from function_app import (  # pyright: ignore  # noqa: E402
 )
 
 
+# Test subclass to expose protected methods for testing
+class TestableServiceBusManager(ServiceBusManager):
+    def get_client_public(self):
+        return self._get_client()
+
+
 class TestServiceBusManager(unittest.TestCase):
     """Test cases for ServiceBusManager class."""
 
     def setUp(self):
         """Set up test fixtures."""
-        self.manager = ServiceBusManager()
+        self.manager = TestableServiceBusManager()
 
     @patch.dict(
         os.environ,
         {
-            "ServiceBusConnectionString": "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=test;SharedAccessKey=test",
+            "ServiceBusConnectionString": (
+                "Endpoint=sb://test.servicebus.windows.net/;"
+                "SharedAccessKeyName=test;"
+                "SharedAccessKey=test"
+            ),
             "PolicyNotificationsQueue": "test-queue",
         },
     )
     def test_init_with_environment_variables(self):
         """Test ServiceBusManager initialization with environment variables."""
-        manager = ServiceBusManager()
+        manager = TestableServiceBusManager()
         self.assertEqual(
             manager.connection_string,
-            "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=test;SharedAccessKey=test",
+            "Endpoint=sb://test.servicebus.windows.net/;"
+            "SharedAccessKeyName=test;"
+            "SharedAccessKey=test",
         )
         self.assertEqual(manager.queue_name, "test-queue")
 
     @patch.dict(os.environ, {}, clear=True)
     def test_init_without_environment_variables(self):
         """Test ServiceBusManager initialization without environment variables."""
-        manager = ServiceBusManager()
+        manager = TestableServiceBusManager()
         self.assertIsNone(manager.connection_string)
         self.assertEqual(manager.queue_name, "policy-notifications")
 
     @patch.dict(os.environ, {"ServiceBusConnectionString": ""})
     def test_get_client_without_connection_string(self):
         """Test _get_client raises ValueError when connection string is not set."""
-        manager = ServiceBusManager()
+        manager = TestableServiceBusManager()
         with self.assertRaises(ValueError) as context:
-            manager._get_client()
+            manager.get_client_public()
         self.assertIn(
             "ServiceBusConnectionString not configured", str(context.exception)
         )
@@ -70,8 +83,8 @@ class TestServiceBusManager(unittest.TestCase):
     @patch.dict(os.environ, {"ServiceBusConnectionString": "test-connection-string"})
     def test_get_client_creates_client(self, mock_service_bus_client):
         """Test _get_client creates and returns ServiceBusClient."""
-        manager = ServiceBusManager()
-        client = manager._get_client()
+        manager = TestableServiceBusManager()
+        client = manager.get_client_public()
 
         mock_service_bus_client.from_connection_string.assert_called_once_with(
             "test-connection-string"

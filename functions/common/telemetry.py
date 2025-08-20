@@ -21,7 +21,7 @@ except ImportError:
     execution_context = None
     Span = None
 
-from .logging_config import get_tracer
+from functions.common.logging_config import get_tracer
 
 
 def track_custom_event(

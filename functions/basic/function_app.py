@@ -17,9 +17,9 @@ import azure.functions as func
 # Add the parent directory to the path to import common modules
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from common.decorators import log_function_execution
-from common.logging_config import get_logger, setup_application_insights
-from common.telemetry import track_custom_event, track_custom_metric
+from functions.common.decorators import log_function_execution
+from functions.common.logging_config import get_logger, setup_application_insights
+from functions.common.telemetry import track_custom_event, track_custom_metric
 
 # Initialize Application Insights
 setup_application_insights()

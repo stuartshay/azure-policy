@@ -27,9 +27,9 @@ def project_root() -> Path:
 
 
 @pytest.fixture
-def policies_dir(project_root: Path) -> Path:
+def policies_dir(project_root_fixture: Path) -> Path:
     """Get the policies directory."""
-    return project_root / "policies"
+    return project_root_fixture / "policies"
 
 
 @pytest.fixture
@@ -64,10 +64,10 @@ def invalid_policy_json():
 
 
 @pytest.fixture
-def temp_policy_file(sample_policy_json):
+def temp_policy_file(sample_policy_json_fixture):
     """Create a temporary policy file for testing."""
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-        json.dump(sample_policy_json, f, indent=2)
+        json.dump(sample_policy_json_fixture, f, indent=2)
         temp_file = f.name
 
     yield temp_file

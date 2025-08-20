@@ -10,9 +10,9 @@ This package provides shared functionality across all Azure Functions including:
 __version__ = "1.0.0"
 __author__ = "Azure Policy Team"
 
-from .decorators import log_function_execution
-from .logging_config import get_logger, setup_application_insights
-from .telemetry import track_custom_event, track_custom_metric
+from functions.common.decorators import log_function_execution
+from functions.common.logging_config import get_logger, setup_application_insights
+from functions.common.telemetry import track_custom_event, track_custom_metric
 
 __all__ = [
     "get_logger",

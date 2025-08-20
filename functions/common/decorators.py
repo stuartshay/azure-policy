@@ -7,13 +7,19 @@ to Azure Functions.
 
 import functools
 import time
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, TypeVar, cast
 import uuid
 
 import azure.functions as func
 
-from .logging_config import get_logger
-from .telemetry import track_custom_event, track_custom_metric, track_exception
+from functions.common.logging_config import get_logger
+from functions.common.telemetry import (
+    track_custom_event,
+    track_custom_metric,
+    track_exception,
+)
+
+F = TypeVar("F", bound=Callable[..., func.HttpResponse])
 
 
 def log_function_execution(
@@ -21,7 +27,7 @@ def log_function_execution(
     track_performance: bool = True,
     track_events: bool = True,
     custom_properties: Optional[Dict[str, str]] = None,
-) -> Any:
+) -> Callable[[F], F]:
     """
     Decorator to automatically log function execution with Application Insights
 
@@ -35,7 +41,7 @@ def log_function_execution(
         Decorated function
     """
 
-    def decorator(func_handler: Callable) -> Callable:
+    def decorator(func_handler: F) -> F:
         @functools.wraps(func_handler)
         def wrapper(req: func.HttpRequest) -> func.HttpResponse:
             # Generate correlation ID
@@ -158,7 +164,7 @@ def log_function_execution(
                 # Re-raise the exception
                 raise
 
-        return wrapper
+        return cast(F, wrapper)
 
     return decorator
 
@@ -189,7 +195,7 @@ def log_dependency_call(
                 duration_ms = (time.time() - start_time) * 1000
 
                 # Track successful dependency
-                from .telemetry import track_dependency
+                from functions.common.telemetry import track_dependency
 
                 track_dependency(
                     dependency_name,
@@ -209,7 +215,7 @@ def log_dependency_call(
                 duration_ms = (time.time() - start_time) * 1000
 
                 # Track failed dependency
-                from .telemetry import track_dependency
+                from functions.common.telemetry import track_dependency
 
                 track_dependency(
                     dependency_name,

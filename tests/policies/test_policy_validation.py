@@ -205,7 +205,7 @@ class TestPolicyCompliance:
 
     def test_storage_policies_target_correct_resource_types(self, policies_dir):
         """Test that storage policies target storage resource types."""
-        storage_policy_files = [f for f in policies_dir.glob("storage-*.json")]
+        storage_policy_files = list(policies_dir.glob("storage-*.json"))
 
         for policy_file in storage_policy_files:
             # Skip parameters fragment as it only contains parameter definitions
@@ -222,7 +222,7 @@ class TestPolicyCompliance:
 
     def test_resource_group_policies_have_appropriate_mode(self, policies_dir):
         """Test that resource group policies use appropriate mode."""
-        rg_policy_files = [f for f in policies_dir.glob("resource-group-*.json")]
+        rg_policy_files = list(policies_dir.glob("resource-group-*.json"))
 
         for policy_file in rg_policy_files:
             with open(policy_file, "r", encoding="utf-8") as f:
