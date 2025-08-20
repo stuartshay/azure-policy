@@ -7,11 +7,16 @@ including timer triggers, Service Bus operations, and health checks.
 
 import json
 import os
+import sys
 import unittest
 from unittest.mock import Mock, patch
 
 from azure.servicebus.exceptions import ServiceBusError
-from function_app import (  # noqa: E402
+
+# Add the parent directory to the path to import the function app module
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from function_app import (  # pyright: ignore  # noqa: E402
     ServiceBusManager,
     function_info,
     health_check,

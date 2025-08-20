@@ -12,7 +12,12 @@ import pytest
 # Add the parent directory to the path to import the function app module
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from function_app import SecretRotationManager  # noqa: E402
+from function_app import (  # pyright: ignore  # noqa: E402
+    SecretRotationManager,
+    manual_rotation,
+    rotation_health,
+    rotation_info,
+)
 
 
 class TestSecretRotationManager:
@@ -223,8 +228,6 @@ class TestFunctionEndpoints:
         mock_manager.key_vault_uri = "https://test-kv.vault.azure.net/"
         mock_manager.auth_rules = [{"name": "TestRule"}]
 
-        from function_app import rotation_health
-
         mock_req = Mock()
         response = rotation_health(mock_req)
 
@@ -241,8 +244,6 @@ class TestFunctionEndpoints:
             "rules_rotated": [],
         }
 
-        from function_app import manual_rotation
-
         mock_req = Mock()
         response = manual_rotation(mock_req)
 
@@ -252,8 +253,6 @@ class TestFunctionEndpoints:
 
     def test_rotation_info(self):
         """Test info endpoint."""
-        from function_app import rotation_info
-
         mock_req = Mock()
         response = rotation_info(mock_req)
 

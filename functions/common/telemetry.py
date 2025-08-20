@@ -10,8 +10,10 @@ import logging
 from typing import Any, Dict, Optional
 
 try:
-    from opencensus.trace import execution_context
-    from opencensus.trace.span import Span
+    from opencensus.trace import (  # pyright: ignore [reportMissingImports]
+        execution_context,
+    )
+    from opencensus.trace.span import Span  # pyright: ignore [reportMissingImports]
 
     OPENCENSUS_AVAILABLE = True
 except ImportError:

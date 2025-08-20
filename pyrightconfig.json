@@ -61,5 +61,6 @@
   "reportUnnecessaryIsInstance": false,
   "reportUnnecessaryCast": false,
   "reportUnnecessaryComparison": false,
-  "reportImplicitOverride": false
+  "reportImplicitOverride": false,
+  "reportAttributeAccessIssue": "warning"
 }

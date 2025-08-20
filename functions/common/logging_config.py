@@ -12,10 +12,16 @@ import sys
 from typing import Any, Dict, MutableMapping, Optional, Tuple, Union
 
 try:
-    from opencensus.ext.azure.log_exporter import AzureLogHandler
-    from opencensus.ext.azure.trace_exporter import AzureExporter
-    from opencensus.trace.samplers import ProbabilitySampler
-    from opencensus.trace.tracer import Tracer
+    from opencensus.ext.azure.log_exporter import (  # pyright: ignore [reportMissingImports]
+        AzureLogHandler,
+    )
+    from opencensus.ext.azure.trace_exporter import (  # pyright: ignore [reportMissingImports]
+        AzureExporter,
+    )
+    from opencensus.trace.samplers import (  # pyright: ignore [reportMissingImports]
+        ProbabilitySampler,
+    )
+    from opencensus.trace.tracer import Tracer  # pyright: ignore [reportMissingImports]
 
     OPENCENSUS_AVAILABLE = True
 except ImportError:
