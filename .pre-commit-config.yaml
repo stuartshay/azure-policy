@@ -181,7 +181,7 @@ repos:
         args:
           [
             '-c',
-            'for file in "$@"; do if [[ "$file" =~ \.md$ ]] && [[ ! "$file" =~ ^docs/ ]] && [[ ! "$file" =~ ^README\.md$ ]] && [[ ! "$file" =~ ^CHANGELOG\.md$ ]] && [[ ! "$file" =~ ^CONTRIBUTING\.md$ ]] && [[ ! "$file" =~ ^LICENSE\.md$ ]] && [[ ! "$file" =~ ^\.cline/ ]] && [[ ! "$file" =~ ^\.github/copilot_instructions\.md$ ]] && [[ ! "$file" =~ ^\.github/chatmodes/ ]] && [[ ! "$file" =~ /site-packages/ ]] && [[ ! "$file" =~ /\.venv/ ]] && [[ ! "$file" =~ modules/.*README\.md$ ]] && [[ ! "$file" =~ infrastructure/.*/README\.md$ ]] && [[ ! "$file" =~ functions/.*/README\.md$ ]]; then echo "❌ Markdown file $file should be in docs/ folder. Please move it: mv $file docs/$(basename $file)"; exit 1; fi; done',
+            'for file in "$@"; do if [[ "$file" =~ \.md$ ]] && [[ ! "$file" =~ ^docs/ ]] && [[ ! "$file" =~ ^\.github/instructions/ ]] && [[ ! "$file" =~ ^README\.md$ ]] && [[ ! "$file" =~ ^CHANGELOG\.md$ ]] && [[ ! "$file" =~ ^CONTRIBUTING\.md$ ]] && [[ ! "$file" =~ ^LICENSE\.md$ ]] && [[ ! "$file" =~ ^\.cline/ ]] && [[ ! "$file" =~ ^\.github/copilot_instructions\.md$ ]] && [[ ! "$file" =~ ^\.github/chatmodes/ ]] && [[ ! "$file" =~ /site-packages/ ]] && [[ ! "$file" =~ \/.venv/ ]] && [[ ! "$file" =~ modules/.*README\.md$ ]] && [[ ! "$file" =~ infrastructure/.*/README\.md$ ]] && [[ ! "$file" =~ functions/.*/README\.md$ ]]; then echo "❌ Markdown file $file should be in docs/ folder. Please move it: mv $file docs/$(basename $file)"; exit 1; fi; done',
             '--',
           ]
         language: system
