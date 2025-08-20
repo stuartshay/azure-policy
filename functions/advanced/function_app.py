@@ -22,9 +22,9 @@ app = func.FunctionApp()
 message_counter = 0
 
 # Lazy import for Service Bus to avoid import errors during cold start
-ServiceBusClient = None
-ServiceBusMessage = None
-ServiceBusError = None
+ServiceBusClient: Optional[Any] = None
+ServiceBusMessage: Optional[Any] = None
+ServiceBusError: Optional[Any] = None
 
 
 def _ensure_servicebus_imports() -> None:
@@ -65,7 +65,9 @@ class ServiceBusManager:
 
         if not self.client:
             if ServiceBusClient is not None:
-                self.client = ServiceBusClient.from_connection_string(
+                assert ServiceBusClient is not None  # for mypy
+                sb_client_cls: Any = ServiceBusClient
+                self.client = sb_client_cls.from_connection_string(
                     self.connection_string
                 )
             else:
@@ -84,9 +86,12 @@ class ServiceBusManager:
             bool: True if message sent successfully, False otherwise
         """
         try:
+
             _ensure_servicebus_imports()
             client = self._get_client()
-            message = ServiceBusMessage(json.dumps(message_data))
+            assert ServiceBusMessage is not None  # for mypy
+            message_cls: Any = ServiceBusMessage
+            message = message_cls(json.dumps(message_data))
 
             with client.get_queue_sender(self.queue_name) as sender:
                 sender.send_messages(message)
