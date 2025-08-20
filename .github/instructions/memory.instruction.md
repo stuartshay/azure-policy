@@ -32,3 +32,21 @@ applyTo: '**'
 ## Notes
 - If new function folders are added, ensure they have their own .vscode/settings.json for test discovery
 - Use absolute imports in test files for robust discovery
+
+## terraform-docs README.md Overwrite Root Cause
+
+### Why does README.md get overwritten?
+- The Makefile and CI/CD workflows (see docs-generate and pre-commit.yml) run `terraform-docs markdown table --output-file README.md --output-mode inject ...`.
+- The pre-commit hook for terraform-docs (in .pre-commit-config.yaml) and the GitHub Actions workflow both auto-generate or update README.md files for Terraform modules and sometimes for the project root.
+- If run in the wrong directory, or if the configuration is too broad, this can overwrite the main project README.md with Terraform module documentation.
+
+### How to prevent accidental overwrite:
+- Ensure terraform-docs is only run in module directories, not the project root, unless intentional.
+- Check .pre-commit-config.yaml and Makefile to scope terraform-docs hooks to module subfolders only.
+- Review CI/CD workflow steps to avoid running terraform-docs in the root unless desired.
+
+### Recovery:
+- Restore README.md from the master branch or backup if overwritten.
+
+### Recommendation:
+- Consider adding a test or CI check to detect if the root README.md was replaced with terraform-docs output and fail the build if so.
