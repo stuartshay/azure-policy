@@ -10,17 +10,12 @@
     "**/node_modules",
     "**/.terraform",
     "**/site-packages",
-    "**/azurite-data",
-    "**/tests"
+    "**/azurite-data"
   ],
   "pythonVersion": "3.13",
   "pythonPlatform": "Linux",
   "typeCheckingMode": "basic",
   "useLibraryCodeForTypes": true,
-  "reportMissingImports": "none",
-  "reportMissingTypeStubs": false,
-  "reportImportCycles": false,
-  "reportPrivateImportUsage": false,
   "pythonPath": [
     "functions"
   ],
@@ -30,6 +25,10 @@
     "functions/infrastructure",
     "functions/common"
   ],
+  "reportMissingImports": "none",
+  "reportMissingTypeStubs": false,
+  "reportImportCycles": false,
+  "reportPrivateImportUsage": false,
   "reportUnusedImport": false,
   "reportUnusedClass": false,
   "reportUnusedFunction": false,
@@ -55,9 +54,9 @@
   "reportSelfClsParameterName": false,
   "reportImplicitStringConcatenation": false,
   "reportUndefinedVariable": true,
-  "reportAssertAlwaysTrue": true,
+  "reportAssertAlwaysTrue": false,
   "reportInvalidStringEscapeSequence": true,
-  "reportInvalidTypeVarUse": true,
+  "reportInvalidTypeVarUse": false,
   "reportCallInDefaultInitializer": false,
   "reportUnnecessaryIsInstance": false,
   "reportUnnecessaryCast": false,

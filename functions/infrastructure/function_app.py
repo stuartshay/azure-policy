@@ -6,12 +6,12 @@ Service Bus authorization rule keys every 24 hours and updates Key Vault secrets
 It includes comprehensive error handling, audit logging, and monitoring capabilities.
 """
 
+from datetime import datetime, timedelta, timezone
 import json
 import logging
 import os
-import uuid
-from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Tuple, TypedDict
+import uuid
 
 import azure.functions as func
 
@@ -57,7 +57,8 @@ ServiceBusError = None
 
 def _ensure_azure_imports() -> None:
     """Ensure Azure SDK modules are imported when needed."""
-    global ServiceBusManagementClient, KeyVaultSecret, SecretClient, DefaultAzureCredential, ResourceManagementClient, ServiceBusError
+    global ServiceBusManagementClient, KeyVaultSecret, SecretClient
+    global DefaultAzureCredential, ResourceManagementClient, ServiceBusError
 
     if ServiceBusManagementClient is None:
         try:

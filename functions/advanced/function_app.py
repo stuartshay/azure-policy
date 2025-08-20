@@ -6,12 +6,12 @@ messages to a Service Bus queue every 10 seconds. It includes comprehensive
 error handling, health checks, and monitoring capabilities.
 """
 
+from datetime import datetime, timezone
 import json
 import logging
 import os
-import uuid
-from datetime import datetime, timezone
 from typing import Any, Dict, Optional
+import uuid
 
 import azure.functions as func
 
@@ -32,8 +32,10 @@ def _ensure_servicebus_imports() -> None:
     global ServiceBusClient, ServiceBusMessage, ServiceBusError
     if ServiceBusClient is None:
         try:
-            from azure.servicebus import ServiceBusClient as _ServiceBusClient
-            from azure.servicebus import ServiceBusMessage as _ServiceBusMessage
+            from azure.servicebus import (
+                ServiceBusClient as _ServiceBusClient,
+                ServiceBusMessage as _ServiceBusMessage,
+            )
             from azure.servicebus.exceptions import ServiceBusError as _ServiceBusError
 
             ServiceBusClient = _ServiceBusClient

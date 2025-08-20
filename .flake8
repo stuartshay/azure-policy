@@ -30,4 +30,8 @@ per-file-ignores =
     */__init__.py:F401
     # Allow long lines in configuration files
     *.py:E501
+    # Allow module level imports not at top for function apps that need path manipulation
+    functions/*/function_app.py:E402
+    # Allow imports after docstring in common modules
+    functions/common/*.py:E402
 max-complexity = 10

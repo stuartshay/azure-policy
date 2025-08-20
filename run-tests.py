@@ -6,9 +6,9 @@ This script runs tests from both function directories with proper environment se
 """
 
 import os
+from pathlib import Path
 import subprocess
 import sys
-from pathlib import Path
 
 
 def run_tests_in_directory(test_dir: Path, venv_path: Path) -> bool:

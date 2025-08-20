@@ -7,9 +7,9 @@ that can be used across different test modules.
 
 import json
 import os
+from pathlib import Path
 import sys
 import tempfile
-from pathlib import Path
 from typing import Any, Dict, List
 
 import pytest

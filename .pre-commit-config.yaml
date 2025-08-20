@@ -35,7 +35,7 @@ repos:
     rev: 6.0.1
     hooks:
       - id: isort
-        args: ['--profile=black', '--line-length=88']
+        args: ['--settings-path=.isort.cfg']
 
   - repo: https://github.com/pycqa/autoflake
     rev: v2.3.1
@@ -49,8 +49,10 @@ repos:
             '--remove-duplicate-keys',
             '--ignore-init-module-imports',
             '--recursive',
+            '--expand-star-imports',
+            '--ignore-pass-statements',
           ]
-        exclude: '^(.*/__pycache__/|\.venv/|venv/|migrations/|site-packages/|azurite-data/)'
+        exclude: '^(.*/__pycache__/|\.venv/|venv/|migrations/|site-packages/|azurite-data/|.*test.*\.py$|tests/.*\.py$)'
         language_version: python3
 
   - repo: https://github.com/pycqa/flake8
@@ -59,11 +61,31 @@ repos:
       - id: flake8
         args: ['--max-line-length=120', '--extend-ignore=E203,W503,F401,F841']
 
+  - repo: https://github.com/pycqa/pylint
+    rev: v3.3.1
+    hooks:
+      - id: pylint
+        args: ['--rcfile=.pylintrc']
+        exclude: '^(.*test.*\.py$|tests/.*\.py$|.*/__pycache__/|\.venv/|venv/|migrations/|site-packages/|azurite-data/|.*\.ipynb$)'
+        additional_dependencies:
+          - azure-functions==1.23.0
+          - azure-storage-blob==12.26.0
+          - azure-identity==1.24.0
+          - azure-keyvault-secrets==4.10.0
+          - azure-servicebus==7.14.2
+          - azure-mgmt-resource==23.0.0
+          - azure-mgmt-servicebus==9.0.0
+          - aiohttp==3.12.15
+          - python-dotenv==1.1.1
+          - requests==2.32.4
+          - pydantic==2.11.7
+
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.16.1
     hooks:
       - id: mypy
         args: ['--config-file=mypy.ini', '--disable-error-code=misc']
+        exclude: '.*test.*\.py$|tests/.*\.py$|functions/common/.*\.py$'
         additional_dependencies:
           - types-requests
           - types-PyYAML

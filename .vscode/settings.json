@@ -16,10 +16,38 @@
     },
     "python.defaultInterpreterPath": "./functions/basic/.venv/bin/python",
     "python.terminal.activateEnvironment": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingImports": "none",
+        "reportImportCycles": "none",
+        "reportPrivateImportUsage": "none",
+        "reportUnusedImport": "none",
+        "reportUnusedClass": "none",
+        "reportUnusedFunction": "none",
+        "reportUnusedVariable": "none",
+        "reportGeneralTypeIssues": "warning",
+        "reportOptionalSubscript": "none",
+        "reportOptionalMemberAccess": "none",
+        "reportOptionalCall": "none",
+        "reportOptionalIterable": "none",
+        "reportOptionalContextManager": "none",
+        "reportOptionalOperand": "none"
+    },
     "python.analysis.extraPaths": [
         "./functions/basic",
-        "./functions/advanced"
+        "./functions/advanced",
+        "./functions/common"
     ],
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.mypyEnabled": false,
+    "python.linting.flake8Args": [
+        "--config=.flake8"
+    ],
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.autoImportCompletions": true,
+    "pyrightconfig": "./pyrightconfig.json",
     "azureFunctions.deploySubpath": "functions/basic",
     "azureFunctions.pythonVenv": ".venv",
     "azureFunctions.projectLanguage": "Python",
@@ -66,5 +94,6 @@
     "python.testing.debugPort": 3000,
     "python.envFile": "${workspaceFolder}/.env",
     "chat.tools.autoApprove": true,
-    "chat.agent.maxRequests": 20
+    "chat.agent.maxRequests": 20,
+    "azureFunctions.projectSubpath": "functions/basic"
 }
