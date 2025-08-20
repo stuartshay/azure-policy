@@ -5,11 +5,9 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
-      day: 'monday'
-      time: '09:00'
-    open-pull-requests-limit: 10
-    reviewers:
-      - 'stuartshay'
+      day: 'friday'
+      time: '18:00'
+    open-pull-requests-limit: 20
     assignees:
       - 'stuartshay'
     commit-message:
@@ -19,16 +17,14 @@ updates:
       - 'dependencies'
       - 'python'
 
-  # Python dependencies - Functions
+  # Python dependencies - All Functions (Basic, Advanced, Infrastructure)
   - package-ecosystem: 'pip'
-    directory: '/functions/basic'
+    directory: '/functions'
     schedule:
       interval: 'weekly'
-      day: 'monday'
+      day: 'friday'
       time: '09:00'
-    open-pull-requests-limit: 5
-    reviewers:
-      - 'stuartshay'
+    open-pull-requests-limit: 20
     assignees:
       - 'stuartshay'
     commit-message:
@@ -47,8 +43,6 @@ updates:
       day: 'tuesday'
       time: '09:00'
     open-pull-requests-limit: 5
-    reviewers:
-      - 'stuartshay'
     assignees:
       - 'stuartshay'
     commit-message:
@@ -67,8 +61,6 @@ updates:
       day: 'wednesday'
       time: '09:00'
     open-pull-requests-limit: 5
-    reviewers:
-      - 'stuartshay'
     assignees:
       - 'stuartshay'
     commit-message:
@@ -87,8 +79,6 @@ updates:
       day: 'thursday'
       time: '09:00'
     open-pull-requests-limit: 3
-    reviewers:
-      - 'stuartshay'
     assignees:
       - 'stuartshay'
     commit-message:
