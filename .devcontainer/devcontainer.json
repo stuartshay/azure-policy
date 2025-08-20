@@ -6,7 +6,7 @@
   "shutdownAction": "stopCompose",
   "features": {
     "ghcr.io/devcontainers/features/python:1": {
-      "version": "3.13",
+      "version": "3.11",
       "installTools": true
     },
     "ghcr.io/devcontainers/features/azure-cli:1": {
