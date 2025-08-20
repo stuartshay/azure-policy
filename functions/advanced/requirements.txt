@@ -1,19 +1,7 @@
 # Azure Functions requirements for advanced timer function with Service Bus integration
 # Direct requirements to avoid relative path resolution issues during deployment
 
-# Azure Functions runtime
-azure-functions==1.23.0
-
-# Core Azure SDK packages needed for function execution
-azure-storage-blob==12.26.0
-azure-identity==1.24.0
-
-# HTTP client for function operations
-aiohttp==3.12.15
-requests==2.32.4
-
-# Configuration
-python-dotenv==1.1.1
+-r ../../requirements/functions.txt
 
 # Service Bus integration (use compatible version)
 azure-servicebus==7.13.0
