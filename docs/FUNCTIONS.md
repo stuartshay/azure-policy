@@ -1,13 +1,13 @@
 # Azure Functions - Basic HTTP Triggers
 
-This directory contains a basic Azure Functions application with HTTP triggers, demonstrating the Azure Functions Python v2 programming model with Python 3.13.
+This directory contains a basic Azure Functions application with HTTP triggers, demonstrating the Azure Functions Python v2 programming model with Python 3.11.
 
 ## Features
 
 - **Hello World HTTP Function**: Basic HTTP trigger that returns a greeting message
 - **Health Check Endpoint**: Monitoring endpoint for application health
 - **Info Endpoint**: Returns application and endpoint information
-- **Python 3.13**: Latest Python runtime support
+- **Python 3.11**: Latest supported Python runtime support
 - **Azure Functions v4**: Latest Azure Functions runtime
 - **Comprehensive Testing**: Unit tests with pytest
 - **DevContainer Support**: Complete development environment setup
@@ -18,7 +18,7 @@ This directory contains a basic Azure Functions application with HTTP triggers, 
 ### Prerequisites
 
 - Docker and VS Code with Dev Containers extension, OR
-- Python 3.13
+- Python 3.11
 - Azure Functions Core Tools v4
 - Azure CLI
 

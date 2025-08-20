@@ -140,7 +140,7 @@ The test requirements include:
 
 ### Local vs CI Differences
 
-1. **Python Version**: CI uses Python 3.13, ensure local environment matches
+1. **Python Version**: CI uses Python 3.11, ensure local environment matches
 2. **Environment Variables**: Check `local.settings.json` for local testing
 3. **Path Issues**: Ensure relative paths in requirements files are correct
 

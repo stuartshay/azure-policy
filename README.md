@@ -11,7 +11,7 @@ This repository contains tools and examples for Azure Policy management and Azur
 ### Core Directories
 - **`policies/`** - Azure Policy definitions and examples
 - **`scripts/`** - Azure CLI scripts for policy management
-- **`functions/basic/`** - Azure Functions with HTTP triggers (Python 3.13)
+- **`functions/basic/`** - Azure Functions with HTTP triggers (Python 3.11)
 - **`infrastructure/`** - Terraform infrastructure as code
 - **`notebooks/`** - Jupyter Notebooks for interactive Azure environment validation and analysis
 - **`tests/`** - Comprehensive testing framework (81% coverage)
@@ -51,7 +51,7 @@ This repository contains tools and examples for Azure Policy management and Azur
 
 ### Azure Functions
 
-- Python 3.13 with Azure Functions v4
+- Python 3.11 with Azure Functions v4
 - HTTP triggers with "Hello World" example
 - Health check and info endpoints
 - Comprehensive testing with pytest (81% coverage)
@@ -69,7 +69,7 @@ This repository contains tools and examples for Azure Policy management and Azur
 ### Development Environment
 
 - **DevContainer**: Complete containerized development environment
-- **Python 3.13**: Latest Python runtime
+- **Python 3.11**: Latest supported Python runtime
 - **Azure CLI**: For Azure resource management
 - **Azure Functions Core Tools**: For local function development
 - **GitHub CLI**: For repository and pull request management
@@ -156,7 +156,7 @@ If you prefer not to use DevContainer:
 
 ### Prerequisites
 
-- Python 3.13
+- Python 3.11
 - Azure CLI
 - Azure Functions Core Tools v4
 - GitHub CLI

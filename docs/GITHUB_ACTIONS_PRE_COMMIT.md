@@ -62,7 +62,7 @@ The workflow runs all hooks defined in `.pre-commit-config.yaml`:
 The workflow runs on `ubuntu-latest` with the following tools installed:
 
 ### System Dependencies
-- Python 3.13
+- Python 3.11
 - jq (JSON processor)
 - shellcheck (shell script linter)
 
