@@ -25,9 +25,9 @@
     "functions/infrastructure",
     "functions/common"
   ],
-  "reportMissingImports": "none",
+  "reportMissingImports": "warning",
   "reportMissingTypeStubs": false,
-  "reportImportCycles": false,
+  "reportImportCycles": "warning",
   "reportPrivateImportUsage": false,
   "reportUnusedImport": false,
   "reportUnusedClass": false,

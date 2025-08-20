@@ -18,8 +18,8 @@
     "python.terminal.activateEnvironment": true,
     "python.analysis.typeCheckingMode": "basic",
     "python.analysis.diagnosticSeverityOverrides": {
-        "reportMissingImports": "none",
-        "reportImportCycles": "none",
+        "reportMissingImports": "warning",
+        "reportImportCycles": "warning",
         "reportPrivateImportUsage": "none",
         "reportUnusedImport": "none",
         "reportUnusedClass": "none",

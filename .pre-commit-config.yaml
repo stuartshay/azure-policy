@@ -62,7 +62,7 @@ repos:
         args: ['--max-line-length=120', '--extend-ignore=E203,W503,F401,F841']
 
   - repo: https://github.com/pycqa/pylint
-    rev: v3.3.1
+    rev: v3.3.8
     hooks:
       - id: pylint
         args: ['--rcfile=.pylintrc']
@@ -81,7 +81,7 @@ repos:
           - pydantic==2.11.7
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.16.1
+    rev: v1.17.1
     hooks:
       - id: mypy
         args: ['--config-file=mypy.ini', '--disable-error-code=misc']
@@ -92,10 +92,10 @@ repos:
           - types-tabulate
 
   - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.402
+    rev: v1.1.404
     hooks:
       - id: pyright
-        args: ['--project', 'pyrightconfig-precommit.json']
+        args: ['--project', 'pyrightconfig.json']
         additional_dependencies:
           - types-requests==2.32.0.20241016
           - pydantic==2.11.7

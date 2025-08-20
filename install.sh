@@ -422,6 +422,99 @@ install_terraform_docs() {
   fi
 }
 
+# Function to install Python development tools
+install_python_dev_tools() {
+  echo "Installing Python development tools..."
+
+  # Install via pip3.13 to ensure they're available globally
+  echo "Installing mypy (static type checker)..."
+  sudo python3.13 -m pip install mypy
+
+  echo "Installing pyright (via npm - requires Node.js)..."
+  # Check if npm is available
+  if command -v npm >/dev/null 2>&1; then
+    sudo npm install -g pyright
+  else
+    echo "WARNING: npm not available - pyright will be installed by pre-commit when needed"
+  fi
+
+  echo "Installing pylint (code analysis tool)..."
+  sudo python3.13 -m pip install pylint
+
+  echo "Installing black (code formatter)..."
+  sudo python3.13 -m pip install black
+
+  echo "Installing isort (import sorter)..."
+  sudo python3.13 -m pip install isort
+
+  echo "Installing autoflake (unused import remover)..."
+  sudo python3.13 -m pip install autoflake
+
+  echo "Installing flake8 (style guide enforcement)..."
+  sudo python3.13 -m pip install flake8
+
+  echo "Installing bandit (security linter)..."
+  sudo python3.13 -m pip install bandit
+
+  echo "Installing pytest (testing framework)..."
+  sudo python3.13 -m pip install pytest pytest-cov pytest-mock
+
+  echo "Python development tools installation complete."
+
+  # Verify installations
+  echo "Verifying Python development tools..."
+  command -v mypy >/dev/null 2>&1 && echo "✅ mypy: $(mypy --version)" || echo "❌ mypy: not found"
+  command -v pyright >/dev/null 2>&1 && echo "✅ pyright: $(pyright --version)" || echo "❌ pyright: not found (will be installed by pre-commit)"
+  command -v pylint >/dev/null 2>&1 && echo "✅ pylint: $(pylint --version | head -1)" || echo "❌ pylint: not found"
+  command -v black >/dev/null 2>&1 && echo "✅ black: $(black --version)" || echo "❌ black: not found"
+  command -v isort >/dev/null 2>&1 && echo "✅ isort: $(isort --version)" || echo "❌ isort: not found"
+  command -v autoflake >/dev/null 2>&1 && echo "✅ autoflake: $(autoflake --version)" || echo "❌ autoflake: not found"
+  command -v flake8 >/dev/null 2>&1 && echo "✅ flake8: $(flake8 --version)" || echo "❌ flake8: not found"
+  command -v bandit >/dev/null 2>&1 && echo "✅ bandit: $(bandit --version)" || echo "❌ bandit: not found"
+  command -v pytest >/dev/null 2>&1 && echo "✅ pytest: $(pytest --version)" || echo "❌ pytest: not found"
+}
+
+# Function to install additional development tools
+install_additional_dev_tools() {
+  echo "Installing additional development tools..."
+
+  # Install actionlint for GitHub Actions workflow validation
+  echo "Installing actionlint (GitHub Actions linter)..."
+  if [[ "$OS" == "Linux" ]]; then
+    # Get latest version
+    ACTIONLINT_VERSION=$(curl -s https://api.github.com/repos/rhymond/actionlint/releases/latest | grep tag_name | cut -d '"' -f 4)
+    wget -O actionlint "https://github.com/rhymond/actionlint/releases/download/${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION#v}_linux_amd64"
+    chmod +x actionlint
+    sudo mv actionlint /usr/local/bin/
+  elif [[ "$OS" == "Darwin" ]]; then
+    brew install actionlint
+  fi
+
+  # Install shellcheck if not already available
+  echo "Installing shellcheck (shell script linter)..."
+  if [[ "$OS" == "Linux" ]]; then
+    if command -v apt >/dev/null 2>&1; then
+      sudo apt install -y shellcheck
+    elif command -v yum >/dev/null 2>&1; then
+      sudo yum install -y ShellCheck
+    fi
+  elif [[ "$OS" == "Darwin" ]]; then
+    brew install shellcheck
+  fi
+
+  # Install detect-secrets for secrets scanning
+  echo "Installing detect-secrets (secrets scanner)..."
+  sudo python3.13 -m pip install detect-secrets
+
+  echo "Additional development tools installation complete."
+
+  # Verify installations
+  echo "Verifying additional development tools..."
+  command -v actionlint >/dev/null 2>&1 && echo "✅ actionlint: $(actionlint --version)" || echo "❌ actionlint: not found"
+  command -v shellcheck >/dev/null 2>&1 && echo "✅ shellcheck: $(shellcheck --version | head -1)" || echo "❌ shellcheck: not found"
+  command -v detect-secrets >/dev/null 2>&1 && echo "✅ detect-secrets: $(detect-secrets --version)" || echo "❌ detect-secrets: not found"
+}
+
 # Function to install Checkov
 install_checkov() {
   echo "Installing Checkov..."
@@ -939,6 +1032,10 @@ echo "=== Installing Python 3.13 ==="
 install_python313
 
 echo ""
+echo "=== Installing Python Development Tools ==="
+install_python_dev_tools
+
+echo ""
 echo "=== Installing Azure CLI ==="
 
 if [[ "$OS" == "Linux" ]]; then
@@ -1029,6 +1126,10 @@ echo "=== Installing PostgreSQL Client ==="
 install_postgresql_client
 
 echo ""
+echo "=== Installing Additional Development Tools ==="
+install_additional_dev_tools
+
+echo ""
 echo "=== Installing Pre-commit ==="
 install_precommit
 
@@ -1058,6 +1159,22 @@ echo "Checkov version: $(checkov --version 2>/dev/null || echo 'Not found')"
 echo "PostgreSQL client version: $(psql --version 2>/dev/null || echo 'Not found')"
 echo "Pre-commit version: $(pre-commit --version 2>/dev/null || echo 'Not found')"
 echo ""
+echo "=== Python Development Tools ==="
+echo "mypy version: $(mypy --version 2>/dev/null || echo 'Not found')"
+echo "pyright version: $(pyright --version 2>/dev/null || echo 'Not found')"
+echo "pylint version: $(pylint --version 2>/dev/null | head -1 || echo 'Not found')"
+echo "black version: $(black --version 2>/dev/null || echo 'Not found')"
+echo "isort version: $(isort --version 2>/dev/null || echo 'Not found')"
+echo "autoflake version: $(autoflake --version 2>/dev/null || echo 'Not found')"
+echo "flake8 version: $(flake8 --version 2>/dev/null || echo 'Not found')"
+echo "bandit version: $(bandit --version 2>/dev/null || echo 'Not found')"
+echo "pytest version: $(pytest --version 2>/dev/null || echo 'Not found')"
+echo ""
+echo "=== Additional Development Tools ==="
+echo "actionlint version: $(actionlint --version 2>/dev/null || echo 'Not found')"
+echo "shellcheck version: $(shellcheck --version 2>/dev/null | head -1 || echo 'Not found')"
+echo "detect-secrets version: $(detect-secrets --version 2>/dev/null || echo 'Not found')"
+echo ""
 echo "Installation complete!"
 echo ""
 echo "WARNING: Node.js was installed via nvm"
@@ -1081,6 +1198,7 @@ echo ">> You're ready for Azure Policy & Functions development!"
 echo ""
 echo ">> Available tools:"
 echo "   - Python 3.13 with venv support"
+echo "   - Python development tools (mypy, pyright, pylint, black, isort, autoflake, flake8, bandit, pytest)"
 echo "   - nvm (Node Version Manager) with Node.js 24 LTS"
 echo "   - npm for JavaScript package management"
 echo "   - Azurite for local Azure Storage emulation"
@@ -1095,6 +1213,7 @@ echo "   - terraform-docs for generating documentation"
 echo "   - Checkov for security and compliance scanning"
 echo "   - PostgreSQL client (psql) for database connectivity testing"
 echo "   - Pre-commit for code quality and consistency"
+echo "   - Development tools (actionlint, shellcheck, detect-secrets)"
 echo "   - jq for JSON processing (perfect for CLI output parsing)"
 echo ""
 echo ">> Quick reference:"
