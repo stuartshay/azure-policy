@@ -1,3 +1,4 @@
+# pylint: disable=redefined-outer-name
 """
 Shared test configuration and fixtures for Azure Policy testing.
 
@@ -15,6 +16,18 @@ from typing import Any, Dict, List
 import pytest
 
 # Add function app directories to Python path for test discovery
+_root_path = Path(__file__).parent.parent
+sys.path.insert(0, str(_root_path / "functions" / "basic"))
+sys.path.insert(0, str(_root_path / "functions" / "advanced"))
+
+
+@pytest.fixture
+def test_resource_group_fixture():
+    """Stub fixture for test_resource_group_fixture to unblock integration tests."""
+    return "test-resource-group"
+
+
+# Add function app directories to Python path for test discovery
 root_path = Path(__file__).parent.parent
 sys.path.insert(0, str(root_path / "functions" / "basic"))
 sys.path.insert(0, str(root_path / "functions" / "advanced"))
@@ -26,10 +39,10 @@ def project_root() -> Path:
     return Path(__file__).parent.parent
 
 
-@pytest.fixture
-def policies_dir(project_root_fixture: Path) -> Path:
+@pytest.fixture  # pylint: disable=redefined-outer-name
+def policies_dir(project_root: Path) -> Path:
     """Get the policies directory."""
-    return project_root_fixture / "policies"
+    return project_root / "policies"
 
 
 @pytest.fixture

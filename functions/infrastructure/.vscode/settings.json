@@ -1,0 +1,12 @@
+{
+    "python.defaultInterpreterPath": "./.venv/bin/python",
+    "python.testing.pytestPath": "./.venv/bin/pytest",
+    "python.testing.pytestArgs": [
+        "tests",
+        "-v",
+        "--tb=short",
+        "--strict-config",
+        "--strict-markers"
+    ],
+    "python.testing.cwd": "${workspaceFolder}/functions/infrastructure"
+}
