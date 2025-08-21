@@ -358,7 +358,7 @@ For issues or questions:
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_monitoring"></a> [monitoring](#module\_monitoring) | github.com/stuartshay/azure-policy//infrastructure/terraform/modules/monitoring | v0.4.0 |
+| <a name="module_monitoring"></a> [monitoring](#module\_monitoring) | github.com/stuartshay/azure-policy//infrastructure/terraform/modules/monitoring | v0.5.0 |
 
 ## Resources
 
