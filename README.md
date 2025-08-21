@@ -6,15 +6,15 @@
 
 This repository contains tools and examples for Azure Policy management and Azure Functions development, with a complete DevContainer setup for streamlined development.
 
-## Azure Functions Overview
+## 🚀 Azure Functions Overview
 
 This project includes three distinct Azure Function types, each designed for different use cases and complexity levels:
 
-| Function Type | Trigger | Purpose | Documentation |
-|---------------|---------|---------|---------------|
-| **Basic** | HTTP | Simple REST API endpoints with health monitoring | [📖 Basic Function README](https://github.com/stuartshay/azure-policy/tree/develop/functions/basic) |
-| **Advanced** | Timer + HTTP | Scheduled tasks with Service Bus integration | [📖 Advanced Function README](https://github.com/stuartshay/azure-policy/tree/develop/functions/advanced) |
-| **Infrastructure** | Timer + HTTP | Automated secret rotation and infrastructure management | [📖 Infrastructure Function README](https://github.com/stuartshay/azure-policy/tree/develop/functions/infrastructure) |
+| 🎯 Function Type | ⚙️ Trigger | 🎨 Purpose | 📚 Documentation |
+|------------------|------------|------------|------------------|
+| ⚡ **Basic** | 🌐 HTTP | Simple REST API endpoints with health monitoring | [📖 Basic Function README](https://github.com/stuartshay/azure-policy/tree/develop/functions/basic) |
+| ⏰ **Advanced** | ⏲️ Timer + 🌐 HTTP | Scheduled tasks with Service Bus integration | [📖 Advanced Function README](https://github.com/stuartshay/azure-policy/tree/develop/functions/advanced) |
+| 🔧 **Infrastructure** | ⏲️ Timer + 🌐 HTTP | Automated secret rotation and infrastructure management | [📖 Infrastructure Function README](https://github.com/stuartshay/azure-policy/tree/develop/functions/infrastructure) |
 
 ### Basic Function (HTTP Triggers)
 - **Purpose**: Simple HTTP-triggered functions for REST API development
