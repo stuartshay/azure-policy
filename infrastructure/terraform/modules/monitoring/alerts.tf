@@ -238,7 +238,7 @@ resource "azurerm_monitor_activity_log_alert" "resource_health" {
 
   name                = "alert-resource-health"
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = "global"
   scopes              = ["/subscriptions/${var.subscription_id}"]
   description         = "Resource health degradation alert"
 
@@ -263,7 +263,7 @@ resource "azurerm_monitor_activity_log_alert" "service_health" {
 
   name                = "alert-service-health"
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = "global"
   scopes              = ["/subscriptions/${var.subscription_id}"]
   description         = "Azure service health issues"
 

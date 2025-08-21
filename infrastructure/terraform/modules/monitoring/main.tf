@@ -239,7 +239,7 @@ resource "azurerm_application_insights_workbook" "main" {
   name                = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   resource_group_name = var.resource_group_name
   location            = var.location
-  display_name        = "${var.workload} ${var.environment} Monitoring Dashboard"
+  display_name        = "Function Apps Monitor - Dev Environment"
 
   data_json = jsonencode({
     version = "Notebook/1.0"
