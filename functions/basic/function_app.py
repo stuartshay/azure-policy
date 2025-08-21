@@ -3,22 +3,39 @@ Azure Functions HTTP Trigger - Hello World Example
 
 This module contains a basic HTTP-triggered Azure Function that returns
 a "Hello World" message. It demonstrates the Azure Functions Python v2
-programming model with proper logging and error handling.
+programming model with Application Insights logging and telemetry.
 """
 
-import json
-import logging
 from datetime import datetime, timezone
+import json
+import os
+import sys
 from typing import Any, Dict
 
 import azure.functions as func
 
+# Add the parent directory to the path to import common modules
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
+from functions.common.decorators import log_function_execution
+from functions.common.logging_config import get_logger, setup_application_insights
+from functions.common.telemetry import track_custom_event, track_custom_metric
+
+# Initialize Application Insights
+setup_application_insights()
+
 # Initialize the function app
 app = func.FunctionApp()
+
+# Get logger for this module
+logger = get_logger(__name__)
 
 
 @app.function_name(name="HelloWorld")
 @app.route(route="hello", methods=["GET", "POST"])
+@log_function_execution(
+    function_name="HelloWorld", track_performance=True, track_events=True
+)
 def hello_world(req: func.HttpRequest) -> func.HttpResponse:
     """
     HTTP-triggered Azure Function that returns a Hello World message.
@@ -32,7 +49,9 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
     Returns:
         func.HttpResponse: JSON response with greeting and metadata
     """
-    logging.info("Python HTTP trigger function processed a request.")
+    # Get function-specific logger
+    func_logger = get_logger(__name__, function_name="HelloWorld")
+    func_logger.info("Python HTTP trigger function processed a request.")
 
     try:
         # Get the name parameter from query string or request body
@@ -44,11 +63,21 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
                 if req_body:
                     name = req_body.get("name")
             except ValueError:
-                logging.warning("Invalid JSON in request body")
+                func_logger.warning("Invalid JSON in request body")
 
         # Default name if none provided
         if not name:
             name = "World"
+
+        # Track custom event for name parameter
+        track_custom_event(
+            "HelloWorldRequest",
+            properties={
+                "name_provided": str(name != "World"),
+                "method": req.method,
+                "has_custom_name": str(name != "World"),
+            },
+        )
 
         # Create response data
         response_data: Dict[str, Any] = {
@@ -61,8 +90,16 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
             "status": "success",
         }
 
+        # Track custom metric for response size
+        response_size = len(json.dumps(response_data))
+        track_custom_metric(
+            "ResponseSize",
+            float(response_size),
+            properties={"function_name": "HelloWorld", "name": name},
+        )
+
         # Log successful execution
-        logging.info("Successfully processed request for name: %s", name)
+        func_logger.info("Successfully processed request for name: %s", name)
 
         # Return JSON response
         return func.HttpResponse(
@@ -77,7 +114,7 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
 
     except (ValueError, TypeError, KeyError) as e:
         # Log error
-        logging.error("Error processing request: %s", str(e))
+        func_logger.error("Error processing request: %s", str(e))
 
         # Return error response
         error_response = {
@@ -96,6 +133,9 @@ def hello_world(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.function_name(name="HealthCheck")
 @app.route(route="health", methods=["GET"])
+@log_function_execution(
+    function_name="HealthCheck", track_performance=True, track_events=True
+)
 def health_check(req: func.HttpRequest) -> func.HttpResponse:
     """
     Health check endpoint for monitoring and diagnostics.
@@ -106,7 +146,14 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
     Returns:
         func.HttpResponse: JSON response with health status
     """
-    logging.info("Health check endpoint accessed")
+    # Get function-specific logger
+    func_logger = get_logger(__name__, function_name="HealthCheck")
+    func_logger.info("Health check endpoint accessed")
+
+    # Track health check event
+    track_custom_event(
+        "HealthCheckAccessed", properties={"endpoint": "health", "status": "healthy"}
+    )
 
     health_data = {
         "status": "healthy",
@@ -125,6 +172,7 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.function_name(name="Info")
 @app.route(route="info", methods=["GET"])
+@log_function_execution(function_name="Info", track_performance=True, track_events=True)
 def info(req: func.HttpRequest) -> func.HttpResponse:
     """
     Information endpoint that returns details about the function app.
@@ -135,7 +183,14 @@ def info(req: func.HttpRequest) -> func.HttpResponse:
     Returns:
         func.HttpResponse: JSON response with function app information
     """
-    logging.info("Info endpoint accessed")
+    # Get function-specific logger
+    func_logger = get_logger(__name__, function_name="Info")
+    func_logger.info("Info endpoint accessed")
+
+    # Track info endpoint access
+    track_custom_event(
+        "InfoEndpointAccessed", properties={"endpoint": "info", "version": "1.0.0"}
+    )
 
     info_data = {
         "name": "Azure Functions - Basic HTTP Triggers",

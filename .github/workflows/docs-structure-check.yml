@@ -27,6 +27,7 @@ jobs:
           # Find all markdown files not in docs/ folder (excluding root-level exceptions and special directories)
           MISPLACED_FILES=$(find . -name "*.md" \
             -not -path "./docs/*" \
+            -not -path "./.github/instructions/*" \
             -not -name "README.md" \
             -not -name "CHANGELOG.md" \
             -not -name "CONTRIBUTING.md" \

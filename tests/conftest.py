@@ -1,3 +1,4 @@
+# pylint: disable=redefined-outer-name
 """
 Shared test configuration and fixtures for Azure Policy testing.
 
@@ -7,12 +8,24 @@ that can be used across different test modules.
 
 import json
 import os
+from pathlib import Path
 import sys
 import tempfile
-from pathlib import Path
 from typing import Any, Dict, List
 
 import pytest
+
+# Add function app directories to Python path for test discovery
+_root_path = Path(__file__).parent.parent
+sys.path.insert(0, str(_root_path / "functions" / "basic"))
+sys.path.insert(0, str(_root_path / "functions" / "advanced"))
+
+
+@pytest.fixture
+def test_resource_group_fixture():
+    """Stub fixture for test_resource_group_fixture to unblock integration tests."""
+    return "test-resource-group"
+
 
 # Add function app directories to Python path for test discovery
 root_path = Path(__file__).parent.parent
@@ -26,7 +39,7 @@ def project_root() -> Path:
     return Path(__file__).parent.parent
 
 
-@pytest.fixture
+@pytest.fixture  # pylint: disable=redefined-outer-name
 def policies_dir(project_root: Path) -> Path:
     """Get the policies directory."""
     return project_root / "policies"
@@ -64,10 +77,10 @@ def invalid_policy_json():
 
 
 @pytest.fixture
-def temp_policy_file(sample_policy_json):
+def temp_policy_file(sample_policy_json_fixture):
     """Create a temporary policy file for testing."""
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-        json.dump(sample_policy_json, f, indent=2)
+        json.dump(sample_policy_json_fixture, f, indent=2)
         temp_file = f.name
 
     yield temp_file

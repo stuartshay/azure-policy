@@ -115,7 +115,7 @@ class TestPolicyFragments:
 
     def test_storage_fragments_reference_storage_resources(self, policies_dir):
         """Test that storage-related fragments reference storage resources appropriately."""
-        storage_files = [f for f in policies_dir.glob("storage-*.json")]
+        storage_files = list(policies_dir.glob("storage-*.json"))
 
         for storage_file in storage_files:
             with open(storage_file, "r", encoding="utf-8") as f:
@@ -160,50 +160,30 @@ class TestPolicyFragments:
 
         for prefix in prefixes:
             related_files = [f for f in all_files if f.stem.startswith(prefix)]
-
             if len(related_files) > 1:
                 # We have multiple fragments for the same concept
-                [f.stem.split("-")[-1] for f in related_files]
-
-                # Collect all content from related fragments
                 combined_content = {}
-
                 for fragment_file in related_files:
                     with open(fragment_file, "r", encoding="utf-8") as f:
                         fragment_content = json.load(f)
-
                     fragment_type = fragment_file.stem.split("-")[-1]
-
                     if fragment_type == "parameters":
                         combined_content["parameters"] = fragment_content
                     elif fragment_type == "rule":
                         combined_content["policyRule"] = fragment_content
                     else:
-                        # Other fragments might be complete or partial policies
                         combined_content.update(fragment_content)
-
-                # If we have both parameters and rule, we could make a complete policy
                 if (
                     "parameters" in combined_content
                     and "policyRule" in combined_content
                 ):
-                    # This combination could form a complete policy
-                    # Add minimum required fields for conceptual completeness
                     combined_policy = {
                         "displayName": f"Combined {prefix.title()} Policy",
                         "description": f"Policy for {prefix} compliance",
                         "mode": "All",
                         **combined_content,
                     }
-
-                    # Validate the combined policy would be structurally valid
-                    required_fields = [
-                        "displayName",
-                        "description",
-                        "mode",
-                        "policyRule",
-                    ]
-                    for field in required_fields:
+                    for field in ("displayName", "description", "mode", "policyRule"):
                         assert (
                             field in combined_policy
                         ), f"Combined {prefix} policy missing {field}"

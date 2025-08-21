@@ -20,7 +20,11 @@ def azure_cli_available():
     """Check if Azure CLI is available and authenticated."""
     try:
         result = subprocess.run(
-            ["az", "account", "show"], capture_output=True, text=True, timeout=10
+            ["az", "account", "show"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
         )
         return result.returncode == 0
     except (subprocess.TimeoutExpired, FileNotFoundError):
@@ -104,10 +108,10 @@ class TestAzurePolicyIntegration:
         reason="Live Azure tests disabled. Set AZURE_LIVE_TESTS=true to enable",
     )
     def test_policy_definition_creation_live(
-        self, policies_dir, azure_cli_available, test_subscription_id
+        self, policies_dir, azure_cli_available_fixture, test_subscription_id_fixture
     ):
         """Live test: Create actual policy definitions in Azure (requires auth)."""
-        if not azure_cli_available:
+        if not azure_cli_available_fixture:
             pytest.skip("Azure CLI not available or not authenticated")
 
         policy_files = list(policies_dir.glob("*.json"))[:1]  # Test only first policy
@@ -134,7 +138,7 @@ class TestAzurePolicyIntegration:
                     "--rules",
                     json.dumps(policy["policyRule"]),
                     "--subscription",
-                    test_subscription_id,
+                    test_subscription_id_fixture,
                 ]
 
                 if "parameters" in policy:
@@ -144,7 +148,7 @@ class TestAzurePolicyIntegration:
                     create_cmd.extend(["--mode", policy["mode"]])
 
                 result = subprocess.run(
-                    create_cmd, capture_output=True, text=True, timeout=30
+                    create_cmd, capture_output=True, text=True, timeout=30, check=False
                 )
                 assert (
                     result.returncode == 0
@@ -159,11 +163,11 @@ class TestAzurePolicyIntegration:
                     "--name",
                     definition_name,
                     "--subscription",
-                    test_subscription_id,
+                    test_subscription_id_fixture,
                 ]
 
                 result = subprocess.run(
-                    show_cmd, capture_output=True, text=True, timeout=30
+                    show_cmd, capture_output=True, text=True, timeout=30, check=False
                 )
                 assert result.returncode == 0, f"Failed to show policy: {result.stderr}"
 
@@ -180,12 +184,14 @@ class TestAzurePolicyIntegration:
                     "--name",
                     definition_name,
                     "--subscription",
-                    test_subscription_id,
+                    test_subscription_id_fixture,
                     "--yes",
                 ]
-                subprocess.run(delete_cmd, capture_output=True, timeout=30)
+                subprocess.run(delete_cmd, capture_output=True, timeout=30, check=False)
 
-    def test_policy_assignment_simulation(self, policies_dir, test_resource_group):
+    def test_policy_assignment_simulation(
+        self, policies_dir, test_resource_group_fixture
+    ):
         """Simulate policy assignment to a resource group."""
         policy_files = list(policies_dir.glob("*.json"))
 
@@ -212,7 +218,7 @@ class TestAzurePolicyIntegration:
         # Simulate policy assignment command
         assignment_name = f"assign-{policy_file.stem}"
         definition_name = f"def-{policy_file.stem}"
-        scope = f"/subscriptions/test-sub/resourceGroups/{test_resource_group}"
+        scope = f"/subscriptions/test-sub/resourceGroups/{test_resource_group_fixture}"
 
         cli_command = [
             "az",
@@ -247,10 +253,8 @@ class TestAzurePolicyIntegration:
         assert "--policy" in cli_command
         assert "--scope" in cli_command
 
-    def test_policy_compliance_check_simulation(self, test_resource_group):
+    def test_policy_compliance_check_simulation(self, test_resource_group_fixture):
         """Simulate policy compliance checking."""
-        f"/subscriptions/test-sub/resourceGroups/{test_resource_group}"
-
         # Simulate compliance check command
         cli_command = [
             "az",
@@ -258,7 +262,7 @@ class TestAzurePolicyIntegration:
             "state",
             "list",
             "--resource-group",
-            test_resource_group,
+            test_resource_group_fixture,
             "--query",
             "[?complianceState=='NonCompliant']",
         ]

@@ -10,7 +10,8 @@ from unittest.mock import Mock
 
 import azure.functions as func
 import pytest
-from function_app import health_check, hello_world, info
+
+from functions.basic.function_app import health_check, hello_world, info
 
 
 class TestHelloWorldFunction:

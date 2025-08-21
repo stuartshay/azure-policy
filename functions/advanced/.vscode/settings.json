@@ -5,9 +5,12 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestArgs": [
         "tests",
-        "-v"
+        "-v",
+        "--tb=short",
+        "--strict-config",
+        "--strict-markers"
     ],
-    "python.testing.cwd": "${workspaceFolder}",
+    "python.testing.cwd": "${workspaceFolder}/functions/advanced",
     "python.testing.autoTestDiscoverOnSaveEnabled": true,
     "testExplorer.useNativeTesting": true,
     "python.testing.pytestPath": ".venv/bin/pytest",

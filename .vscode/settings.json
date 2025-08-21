@@ -16,10 +16,16 @@
     },
     "python.defaultInterpreterPath": "./functions/basic/.venv/bin/python",
     "python.terminal.activateEnvironment": true,
-    "python.analysis.extraPaths": [
-        "./functions/basic",
-        "./functions/advanced"
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.mypyEnabled": false,
+    "python.linting.flake8Args": [
+        "--config=.flake8"
     ],
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.autoImportCompletions": true,
+    "pyrightconfig": "./pyrightconfig.json",
     "azureFunctions.deploySubpath": "functions/basic",
     "azureFunctions.pythonVenv": ".venv",
     "azureFunctions.projectLanguage": "Python",
@@ -66,5 +72,8 @@
     "python.testing.debugPort": 3000,
     "python.envFile": "${workspaceFolder}/.env",
     "chat.tools.autoApprove": true,
-    "chat.agent.maxRequests": 20
+    "chat.agent.maxRequests": 20,
+    "github.copilot.chat.alternateGptPrompt.enabled": true,
+    "chat.todoListTool.enabled": true,
+    "azureFunctions.projectSubpath": "functions/basic"
 }

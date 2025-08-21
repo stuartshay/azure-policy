@@ -6,12 +6,12 @@ messages to a Service Bus queue every 10 seconds. It includes comprehensive
 error handling, health checks, and monitoring capabilities.
 """
 
+from datetime import datetime, timezone
 import json
 import logging
 import os
-import uuid
-from datetime import datetime, timezone
 from typing import Any, Dict, Optional
+import uuid
 
 import azure.functions as func
 
@@ -22,9 +22,9 @@ app = func.FunctionApp()
 message_counter = 0
 
 # Lazy import for Service Bus to avoid import errors during cold start
-ServiceBusClient = None
-ServiceBusMessage = None
-ServiceBusError = None
+ServiceBusClient: Optional[Any] = None
+ServiceBusMessage: Optional[Any] = None
+ServiceBusError: Optional[Any] = None
 
 
 def _ensure_servicebus_imports() -> None:
@@ -32,8 +32,10 @@ def _ensure_servicebus_imports() -> None:
     global ServiceBusClient, ServiceBusMessage, ServiceBusError
     if ServiceBusClient is None:
         try:
-            from azure.servicebus import ServiceBusClient as _ServiceBusClient
-            from azure.servicebus import ServiceBusMessage as _ServiceBusMessage
+            from azure.servicebus import (
+                ServiceBusClient as _ServiceBusClient,
+                ServiceBusMessage as _ServiceBusMessage,
+            )
             from azure.servicebus.exceptions import ServiceBusError as _ServiceBusError
 
             ServiceBusClient = _ServiceBusClient
@@ -63,7 +65,9 @@ class ServiceBusManager:
 
         if not self.client:
             if ServiceBusClient is not None:
-                self.client = ServiceBusClient.from_connection_string(
+                assert ServiceBusClient is not None  # for mypy
+                sb_client_cls: Any = ServiceBusClient
+                self.client = sb_client_cls.from_connection_string(
                     self.connection_string
                 )
             else:
@@ -82,9 +86,12 @@ class ServiceBusManager:
             bool: True if message sent successfully, False otherwise
         """
         try:
+
             _ensure_servicebus_imports()
             client = self._get_client()
-            message = ServiceBusMessage(json.dumps(message_data))
+            assert ServiceBusMessage is not None  # for mypy
+            message_cls: Any = ServiceBusMessage
+            message = message_cls(json.dumps(message_data))
 
             with client.get_queue_sender(self.queue_name) as sender:
                 sender.send_messages(message)

@@ -1,0 +1,3 @@
+"""
+Azure Functions Basic package.
+"""

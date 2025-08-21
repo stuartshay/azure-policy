@@ -4,23 +4,39 @@ Unit tests for the Service Bus secret rotation function.
 
 import json
 import os
-import sys
+import unittest
 from unittest.mock import Mock, patch
 
 import pytest
 
-# Add the parent directory to the path to import the function app module
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Import from the correct absolute path
+from functions.infrastructure.function_app import (
+    SecretRotationManager,
+    manual_rotation,
+    rotation_health,
+    rotation_info,
+)
 
-from function_app import SecretRotationManager  # noqa: E402
+
+class TestableSecretRotationManager(SecretRotationManager):
+    """Subclass to expose protected methods for testing."""
+
+    def get_credential_public(self):
+        return self._get_credential()
+
+    def get_servicebus_client_public(self):
+        return self._get_servicebus_client()
+
+    def get_keyvault_client_public(self):
+        return self._get_keyvault_client()
 
 
-class TestSecretRotationManager:
+class TestSecretRotationManager(unittest.TestCase):
     """Test cases for SecretRotationManager class."""
 
-    def setup_method(self):
+    def setUp(self):
         """Set up test fixtures."""
-        self.manager = SecretRotationManager()
+        self.manager = TestableSecretRotationManager()
 
     @patch.dict(
         os.environ,
@@ -49,21 +65,19 @@ class TestSecretRotationManager:
             assert manager.namespace_name == "sb-azpolicy-dev-eastus-001"
             assert manager.rotation_enabled is True
 
-    @patch("function_app._ensure_azure_imports")
-    @patch("function_app.DefaultAzureCredential")
+    @patch("functions.infrastructure.function_app._ensure_azure_imports")
+    @patch("functions.infrastructure.function_app.DefaultAzureCredential")
     def test_get_credential(self, mock_credential_class, mock_imports):
         """Test credential initialization."""
         mock_credential = Mock()
         mock_credential_class.return_value = mock_credential
-
-        credential = self.manager._get_credential()
-
+        credential = self.manager.get_credential_public()
         mock_imports.assert_called_once()
         mock_credential_class.assert_called_once()
         assert credential == mock_credential
 
-    @patch("function_app._ensure_azure_imports")
-    @patch("function_app.ServiceBusManagementClient")
+    @patch("functions.infrastructure.function_app._ensure_azure_imports")
+    @patch("functions.infrastructure.function_app.ServiceBusManagementClient")
     def test_get_servicebus_client(self, mock_client_class, mock_imports):
         """Test Service Bus client initialization."""
         mock_client = Mock()
@@ -71,21 +85,21 @@ class TestSecretRotationManager:
 
         with patch.dict(os.environ, {"AZURE_SUBSCRIPTION_ID": "test-sub"}):
             # Create a new manager instance with the environment variable set
-            manager = SecretRotationManager()
+            manager = TestableSecretRotationManager()
 
             with patch.object(manager, "_get_credential") as mock_get_cred:
                 mock_credential = Mock()
                 mock_get_cred.return_value = mock_credential
 
-                client = manager._get_servicebus_client()
+                client = manager.get_servicebus_client_public()
 
                 mock_imports.assert_called_once()
                 mock_get_cred.assert_called_once()
                 mock_client_class.assert_called_once_with(mock_credential, "test-sub")
                 assert client == mock_client
 
-    @patch("function_app._ensure_azure_imports")
-    @patch("function_app.SecretClient")
+    @patch("functions.infrastructure.function_app._ensure_azure_imports")
+    @patch("functions.infrastructure.function_app.SecretClient")
     def test_get_keyvault_client(self, mock_client_class, mock_imports):
         """Test Key Vault client initialization."""
         mock_client = Mock()
@@ -96,7 +110,7 @@ class TestSecretRotationManager:
             mock_get_cred.return_value = mock_credential
 
             self.manager.key_vault_uri = "https://test-kv.vault.azure.net/"
-            client = self.manager._get_keyvault_client()
+            client = self.manager.get_keyvault_client_public()
 
             mock_imports.assert_called_once()
             mock_get_cred.assert_called_once()
@@ -223,8 +237,6 @@ class TestFunctionEndpoints:
         mock_manager.key_vault_uri = "https://test-kv.vault.azure.net/"
         mock_manager.auth_rules = [{"name": "TestRule"}]
 
-        from function_app import rotation_health
-
         mock_req = Mock()
         response = rotation_health(mock_req)
 
@@ -241,8 +253,6 @@ class TestFunctionEndpoints:
             "rules_rotated": [],
         }
 
-        from function_app import manual_rotation
-
         mock_req = Mock()
         response = manual_rotation(mock_req)
 
@@ -252,8 +262,6 @@ class TestFunctionEndpoints:
 
     def test_rotation_info(self):
         """Test info endpoint."""
-        from function_app import rotation_info
-
         mock_req = Mock()
         response = rotation_info(mock_req)
 

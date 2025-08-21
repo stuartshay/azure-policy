@@ -6,6 +6,53 @@
 
 This repository contains tools and examples for Azure Policy management and Azure Functions development, with a complete DevContainer setup for streamlined development.
 
+## 🚀 Azure Functions Overview
+
+This project includes three distinct Azure Function types, each designed for different use cases and complexity levels:
+
+| 🎯 Function Type | ⚙️ Trigger | 🎨 Purpose | 📚 Documentation |
+|------------------|------------|------------|------------------|
+| ⚡ **Basic** | 🌐 HTTP | Simple REST API endpoints with health monitoring | [📖 Basic Function](https://github.com/stuartshay/azure-policy/tree/develop/functions/basic) |
+| ⏰ **Advanced** | ⏲️ Timer + 🌐 HTTP | Scheduled tasks with Service Bus integration | [📖 Advanced Function](https://github.com/stuartshay/azure-policy/tree/develop/functions/advanced) |
+| 🔧 **Infrastructure** | ⏲️ Timer + 🌐 HTTP | Automated secret rotation and infrastructure management | [📖 Infrastructure Function](https://github.com/stuartshay/azure-policy/tree/develop/functions/infrastructure) |
+
+### Basic Function (HTTP Triggers)
+- **Purpose**: Simple HTTP-triggered functions for REST API development
+- **Key Features**: Hello World, Health Check, and Info endpoints
+- **Use Cases**: API development, health monitoring, basic web services
+- **Quick Start**:
+  ```bash
+  cd functions/basic
+  func start
+  ```
+- **Endpoints**: `/api/hello`, `/api/health`, `/api/info`
+
+### Advanced Function (Timer + Service Bus)
+- **Purpose**: Timer-triggered functions with Azure Service Bus integration
+- **Key Features**: Scheduled message sending (every 10 seconds), Service Bus health monitoring
+- **Use Cases**: Scheduled tasks, message queue processing, event-driven architecture
+- **Prerequisites**: Azure Service Bus namespace and queue
+- **Quick Start**:
+  ```bash
+  cd functions/advanced
+  # Configure Service Bus connection in local.settings.json
+  func start
+  ```
+- **Endpoints**: `/api/health`, `/api/health/servicebus`, `/api/info`, `/api/test/send-message`
+
+### Infrastructure Function (Secret Rotation)
+- **Purpose**: Automated secret rotation for Service Bus authorization rules
+- **Key Features**: Daily secret rotation, Key Vault integration, manual rotation endpoint
+- **Use Cases**: Security automation, compliance, secret management
+- **Prerequisites**: Azure Service Bus, Key Vault, Managed Identity with proper RBAC roles
+- **Quick Start**:
+  ```bash
+  cd functions/infrastructure
+  # Configure Azure resources and managed identity
+  func start
+  ```
+- **Endpoints**: `/api/health`, `/api/info`, `/api/rotate`
+
 ## Repository Structure
 
 ### Core Directories
