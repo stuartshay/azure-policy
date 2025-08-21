@@ -167,9 +167,8 @@ resource "azurerm_monitor_diagnostic_setting" "log_analytics" {
     category = "Audit"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 

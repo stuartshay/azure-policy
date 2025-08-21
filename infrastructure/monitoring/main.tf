@@ -201,9 +201,8 @@ resource "azurerm_monitor_diagnostic_setting" "function_app_basic" {
     category = "FunctionAppLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 
@@ -218,9 +217,8 @@ resource "azurerm_monitor_diagnostic_setting" "function_app_advanced" {
     category = "FunctionAppLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 
@@ -235,8 +233,7 @@ resource "azurerm_monitor_diagnostic_setting" "function_app_infrastructure" {
     category = "FunctionAppLogs"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
