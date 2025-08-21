@@ -327,7 +327,7 @@ resource "azurerm_consumption_budget_resource_group" "monitoring" {
 
 # Smart Detection Rules for Application Insights
 resource "azurerm_application_insights_smart_detection_rule" "failure_anomalies" {
-  name                    = "Failure Anomalies - ${local.app_insights_name}"
+  name                    = "Abnormal rise in exception volume"
   application_insights_id = azurerm_application_insights.main.id
   enabled                 = var.enable_smart_detection
 
@@ -336,7 +336,7 @@ resource "azurerm_application_insights_smart_detection_rule" "failure_anomalies"
 }
 
 resource "azurerm_application_insights_smart_detection_rule" "performance_anomalies" {
-  name                    = "Performance Anomalies - ${local.app_insights_name}"
+  name                    = "Slow server response time"
   application_insights_id = azurerm_application_insights.main.id
   enabled                 = var.enable_smart_detection
 
@@ -345,7 +345,7 @@ resource "azurerm_application_insights_smart_detection_rule" "performance_anomal
 }
 
 resource "azurerm_application_insights_smart_detection_rule" "trace_severity" {
-  name                    = "Trace Severity Detector - ${local.app_insights_name}"
+  name                    = "Degradation in trace severity ratio"
   application_insights_id = azurerm_application_insights.main.id
   enabled                 = var.enable_smart_detection
 

@@ -236,7 +236,7 @@ resource "azurerm_log_analytics_solution" "updates" {
 resource "azurerm_application_insights_workbook" "main" {
   count = var.enable_workbook ? 1 : 0
 
-  name                = "wb-${var.workload}-${var.environment}"
+  name                = "12345678-1234-1234-1234-123456789012"
   resource_group_name = var.resource_group_name
   location            = var.location
   display_name        = "${var.workload} ${var.environment} Monitoring Dashboard"

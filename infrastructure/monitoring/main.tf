@@ -124,8 +124,8 @@ locals {
 
 # Monitoring Module
 module "monitoring" {
-  # Local source path
-  source = "../terraform/modules/monitoring"
+  # GitHub source with semantic versioning
+  source = "github.com/stuartshay/azure-policy//infrastructure/terraform/modules/monitoring?ref=v0.2.0"
 
   # Required variables
   resource_group_name = data.azurerm_resource_group.main.name
