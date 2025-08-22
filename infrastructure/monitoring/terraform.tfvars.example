@@ -1,0 +1,66 @@
+# Example terraform.tfvars for Monitoring Infrastructure
+
+# Environment Configuration
+environment = "dev"
+location    = "East US"
+resource_group_name = "rg-azpolicy-dev-eastus"
+subscription_id     = "00000000-0000-0000-0000-000000000000"
+workload            = "azpolicy"
+cost_center         = "development"
+owner               = "platform-team"
+
+# Log Analytics
+log_analytics_sku       = "PerGB2018"
+log_retention_days      = 30
+daily_quota_gb          = -1
+reservation_capacity_gb = null
+
+# Application Insights
+sampling_percentage = 100
+
+# Notification Configuration
+notification_emails = {
+  admin = "admin@example.com"
+  team  = "team@example.com"
+}
+notification_sms = {}
+notification_webhooks = {}
+
+# Alert Thresholds
+cpu_threshold           = 80
+memory_threshold        = 85
+error_threshold         = 10
+response_time_threshold = 5
+exception_threshold     = 5
+availability_threshold  = 95
+performance_threshold   = 5000
+
+# Feature Toggles
+enable_storage_monitoring    = false
+enable_vm_insights           = false
+enable_workspace_diagnostics = true
+enable_private_endpoints     = false
+enable_security_center       = true
+enable_update_management     = false
+enable_workbook              = true
+enable_log_alerts            = true
+enable_activity_log_alerts   = true
+enable_budget_alerts         = false
+enable_smart_detection       = true
+enable_availability_tests    = false
+
+# Private Endpoint Configuration
+private_dns_zone_ids = []
+
+# Budget Configuration
+budget_amount              = 100
+budget_notification_emails = []
+
+# Smart Detection Configuration
+smart_detection_emails = []
+
+# Function App Monitoring
+monitor_existing_functions      = true
+monitor_basic_function          = true
+monitor_advanced_function       = true
+monitor_infrastructure_function = false

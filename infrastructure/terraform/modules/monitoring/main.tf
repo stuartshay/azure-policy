@@ -8,6 +8,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.40"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = ">= 3.0"
+    }
   }
 }
 
@@ -231,11 +235,16 @@ resource "azurerm_log_analytics_solution" "updates" {
   tags = var.tags
 }
 
+# Generate a unique GUID for the workbook name (only when enabled)
+resource "random_uuid" "workbook" {
+  count = var.enable_workbook ? 1 : 0
+}
+
 # Workbook for monitoring dashboard (optional)
 resource "azurerm_application_insights_workbook" "main" {
   count = var.enable_workbook ? 1 : 0
 
-  name                = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  name                = random_uuid.workbook[0].result
   resource_group_name = var.resource_group_name
   location            = var.location
   display_name        = "Function Apps Monitor - Dev Environment"

@@ -81,25 +81,17 @@ The monitoring infrastructure provides:
 
 ### Environment Variables
 
-Update `terraform.tfvars` with your specific configuration:
 
-```hcl
-# Environment Configuration
-environment = "dev"
-location    = "East US"
-resource_group_name = "rg-azpolicy-dev-eastus"
+### Using the Example Configuration
 
-# Notification Configuration
-notification_emails = {
-  admin = "your-admin@company.com"
-  team  = "your-team@company.com"
-}
+An example configuration file is provided as `terraform.tfvars.example` in this directory. Copy it to `terraform.tfvars` and update the values as needed for your environment:
 
-# Alert Thresholds
-cpu_threshold = 80
-memory_threshold = 85
-error_threshold = 10
+```bash
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars to match your Azure environment and notification settings
 ```
+
+All required and optional variables are documented in the example file, including environment, resource group, notification settings, alert thresholds, feature toggles, and advanced options.
 
 ### Feature Toggles
 

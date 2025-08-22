@@ -24,6 +24,37 @@ applyTo: '**'
 ## Context7 Research History
 - Not yet used for this project
 
+## Monitoring Workspace Integration (PR #99)
+
+### Summary of Changes
+- Added new monitoring infrastructure workspace using a dedicated Terraform module (v0.5.0)
+- Replaced hardcoded Application Insights workbook GUID with random_uuid resource
+- Consolidated required_providers blocks in monitoring module to avoid Terraform validation errors
+- Created terraform.tfvars.example for user configuration
+- Updated monitoring/README.md for clear setup instructions
+- Integrated monitoring workspace into Makefile, pre-commit, and GitHub Actions workflows (terraform-validate, terraform-apply)
+- Validated module versioning and provider constraints (azurerm ~> 4.40, random >= 3.0)
+- Ran pre-commit and CI/CD validation: all checks now pass
+
+### Lessons Learned & Best Practices
+- Always consolidate required_providers in a single terraform block per module to avoid validation errors
+- Use random_uuid for unique resource names instead of hardcoded values
+- Provide terraform.tfvars.example for user onboarding and documentation
+- Keep documentation (README.md) in sync with module and workflow changes
+- Ensure Makefile and CI/CD workflows are updated to include new workspaces/modules
+- Run pre-commit and CI/CD validation after every major change
+- Address all reviewer comments and validation warnings before merging
+
+### Validation Results
+- All pre-commit hooks (lint, format, security, docs, Terraform validate, tflint, checkov) pass
+- Terraform validate and tflint confirm no duplicate provider or config errors
+- CI/CD workflows now include monitoring workspace and pass all checks
+
+### Next Steps
+- Continue to use these patterns for future module/workspace additions
+- Review .pre-commit-config.yaml and workflows when adding new modules
+- Document any new best practices in memory for future reference
+
 ## Conversation History
 - Problem: Only main tests folder was available in Test Explorer, function-specific test folders were not
 - Solution: Added/updated .vscode/settings.json in each function folder to use its own venv and pytest for test discovery; fixed import in basic function test
