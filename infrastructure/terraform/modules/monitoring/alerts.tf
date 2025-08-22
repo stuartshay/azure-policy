@@ -296,7 +296,8 @@ resource "azurerm_consumption_budget_resource_group" "monitoring" {
 
   time_period {
     start_date = formatdate("YYYY-MM-01'T'00:00:00'Z'", timestamp())
-    end_date   = formatdate("YYYY-MM-01'T'00:00:00'Z'", timeadd(timestamp(), "8760h")) # 1 year
+    start_date = var.budget_start_date
+    end_date   = formatdate("YYYY-MM-01'T'00:00:00'Z'", timeadd(var.budget_start_date, "8760h")) # 1 year
   }
 
   filter {
