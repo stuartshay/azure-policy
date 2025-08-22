@@ -247,7 +247,7 @@ resource "azurerm_application_insights_workbook" "main" {
   name                = random_uuid.workbook[0].result
   resource_group_name = var.resource_group_name
   location            = var.location
-  display_name        = "Function Apps Monitor - Dev Environment"
+  display_name        = "Function Apps Monitor - ${var.environment} Environment"
 
   data_json = jsonencode({
     version = "Notebook/1.0"
