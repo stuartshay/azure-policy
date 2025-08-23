@@ -518,6 +518,42 @@ terraform-service-bus-status: ## Show Service Bus deployment status
 	@echo "$(BLUE)Service Bus deployment status:$(RESET)"
 	@cd $(INFRASTRUCTURE_PATH)/service-bus && $(MAKE) status
 
+terraform-monitoring-init: ## Initialize Monitoring workspace
+	@echo "$(YELLOW)Initializing Monitoring workspace...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/monitoring && $(MAKE) init
+
+terraform-monitoring-plan: ## Plan Monitoring workspace changes
+	@echo "$(YELLOW)Planning Monitoring workspace changes...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/monitoring && $(MAKE) plan
+
+terraform-monitoring-apply: ## Apply Monitoring workspace changes
+	@echo "$(YELLOW)Applying Monitoring workspace changes...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/monitoring && $(MAKE) apply
+
+terraform-monitoring-destroy: ## Destroy Monitoring workspace resources
+	@echo "$(RED)Destroying Monitoring workspace resources...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/monitoring && $(MAKE) destroy
+
+terraform-monitoring-output: ## Show Monitoring workspace outputs
+	@echo "$(YELLOW)Monitoring workspace outputs:$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/monitoring && $(MAKE) output
+
+terraform-monitoring-status: ## Show Monitoring deployment status
+	@echo "$(BLUE)Monitoring deployment status:$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/monitoring && $(MAKE) status
+
+terraform-monitoring-config: ## Show Monitoring configuration
+	@echo "$(BLUE)Monitoring configuration:$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/monitoring && $(MAKE) show-config
+
+terraform-monitoring-test: ## Test Monitoring alerts configuration
+	@echo "$(YELLOW)Testing Monitoring alerts...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/monitoring && $(MAKE) test-alerts
+
+terraform-monitoring-integration-test: ## Run Monitoring integration test
+	@echo "$(YELLOW)Running Monitoring integration test...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/monitoring && $(MAKE) integration-test
+
 ##@ Module Management
 
 module-verify: ## Verify module is ready for publishing
@@ -578,6 +614,7 @@ terraform-workspaces: ## Show all Terraform workspaces
 	@echo "  $(BLUE)database$(RESET)     - Database infrastructure (PostgreSQL server and databases)"
 	@echo "  $(BLUE)functions-app$(RESET) - Function App deployment (depends on app-service)"
 	@echo "  $(BLUE)service-bus$(RESET)  - Service Bus namespace, queues, and topics"
+	@echo "  $(BLUE)monitoring$(RESET)   - Monitoring infrastructure (Log Analytics, Application Insights)"
 	@echo "  $(BLUE)policies$(RESET)     - Azure Policy definitions and assignments"
 	@echo ""
 	@echo "$(YELLOW)Use workspace-specific commands:$(RESET)"
@@ -586,6 +623,7 @@ terraform-workspaces: ## Show all Terraform workspaces
 	@echo "  make terraform-database-apply        # Apply database workspace"
 	@echo "  make terraform-functions-app-apply   # Apply functions app workspace"
 	@echo "  make terraform-service-bus-apply     # Apply service bus workspace"
+	@echo "  make terraform-monitoring-apply      # Apply monitoring workspace"
 	@echo "  make terraform-policies-apply        # Apply policies workspace"
 	@echo ""
 	@echo "$(YELLOW)Or work directly in the workspace directory:$(RESET)"
@@ -594,6 +632,7 @@ terraform-workspaces: ## Show all Terraform workspaces
 	@echo "  cd infrastructure/database && make apply"
 	@echo "  cd infrastructure/functions-app && make apply"
 	@echo "  cd infrastructure/service-bus && make apply"
+	@echo "  cd infrastructure/monitoring && make apply"
 	@echo "  cd infrastructure/policies && make apply"
 
 ##@ Documentation

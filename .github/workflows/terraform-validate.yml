@@ -13,6 +13,7 @@ on:
           - core
           - policies
           - functions
+          - monitoring
   pull_request:
     paths:
       - 'infrastructure/**'
@@ -29,7 +30,7 @@ jobs:
 
     strategy:
       matrix:
-        module: ${{ github.event.inputs.module == 'all' && fromJson('["core", "policies", "functions"]') || fromJson(format('["{0}"]', github.event.inputs.module || 'core')) }}
+        module: ${{ github.event.inputs.module == 'all' && fromJson('["core", "policies", "functions", "monitoring"]') || fromJson(format('["{0}"]', github.event.inputs.module || 'core')) }}
 
     steps:
       - name: Checkout

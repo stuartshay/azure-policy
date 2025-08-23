@@ -11,6 +11,7 @@ on:
           - core
           - policies
           - functions
+          - monitoring
       environment:
         description: 'Environment to deploy'
         required: true
@@ -156,6 +157,15 @@ jobs:
                 } >> "$GITHUB_OUTPUT"
               fi
               ;;
+            "monitoring")
+              if terraform output application_insights_connection_string >/dev/null 2>&1; then
+                {
+                  echo "application_insights_connection_string=$(terraform output -raw application_insights_connection_string)"
+                  echo "log_analytics_workspace_id=$(terraform output -raw log_analytics_workspace_id)"
+                  echo "outputs_available=true"
+                } >> "$GITHUB_OUTPUT"
+              fi
+              ;;
           esac
         working-directory: infrastructure/${{ github.event.inputs.module }}
 
@@ -201,6 +211,15 @@ jobs:
                   {
                     echo "### Deployed Resources"
                     echo "- **Policy Set:** $(terraform output -raw policy_set_id)"
+                  } >> "$GITHUB_STEP_SUMMARY"
+                fi
+                ;;
+              "monitoring")
+                if terraform output application_insights_connection_string >/dev/null 2>&1; then
+                  {
+                    echo "### Deployed Resources"
+                    echo "- **Application Insights Connection String:** $(terraform output -raw application_insights_connection_string)"
+                    echo "- **Log Analytics Workspace ID:** $(terraform output -raw log_analytics_workspace_id)"
                   } >> "$GITHUB_STEP_SUMMARY"
                 fi
                 ;;
