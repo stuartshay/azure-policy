@@ -331,16 +331,13 @@ variable "budget_notification_emails" {
   }
 }
 
-# Smart Detection Configuration
+variable "budget_start_date" {
+  description = "The start date for the budget period (format: YYYY-MM-DD or RFC3339). Required for budget alert time_period."
+  type        = string
+}
+
 variable "smart_detection_emails" {
-  description = "List of email addresses for smart detection notifications"
+  description = "List of additional email recipients for Application Insights smart detection rules."
   type        = list(string)
   default     = []
-
-  validation {
-    condition = alltrue([
-      for email in var.smart_detection_emails : can(regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", email))
-    ])
-    error_message = "All smart detection emails must be valid email addresses."
-  }
 }

@@ -359,6 +359,7 @@ No modules.
 | <a name="input_availability_threshold"></a> [availability\_threshold](#input\_availability\_threshold) | Availability percentage threshold | `number` | `95` | no |
 | <a name="input_budget_amount"></a> [budget\_amount](#input\_budget\_amount) | Budget amount for monitoring resources | `number` | `100` | no |
 | <a name="input_budget_notification_emails"></a> [budget\_notification\_emails](#input\_budget\_notification\_emails) | List of email addresses for budget notifications | `list(string)` | `[]` | no |
+| <a name="input_budget_start_date"></a> [budget\_start\_date](#input\_budget\_start\_date) | The start date for the budget period (format: YYYY-MM-DD or RFC3339). Required for budget alert time\_period. | `string` | n/a | yes |
 | <a name="input_cpu_threshold"></a> [cpu\_threshold](#input\_cpu\_threshold) | CPU usage threshold for alerts (percentage) | `number` | `80` | no |
 | <a name="input_daily_quota_gb"></a> [daily\_quota\_gb](#input\_daily\_quota\_gb) | Daily ingestion quota in GB for Log Analytics (-1 for unlimited) | `number` | `-1` | no |
 | <a name="input_enable_activity_log_alerts"></a> [enable\_activity\_log\_alerts](#input\_enable\_activity\_log\_alerts) | Enable activity log alerts | `bool` | `true` | no |
@@ -392,7 +393,7 @@ No modules.
 | <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name) | Name of the resource group | `string` | n/a | yes |
 | <a name="input_response_time_threshold"></a> [response\_time\_threshold](#input\_response\_time\_threshold) | Response time threshold in seconds | `number` | `5` | no |
 | <a name="input_sampling_percentage"></a> [sampling\_percentage](#input\_sampling\_percentage) | Sampling percentage for Application Insights | `number` | `100` | no |
-| <a name="input_smart_detection_emails"></a> [smart\_detection\_emails](#input\_smart\_detection\_emails) | List of email addresses for smart detection notifications | `list(string)` | `[]` | no |
+| <a name="input_smart_detection_emails"></a> [smart\_detection\_emails](#input\_smart\_detection\_emails) | List of additional email recipients for Application Insights smart detection rules. | `list(string)` | `[]` | no |
 | <a name="input_subscription_id"></a> [subscription\_id](#input\_subscription\_id) | Azure subscription ID | `string` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to all resources | `map(string)` | `{}` | no |
 | <a name="input_workload"></a> [workload](#input\_workload) | Name of the workload or application | `string` | n/a | yes |
