@@ -58,6 +58,20 @@ jobs:
         with:
           terraform_version: 1.12.2
 
+      - name: Setup Terraform Cloud credentials
+        run: |
+          mkdir -p ~/.terraform.d
+          cat > ~/.terraform.d/credentials.tfrc.json << EOF
+          {
+            "credentials": {
+              "app.terraform.io": {
+                "token": "${{ secrets.TF_API_TOKEN }}"
+              }
+            }
+          }
+          EOF
+          echo "✅ Terraform Cloud credentials configured"
+
       - name: Install TFLint
         run: |
           curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
@@ -78,6 +92,9 @@ jobs:
           echo "terraform-docs installed successfully"
 
       - name: Initialize Terraform modules for documentation
+        env:
+          TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+          TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
         run: |
           echo "Initializing Terraform modules for documentation generation..."
           # Find all directories containing Terraform files
@@ -157,6 +174,8 @@ jobs:
           HEAD_REF: ${{ github.head_ref }}
           REF_NAME: ${{ github.ref_name }}
           EVENT_NAME: ${{ github.event_name }}
+          TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+          TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
         run: |
           echo "Running pre-commit checks on all files..."
           echo "Working directory: $(pwd)"
