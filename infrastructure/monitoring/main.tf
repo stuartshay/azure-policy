@@ -182,6 +182,7 @@ module "monitoring" {
   # Budget configuration
   budget_amount              = var.budget_amount
   budget_notification_emails = var.budget_notification_emails
+  budget_start_date          = var.budget_start_date
 
   # Smart detection configuration
   smart_detection_emails = var.smart_detection_emails

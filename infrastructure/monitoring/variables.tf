@@ -374,6 +374,12 @@ variable "budget_notification_emails" {
   }
 }
 
+variable "budget_start_date" {
+  description = "The start date for the budget period (format: YYYY-MM-DD or RFC3339). Required for budget alert time_period."
+  type        = string
+  default     = "2025-01-01"
+}
+
 # Smart Detection Configuration
 variable "smart_detection_emails" {
   description = "List of email addresses for smart detection notifications"

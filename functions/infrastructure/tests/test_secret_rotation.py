@@ -7,15 +7,14 @@ import os
 import unittest
 from unittest.mock import Mock, patch
 
-import pytest
-
 # Import from the correct absolute path
-from functions.infrastructure.function_app import (
+from function_app import (
     SecretRotationManager,
     manual_rotation,
     rotation_health,
     rotation_info,
 )
+import pytest
 
 
 class TestableSecretRotationManager(SecretRotationManager):
@@ -37,6 +36,9 @@ class TestSecretRotationManager(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.manager = TestableSecretRotationManager()
+        # Initialize attributes that may be set in tests
+        self.manager.key_vault_uri = None
+        self.manager.rotation_enabled = None
 
     @patch.dict(
         os.environ,
@@ -65,8 +67,8 @@ class TestSecretRotationManager(unittest.TestCase):
             assert manager.namespace_name == "sb-azpolicy-dev-eastus-001"
             assert manager.rotation_enabled is True
 
-    @patch("functions.infrastructure.function_app._ensure_azure_imports")
-    @patch("functions.infrastructure.function_app.DefaultAzureCredential")
+    @patch("function_app._ensure_azure_imports")
+    @patch("function_app.DefaultAzureCredential")
     def test_get_credential(self, mock_credential_class, mock_imports):
         """Test credential initialization."""
         mock_credential = Mock()
@@ -76,8 +78,8 @@ class TestSecretRotationManager(unittest.TestCase):
         mock_credential_class.assert_called_once()
         assert credential == mock_credential
 
-    @patch("functions.infrastructure.function_app._ensure_azure_imports")
-    @patch("functions.infrastructure.function_app.ServiceBusManagementClient")
+    @patch("function_app._ensure_azure_imports")
+    @patch("function_app.ServiceBusManagementClient")
     def test_get_servicebus_client(self, mock_client_class, mock_imports):
         """Test Service Bus client initialization."""
         mock_client = Mock()
@@ -98,8 +100,8 @@ class TestSecretRotationManager(unittest.TestCase):
                 mock_client_class.assert_called_once_with(mock_credential, "test-sub")
                 assert client == mock_client
 
-    @patch("functions.infrastructure.function_app._ensure_azure_imports")
-    @patch("functions.infrastructure.function_app.SecretClient")
+    @patch("function_app._ensure_azure_imports")
+    @patch("function_app.SecretClient")
     def test_get_keyvault_client(self, mock_client_class, mock_imports):
         """Test Key Vault client initialization."""
         mock_client = Mock()

@@ -9,9 +9,8 @@ import json
 from unittest.mock import Mock
 
 import azure.functions as func
+from function_app import health_check, hello_world, info
 import pytest
-
-from functions.basic.function_app import health_check, hello_world, info
 
 
 class TestHelloWorldFunction:

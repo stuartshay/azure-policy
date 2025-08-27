@@ -373,6 +373,7 @@ For issues or questions:
 | <a name="input_availability_threshold"></a> [availability\_threshold](#input\_availability\_threshold) | Availability percentage threshold | `number` | `95` | no |
 | <a name="input_budget_amount"></a> [budget\_amount](#input\_budget\_amount) | Budget amount for monitoring resources | `number` | `100` | no |
 | <a name="input_budget_notification_emails"></a> [budget\_notification\_emails](#input\_budget\_notification\_emails) | List of email addresses for budget notifications | `list(string)` | `[]` | no |
+| <a name="input_budget_start_date"></a> [budget\_start\_date](#input\_budget\_start\_date) | The start date for the budget period (format: YYYY-MM-DD or RFC3339). Required for budget alert time\_period. | `string` | `"2025-01-01"` | no |
 | <a name="input_cost_center"></a> [cost\_center](#input\_cost\_center) | Cost center for resource billing | `string` | `"development"` | no |
 | <a name="input_cpu_threshold"></a> [cpu\_threshold](#input\_cpu\_threshold) | CPU usage threshold for alerts (percentage) | `number` | `80` | no |
 | <a name="input_daily_quota_gb"></a> [daily\_quota\_gb](#input\_daily\_quota\_gb) | Daily ingestion quota in GB for Log Analytics (-1 for unlimited) | `number` | `-1` | no |
