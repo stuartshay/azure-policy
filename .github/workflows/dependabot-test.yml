@@ -279,7 +279,13 @@ jobs:
   summary:
     name: Generate Test Summary
     runs-on: ubuntu-latest
-    needs: [validate-dependabot-config, check-dependabot-updates, monitor-dependabot-prs, test-permissions]
+    needs:
+      [
+        validate-dependabot-config,
+        check-dependabot-updates,
+        monitor-dependabot-prs,
+        test-permissions,
+      ]
     if: always()
 
     steps:
