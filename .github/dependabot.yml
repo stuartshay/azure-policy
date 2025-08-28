@@ -15,7 +15,7 @@ updates:
       interval: 'weekly'
       day: 'friday'
       time: '18:00'
-    open-pull-requests-limit: 25
+    open-pull-requests-limit: 20
     assignees:
       - 'stuartshay'
     commit-message:
