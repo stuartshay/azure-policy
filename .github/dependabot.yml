@@ -15,7 +15,7 @@ updates:
       interval: 'weekly'
       day: 'friday'
       time: '18:00'
-    open-pull-requests-limit: 20
+    open-pull-requests-limit: 25
     assignees:
       - 'stuartshay'
     commit-message:
@@ -24,6 +24,7 @@ updates:
     labels:
       - 'dependencies'
       - 'python'
+      - 'root-level'
 
   # Python dependencies - All Functions (Basic, Advanced, Infrastructure)
   - package-ecosystem: 'pip'
@@ -52,7 +53,7 @@ updates:
       interval: 'weekly'
       day: 'tuesday'
       time: '09:00'
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 10
     assignees:
       - 'stuartshay'
     commit-message:
@@ -62,6 +63,7 @@ updates:
       - 'dependencies'
       - 'terraform'
       - 'infrastructure'
+      - 'main'
 
   # Terraform providers and modules - Core Infrastructure
   - package-ecosystem: 'terraform'
