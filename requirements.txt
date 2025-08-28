@@ -9,10 +9,10 @@ ipython==9.4.0
 jupyter==1.1.1
 
 # Azure management libraries for notebooks
-azure-mgmt-compute>=30.0.0
-azure-mgmt-web>=7.0.0
-azure-mgmt-subscription>=3.1.1
-azure-mgmt-resource>=23.0.0
+azure-mgmt-compute==36.0.0
+azure-mgmt-web==10.0.0
+azure-mgmt-subscription==3.1.1
+azure-mgmt-resource==24.0.0
 
 # Data analysis and visualization for notebooks
 pandas==2.3.2
