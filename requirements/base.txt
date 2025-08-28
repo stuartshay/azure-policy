@@ -10,7 +10,7 @@ azure-servicebus==7.14.2
 # HTTP client and utilities
 aiohttp==3.12.15
 requests==2.32.5
-typing-extensions==4.14.1
+typing-extensions==4.15.0
 
 # Configuration and data validation
 python-dotenv==1.1.1
