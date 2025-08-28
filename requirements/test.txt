@@ -21,7 +21,7 @@ jsonschema>=4.23.0
 
 # Test utilities
 freezegun>=1.5.1  # For mocking datetime
-responses>=0.25.0  # For mocking HTTP responses
+responses>=0.25.8  # For mocking HTTP responses
 
 # Development utilities
 pytest-clarity>=1.0.1  # Better test failure output
