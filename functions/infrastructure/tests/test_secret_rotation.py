@@ -20,25 +20,25 @@ import pytest
 class TestableSecretRotationManager(SecretRotationManager):
     """Subclass to expose protected methods for testing."""
 
-    def get_credential_public(self):
+    def get_credential_public(self) -> object:
         return self._get_credential()
 
-    def get_servicebus_client_public(self):
+    def get_servicebus_client_public(self) -> object:
         return self._get_servicebus_client()
 
-    def get_keyvault_client_public(self):
+    def get_keyvault_client_public(self) -> object:
         return self._get_keyvault_client()
 
 
 class TestSecretRotationManager(unittest.TestCase):
     """Test cases for SecretRotationManager class."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up test fixtures."""
         self.manager = TestableSecretRotationManager()
         # Initialize attributes that may be set in tests
         self.manager.key_vault_uri = None
-        self.manager.rotation_enabled = None
+        self.manager.rotation_enabled = True
 
     @patch.dict(
         os.environ,
@@ -50,7 +50,7 @@ class TestSecretRotationManager(unittest.TestCase):
             "ROTATION_ENABLED": "true",
         },
     )
-    def test_init_with_environment_variables(self):
+    def test_init_with_environment_variables(self) -> None:
         """Test initialization with environment variables."""
         manager = SecretRotationManager()
         assert manager.subscription_id == "test-subscription-id"
@@ -59,7 +59,7 @@ class TestSecretRotationManager(unittest.TestCase):
         assert manager.key_vault_uri == "https://test-kv.vault.azure.net/"
         assert manager.rotation_enabled is True
 
-    def test_init_with_defaults(self):
+    def test_init_with_defaults(self) -> None:
         """Test initialization with default values."""
         with patch.dict(os.environ, {}, clear=True):
             manager = SecretRotationManager()
@@ -69,7 +69,9 @@ class TestSecretRotationManager(unittest.TestCase):
 
     @patch("function_app._ensure_azure_imports")
     @patch("function_app.DefaultAzureCredential")
-    def test_get_credential(self, mock_credential_class, mock_imports):
+    def test_get_credential(
+        self, mock_credential_class: Mock, mock_imports: Mock
+    ) -> None:
         """Test credential initialization."""
         mock_credential = Mock()
         mock_credential_class.return_value = mock_credential
@@ -80,7 +82,9 @@ class TestSecretRotationManager(unittest.TestCase):
 
     @patch("function_app._ensure_azure_imports")
     @patch("function_app.ServiceBusManagementClient")
-    def test_get_servicebus_client(self, mock_client_class, mock_imports):
+    def test_get_servicebus_client(
+        self, mock_client_class: Mock, mock_imports: Mock
+    ) -> None:
         """Test Service Bus client initialization."""
         mock_client = Mock()
         mock_client_class.return_value = mock_client
@@ -102,7 +106,9 @@ class TestSecretRotationManager(unittest.TestCase):
 
     @patch("function_app._ensure_azure_imports")
     @patch("function_app.SecretClient")
-    def test_get_keyvault_client(self, mock_client_class, mock_imports):
+    def test_get_keyvault_client(
+        self, mock_client_class: Mock, mock_imports: Mock
+    ) -> None:
         """Test Key Vault client initialization."""
         mock_client = Mock()
         mock_client_class.return_value = mock_client
@@ -122,7 +128,7 @@ class TestSecretRotationManager(unittest.TestCase):
             assert client == mock_client
 
     @patch("time.sleep")
-    def test_rotate_authorization_rule_keys(self, mock_sleep):
+    def test_rotate_authorization_rule_keys(self, mock_sleep: Mock) -> None:
         """Test authorization rule key rotation."""
         mock_client = Mock()
         mock_keys = Mock()
@@ -152,7 +158,7 @@ class TestSecretRotationManager(unittest.TestCase):
             assert primary == "new-primary-conn-str"
             assert secondary == "new-secondary-conn-str"
 
-    def test_update_keyvault_secret(self):
+    def test_update_keyvault_secret(self) -> None:
         """Test Key Vault secret update."""
         mock_client = Mock()
 
@@ -172,7 +178,7 @@ class TestSecretRotationManager(unittest.TestCase):
             assert "SecretType" in call_args[1]["tags"]
             assert result is True
 
-    def test_perform_rotation_disabled(self):
+    def test_perform_rotation_disabled(self) -> None:
         """Test rotation when disabled."""
         self.manager.rotation_enabled = False
 
@@ -182,7 +188,7 @@ class TestSecretRotationManager(unittest.TestCase):
         assert "Secret rotation is disabled" in result["errors"]
 
     @patch("time.sleep")
-    def test_perform_rotation_success(self, mock_sleep):
+    def test_perform_rotation_success(self, mock_sleep: Mock) -> None:
         """Test successful rotation."""
         self.manager.rotation_enabled = True
 
@@ -201,7 +207,7 @@ class TestSecretRotationManager(unittest.TestCase):
                 )  # FunctionAppAccess and ReadOnlyAccess
                 assert len(result["errors"]) == 0
 
-    def test_test_connections(self):
+    def test_test_connections(self) -> None:
         """Test connection testing."""
         mock_sb_client = Mock()
         mock_kv_client = Mock()
@@ -227,7 +233,7 @@ class TestFunctionEndpoints:
     """Test cases for Azure Function endpoints."""
 
     @patch("function_app.rotation_manager")
-    def test_rotation_health_healthy(self, mock_manager):
+    def test_rotation_health_healthy(self, mock_manager: Mock) -> None:
         """Test health endpoint when all services are healthy."""
         mock_manager.test_connections.return_value = {
             "service_bus": {"status": "healthy"},
@@ -247,7 +253,7 @@ class TestFunctionEndpoints:
         assert response_data["status"] == "healthy"
 
     @patch("function_app.rotation_manager")
-    def test_manual_rotation_success(self, mock_manager):
+    def test_manual_rotation_success(self, mock_manager: Mock) -> None:
         """Test manual rotation endpoint."""
         mock_manager.perform_rotation.return_value = {
             "success": True,
@@ -262,7 +268,7 @@ class TestFunctionEndpoints:
         response_data = json.loads(response.get_body().decode())
         assert response_data["success"] is True
 
-    def test_rotation_info(self):
+    def test_rotation_info(self) -> None:
         """Test info endpoint."""
         mock_req = Mock()
         response = rotation_info(mock_req)

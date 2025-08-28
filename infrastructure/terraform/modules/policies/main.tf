@@ -26,25 +26,7 @@ resource "azurerm_policy_definition" "resource_group_naming" {
     var.tags
   ))
 
-  policy_rule = jsonencode({
-    if = {
-      allOf = [
-        {
-          field  = "type"
-          equals = "Microsoft.Resources/resourceGroups"
-        },
-        {
-          not = {
-            field = "name"
-            like  = "rg-*"
-          }
-        }
-      ]
-    }
-    then = {
-      effect = "deny"
-    }
-  })
+  policy_rule = file("${path.module}/rg-naming-policy.json")
 }
 
 # Policy Definition for Storage Naming
@@ -62,25 +44,7 @@ resource "azurerm_policy_definition" "storage_naming" {
     var.tags
   ))
 
-  policy_rule = jsonencode({
-    if = {
-      allOf = [
-        {
-          field  = "type"
-          equals = "Microsoft.Storage/storageAccounts"
-        },
-        {
-          not = {
-            field = "name"
-            like  = "st*"
-          }
-        }
-      ]
-    }
-    then = {
-      effect = "deny"
-    }
-  })
+  policy_rule = file("${path.module}/storage-naming-policy.json")
 }
 
 # Policy Assignment for Resource Group Naming

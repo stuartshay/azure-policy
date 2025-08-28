@@ -1,7 +1,6 @@
 {
   "include": [
-    "functions",
-    "tests"
+    "functions"
   ],
   "exclude": [
     "**/.venv",
@@ -16,14 +15,35 @@
   "pythonPlatform": "Linux",
   "typeCheckingMode": "basic",
   "useLibraryCodeForTypes": true,
-  "pythonPath": [
-    "functions"
-  ],
-  "extraPaths": [
-    "functions/basic",
-    "functions/advanced",
-    "functions/infrastructure",
-    "functions/common"
+  "executionEnvironments": [
+    {
+      "root": "functions/basic",
+      "pythonVersion": "3.13",
+      "extraPaths": [
+        "."
+      ]
+    },
+    {
+      "root": "functions/advanced",
+      "pythonVersion": "3.13",
+      "extraPaths": [
+        "."
+      ]
+    },
+    {
+      "root": "functions/infrastructure",
+      "pythonVersion": "3.13",
+      "extraPaths": [
+        "."
+      ]
+    },
+    {
+      "root": "functions/common",
+      "pythonVersion": "3.13",
+      "extraPaths": [
+        "."
+      ]
+    }
   ],
   "reportMissingImports": "warning",
   "reportMissingTypeStubs": false,

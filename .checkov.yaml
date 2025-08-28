@@ -58,9 +58,9 @@ skip-check:
   - CKV_AZURE_50 # "Ensure Virtual Machine Extensions are not Installed" - Runner needs extensions for GitHub Actions
   - CKV_AZURE_119 # "Ensure that Network Interfaces don't use public IPs" - Runner needs public IP to communicate with GitHub
 
-# Skip parsing issues with complex policy definitions
+# Skip Terraform module cache directories
 skip-path:
-  - /infrastructure/terraform/modules/policies/main.tf
+  - '**/.terraform/**'
 
 # Output format
 output: cli
