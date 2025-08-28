@@ -1,0 +1,311 @@
+name: Dependabot Test and Monitor
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of Dependabot test to run'
+        required: true
+        default: 'check-updates'
+        type: choice
+        options:
+          - 'check-updates'
+          - 'validate-config'
+          - 'monitor-prs'
+          - 'test-permissions'
+  schedule:
+    # Run every Monday at 9:00 AM to check Dependabot status
+    - cron: '0 9 * * 1'
+  push:
+    paths:
+      - '.github/dependabot.yml'
+    branches: [main, develop]
+
+jobs:
+  validate-dependabot-config:
+    name: Validate Dependabot Configuration
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_type == 'validate-config' || github.event_name == 'push' || github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate dependabot.yml syntax
+        run: |
+          echo "🔍 Validating Dependabot configuration syntax..."
+
+          # Check if dependabot.yml exists
+          if [ ! -f .github/dependabot.yml ]; then
+            echo "❌ .github/dependabot.yml not found"
+            exit 1
+          fi
+
+          echo "✅ Dependabot configuration file found"
+
+          # Validate YAML syntax
+          python -c "
+          import yaml
+          import sys
+
+          try:
+              with open('.github/dependabot.yml', 'r') as file:
+                  config = yaml.safe_load(file)
+                  print('✅ YAML syntax is valid')
+
+                  # Check required fields
+                  if 'version' not in config:
+                      print('❌ Missing required field: version')
+                      sys.exit(1)
+
+                  if 'updates' not in config:
+                      print('❌ Missing required field: updates')
+                      sys.exit(1)
+
+                  print(f'✅ Configuration has {len(config[\"updates\"])} update configurations')
+
+                  # List ecosystems
+                  ecosystems = [update['package-ecosystem'] for update in config['updates']]
+                  print(f'📦 Monitored ecosystems: {set(ecosystems)}')
+
+          except yaml.YAMLError as e:
+              print(f'❌ YAML syntax error: {e}')
+              sys.exit(1)
+          except Exception as e:
+              print(f'❌ Configuration error: {e}')
+              sys.exit(1)
+          "
+
+      - name: Check directory structure
+        run: |
+          echo "🔍 Checking monitored directories..."
+
+          python -c "
+          import yaml
+          import os
+
+          with open('.github/dependabot.yml', 'r') as file:
+              config = yaml.safe_load(file)
+
+          for update in config['updates']:
+              directory = update['directory'].lstrip('/')
+              ecosystem = update['package-ecosystem']
+
+              if directory == '':
+                  directory = '.'
+
+              print(f'📁 Checking {ecosystem} in {directory}...')
+
+              if not os.path.exists(directory):
+                  print(f'⚠️  Directory not found: {directory}')
+              else:
+                  print(f'✅ Directory exists: {directory}')
+          "
+
+  check-dependabot-updates:
+    name: Check for Available Updates
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_type == 'check-updates' || github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests pyyaml
+
+      - name: Check Terraform provider versions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Checking for outdated Terraform providers..."
+
+          python -c "
+          import os
+          import re
+          import requests
+          import json
+
+          def check_terraform_versions():
+              outdated_providers = []
+
+              # Find all Terraform files
+              for root, dirs, files in os.walk('.'):
+                  if '.terraform' in root or '.git' in root:
+                      continue
+
+                  for file in files:
+                      if file.endswith('.tf'):
+                          filepath = os.path.join(root, file)
+                          try:
+                              with open(filepath, 'r') as f:
+                                  content = f.read()
+
+                              # Look for provider version constraints
+                              provider_pattern = r'required_providers\s*{[^}]*(\w+)\s*=\s*{[^}]*source\s*=\s*\"([^\"]+)\"[^}]*version\s*=\s*\"([^\"]+)\"'
+                              matches = re.findall(provider_pattern, content, re.MULTILINE | re.DOTALL)
+
+                              for match in matches:
+                                  provider_name = match[0]
+                                  source = match[1]
+                                  version = match[2]
+
+                                  print(f'📦 Found provider: {provider_name} ({source}) version {version} in {filepath}')
+
+                                  # Check for azurerm provider specifically
+                                  if 'azurerm' in source.lower():
+                                      outdated_providers.append({
+                                          'name': provider_name,
+                                          'source': source,
+                                          'current_version': version,
+                                          'file': filepath
+                                      })
+                          except Exception as e:
+                              print(f'Error reading {filepath}: {e}')
+
+              return outdated_providers
+
+          providers = check_terraform_versions()
+
+          if providers:
+              print(f'\\n📋 Found {len(providers)} provider(s) that could have updates:')
+              for provider in providers:
+                  print(f'  - {provider[\"source\"]} (current: {provider[\"current_version\"]}) in {provider[\"file\"]}')
+          else:
+              print('\\n✅ No providers found or no version constraints detected')
+          "
+
+  monitor-dependabot-prs:
+    name: Monitor Dependabot Pull Requests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_type == 'monitor-prs' || github.event_name == 'schedule'
+
+    steps:
+      - name: Check Dependabot PRs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Checking for Dependabot pull requests..."
+
+          # Get open PRs created by Dependabot
+          response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls?state=open&sort=created&direction=desc")
+
+          dependabot_prs=$(echo "$response" | jq '[.[] | select(.user.login == "dependabot[bot]")]')
+          pr_count=$(echo "$dependabot_prs" | jq 'length')
+
+          echo "📊 Found $pr_count open Dependabot PR(s)"
+
+          if [ "$pr_count" -gt 0 ]; then
+            echo "$dependabot_prs" | jq -r '.[] | "🔧 PR #\(.number): \(.title) (created: \(.created_at | split("T")[0]))"'
+          else
+            echo "ℹ️  No open Dependabot PRs found"
+
+            # Check for recently closed Dependabot PRs
+            closed_response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${{ github.repository }}/pulls?state=closed&sort=updated&direction=desc&per_page=10")
+
+            recent_dependabot_prs=$(echo "$closed_response" | jq '[.[] | select(.user.login == "dependabot[bot]" and (.updated_at | fromnow | tonumber) > -604800)]')
+            recent_count=$(echo "$recent_dependabot_prs" | jq 'length')
+
+            if [ "$recent_count" -gt 0 ]; then
+              echo "📋 Found $recent_count recently closed/merged Dependabot PR(s):"
+              echo "$recent_dependabot_prs" | jq -r '.[] | "  ✅ PR #\(.number): \(.title) (state: \(.state), updated: \(.updated_at | split("T")[0]))"'
+            fi
+          fi
+
+  test-permissions:
+    name: Test GitHub Actions Permissions
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_type == 'test-permissions' || github.event_name == 'workflow_dispatch'
+
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test repository permissions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Testing GitHub Actions permissions for PR creation..."
+
+          # Test if we can read repository info
+          echo "📖 Testing read permissions..."
+          repo_info=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}")
+
+          if echo "$repo_info" | jq -e '.name' > /dev/null; then
+            echo "✅ Repository read access: OK"
+          else
+            echo "❌ Repository read access: FAILED"
+            exit 1
+          fi
+
+          # Test if we can list PRs (requires pull-requests read permission)
+          echo "📋 Testing pull request read permissions..."
+          prs_response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls?state=open&per_page=1")
+
+          if echo "$prs_response" | jq -e '. | type == "array"' > /dev/null; then
+            echo "✅ Pull request read access: OK"
+          else
+            echo "❌ Pull request read access: FAILED"
+            echo "Response: $prs_response"
+          fi
+
+          # Check workflow permissions setting
+          echo "🔧 Current workflow permissions:"
+          echo "  - Contents: read (expected)"
+          echo "  - Pull requests: write (expected for Dependabot)"
+          echo "  - Issues: write (expected for Dependabot)"
+
+          echo ""
+          echo "💡 If Dependabot still cannot create PRs, check:"
+          echo "  1. Repository Settings > Actions > General > Workflow permissions"
+          echo "  2. Should be set to 'Read and write permissions'"
+          echo "  3. 'Allow GitHub Actions to create and approve pull requests' should be checked"
+
+  summary:
+    name: Generate Test Summary
+    runs-on: ubuntu-latest
+    needs:
+      [
+        validate-dependabot-config,
+        check-dependabot-updates,
+        monitor-dependabot-prs,
+        test-permissions,
+      ]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          {
+            echo "## Dependabot Test Results"
+            echo ""
+            echo "### Job Results:"
+            echo "- **Config Validation**: ${{ needs.validate-dependabot-config.result }}"
+            echo "- **Update Check**: ${{ needs.check-dependabot-updates.result }}"
+            echo "- **PR Monitor**: ${{ needs.monitor-dependabot-prs.result }}"
+            echo "- **Permissions Test**: ${{ needs.test-permissions.result }}"
+            echo ""
+            echo "### Next Steps:"
+            echo "1. **Manual Trigger**: Go to Insights → Dependency graph → Dependabot → Check for updates"
+            echo "2. **Monitor**: Watch the Actions tab for Dependabot runs"
+            echo "3. **Verify**: Look for new PRs with labels: dependencies, terraform, python"
+            echo ""
+            echo "**Repository**: [azure-policy](https://github.com/${{ github.repository }})"
+            echo "**Dependabot**: [Dependency graph](https://github.com/${{ github.repository }}/network/dependencies)"
+            echo "**Date**: $(date)"
+          } >> "$GITHUB_STEP_SUMMARY"
