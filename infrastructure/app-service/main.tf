@@ -11,14 +11,21 @@ terraform {
     }
   }
 
-  # Local backend for deployment
-  backend "local" {
-    path = "terraform.tfstate"
+  # Terraform Cloud backend
+  cloud {
+    organization = "azure-policy-cloud"
+    workspaces {
+      name = "app-service-dev"
+    }
   }
 }
 
 provider "azurerm" {
   subscription_id = var.subscription_id
+
+  # Use environment variables for authentication in Terraform Cloud
+  use_cli = false
+  use_msi = false
 
   features {
     resource_group {
@@ -107,16 +114,17 @@ resource "azurerm_storage_account" "functions" {
   tags = local.common_tags
 }
 
-# App Service Plan for Functions
-resource "azurerm_service_plan" "functions" {
-  name                = "asp-${var.workload}-functions-${var.environment}-001"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = data.azurerm_resource_group.main.location
-  os_type             = "Linux"
-  sku_name            = var.functions_sku_name
+# App Service Plan for Functions using private module
+module "app_service_plan" {
+  source  = "app.terraform.io/azure-policy-cloud/app-service-plan-function/azurerm"
+  version = "1.1.34"
 
-  # EP1 specific configurations
-  maximum_elastic_worker_count = var.functions_sku_name == "EP1" ? var.maximum_elastic_worker_count : null
+  workload                     = var.workload
+  environment                  = var.environment
+  resource_group_name          = data.azurerm_resource_group.main.name
+  location                     = data.azurerm_resource_group.main.location
+  sku_name                     = var.functions_sku_name
+  maximum_elastic_worker_count = var.maximum_elastic_worker_count
 
   tags = local.common_tags
 }
@@ -131,7 +139,7 @@ resource "azurerm_linux_function_app" "main" {
 
   storage_account_name       = azurerm_storage_account.functions.name
   storage_account_access_key = azurerm_storage_account.functions.primary_access_key
-  service_plan_id            = azurerm_service_plan.functions.id
+  service_plan_id            = module.app_service_plan.app_service_plan_id
 
   # Security configurations
   https_only                    = true

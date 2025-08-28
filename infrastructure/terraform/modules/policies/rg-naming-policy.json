@@ -1,0 +1,19 @@
+{
+    "if": {
+        "allOf": [
+            {
+                "field": "type",
+                "equals": "Microsoft.Resources/resourceGroups"
+            },
+            {
+                "not": {
+                    "field": "name",
+                    "like": "rg-*"
+                }
+            }
+        ]
+    },
+    "then": {
+        "effect": "deny"
+    }
+}

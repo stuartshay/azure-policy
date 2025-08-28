@@ -11,6 +11,9 @@ jobs:
   pre-commit:
     name: Pre-commit Checks
     runs-on: ubuntu-latest
+    env:
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+      TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
 
     steps:
       - name: Checkout code
@@ -57,6 +60,40 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.12.2
+          # Configure HCP Terraform (Terraform Cloud) CLI credentials for private registry/module access
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Verify Terraform Cloud token and export env
+        env:
+          TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+          TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
+        run: |
+          set -euo pipefail
+          echo "Verifying Terraform Cloud token and organization..."
+          if [ -z "${TF_API_TOKEN:-}" ]; then
+            echo "Warning: TF_API_TOKEN is not set; private module initialization may fail."
+          fi
+          if [ -z "${TF_CLOUD_ORGANIZATION:-}" ]; then
+            echo "Warning: TF_CLOUD_ORGANIZATION is not set; skipping API verification."
+          else
+            if [ -n "${TF_API_TOKEN:-}" ]; then
+              # Fail fast if token/org are invalid (401/404)
+              http_code=$(curl -sS -o /dev/null -w "%{http_code}" \
+                -H "Authorization: Bearer ${TF_API_TOKEN}" \
+                -H "Content-Type: application/vnd.api+json" \
+                "https://app.terraform.io/api/v2/organizations/${TF_CLOUD_ORGANIZATION}")
+              if [ "$http_code" -ge 400 ]; then
+                echo "Error: Terraform Cloud token verification failed with status $http_code" >&2
+                exit 1
+              fi
+              echo "Terraform Cloud token verified (HTTP $http_code)."
+            fi
+          fi
+          # Export TF_TOKEN_app_terraform_io so any child tools/hooks also pick it up
+          if [ -n "${TF_API_TOKEN:-}" ]; then
+            echo "TF_TOKEN_app_terraform_io=${TF_API_TOKEN}" >> "$GITHUB_ENV"
+            echo "Exported TF_TOKEN_app_terraform_io for Terraform CLI consumers."
+          fi
 
       - name: Install TFLint
         run: |
@@ -78,6 +115,9 @@ jobs:
           echo "terraform-docs installed successfully"
 
       - name: Initialize Terraform modules for documentation
+        env:
+          TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+          TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
         run: |
           echo "Initializing Terraform modules for documentation generation..."
           # Find all directories containing Terraform files
@@ -157,6 +197,9 @@ jobs:
           HEAD_REF: ${{ github.head_ref }}
           REF_NAME: ${{ github.ref_name }}
           EVENT_NAME: ${{ github.event_name }}
+          TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+          TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }}
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
         run: |
           echo "Running pre-commit checks on all files..."
           echo "Working directory: $(pwd)"

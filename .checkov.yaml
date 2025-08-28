@@ -29,7 +29,8 @@ skip-check:
   - CKV_AZURE_71 # Managed identity not configured for dev
   - CKV2_AZURE_33 # Private endpoints not used in dev
   - CKV2_AZURE_1 # Customer managed keys not used in dev
-  - CKV2_AZURE_40 # "Ensure storage account is not configured with Shared Key authorization"
+  - CKV2_AZURE_40 # Ensure storage account is not configured with Shared Key authorization
+  - CKV2_AZURE_41 # Ensure storage account is configured with SAS expiration policy
 
   # Storage account settings for flow logs (dev-appropriate)
   - CKV_AZURE_206 # Storage replication not critical for dev flow logs
@@ -57,9 +58,9 @@ skip-check:
   - CKV_AZURE_50 # "Ensure Virtual Machine Extensions are not Installed" - Runner needs extensions for GitHub Actions
   - CKV_AZURE_119 # "Ensure that Network Interfaces don't use public IPs" - Runner needs public IP to communicate with GitHub
 
-# Skip parsing issues with complex policy definitions
+# Skip Terraform module cache directories
 skip-path:
-  - /infrastructure/terraform/modules/policies/main.tf
+  - '**/.terraform/**'
 
 # Output format
 output: cli

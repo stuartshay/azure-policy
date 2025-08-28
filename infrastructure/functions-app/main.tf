@@ -19,11 +19,14 @@ provider "azurerm" {
   features {}
 }
 
-# Data source to get app-service infrastructure outputs
+# Data source to get app-service infrastructure outputs from Terraform Cloud
 data "terraform_remote_state" "app_service" {
-  backend = "local"
+  backend = "remote"
   config = {
-    path = "../app-service/terraform.tfstate"
+    organization = "azure-policy-cloud"
+    workspaces = {
+      name = "app-service-dev"
+    }
   }
 }
 

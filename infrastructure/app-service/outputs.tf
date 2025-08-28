@@ -23,7 +23,7 @@ output "storage_account_name" {
 
 output "app_service_plan_id" {
   description = "ID of the App Service Plan"
-  value       = azurerm_service_plan.functions.id
+  value       = module.app_service_plan.app_service_plan_id
 }
 
 output "application_insights_connection_string" {
