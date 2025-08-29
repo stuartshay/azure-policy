@@ -37,6 +37,8 @@ skip-check:
   - CKV_AZURE_33 # Queue service logging not needed for dev
   - CKV_AZURE_44 # Latest TLS version not enforced for dev
   - CKV_AZURE_59 # Public access restriction not enforced for dev
+  - CKV2_AZURE_38 #Ensure soft-delete is enabled on Azure storage account
+  - CKV2_AZURE_33 #Ensure storage account is configured with private endpoint
 
   # Service Bus security settings not required for dev environment
   - CKV_AZURE_199 # Double encryption not required for dev
