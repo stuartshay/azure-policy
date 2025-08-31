@@ -40,7 +40,19 @@ data "azurerm_storage_account" "functions" {
   resource_group_name = var.resource_group_name
 }
 
-# Function App - Basic
+# Local values for consistent naming and tagging
+locals {
+  common_tags = {
+    Environment = var.environment
+    Workload    = var.workload
+    CostCenter  = var.cost_center
+    Owner       = var.owner
+    ManagedBy   = "terraform"
+    CreatedDate = timestamp()
+  }
+}
+
+# Function App - Basic (Enhanced with Logging)
 resource "azurerm_linux_function_app" "basic" {
   name                       = "func-${var.workload}-${var.environment}-001"
   resource_group_name        = data.azurerm_resource_group.main.name
@@ -68,7 +80,7 @@ resource "azurerm_linux_function_app" "basic" {
   # VNet Integration (if enabled in app-service)
   virtual_network_subnet_id = data.terraform_remote_state.app_service.outputs.vnet_integration_enabled && data.terraform_remote_state.app_service.outputs.vnet_integration_subnet_id != null ? data.terraform_remote_state.app_service.outputs.vnet_integration_subnet_id : null
 
-  # Function App Settings
+  # Enhanced Function App Settings with improved logging
   app_settings = merge(
     {
       # Required Function App settings
@@ -79,9 +91,22 @@ resource "azurerm_linux_function_app" "basic" {
       "FUNCTIONS_WORKER_RUNTIME"                 = "python"
       "PYTHON_VERSION"                           = var.python_version
 
-      # Application Insights (if enabled)
+      # Application Insights (Enhanced Logging)
       "APPINSIGHTS_INSTRUMENTATIONKEY"        = data.terraform_remote_state.app_service.outputs.application_insights_instrumentation_key
       "APPLICATIONINSIGHTS_CONNECTION_STRING" = data.terraform_remote_state.app_service.outputs.application_insights_connection_string
+
+      # Enhanced Logging Configuration
+      "AzureWebJobsDashboard"    = data.azurerm_storage_account.functions.primary_connection_string
+      "WEBSITE_RUN_FROM_PACKAGE" = "1"
+
+      # Logging Levels for better debugging
+      "AzureFunctionsJobHost__logging__logLevel__default"      = "Information"
+      "AzureFunctionsJobHost__logging__logLevel__Function"     = "Information"
+      "AzureFunctionsJobHost__logging__logLevel__Host.Results" = "Information"
+      "AzureFunctionsJobHost__logging__logLevel__Host"         = "Warning"
+
+      # Application Insights Sampling (100% for dev, can be reduced for production)
+      "APPINSIGHTS_SAMPLING_PERCENTAGE" = var.environment == "dev" ? "100" : "10"
 
       # EP1 specific settings
       "WEBSITE_MAX_DYNAMIC_APPLICATION_SCALE_OUT" = var.functions_sku_name == "EP1" ? var.maximum_elastic_worker_count : null
@@ -90,15 +115,9 @@ resource "azurerm_linux_function_app" "basic" {
   )
 
   # Tags
-  tags = {
-    Environment  = var.environment
-    Workload     = var.workload
+  tags = merge(local.common_tags, {
     FunctionType = "basic"
-    CostCenter   = var.cost_center
-    Owner        = var.owner
-    ManagedBy    = "terraform"
-    CreatedDate  = timestamp()
-  }
+  })
 
   lifecycle {
     ignore_changes = [
@@ -114,7 +133,7 @@ data "azurerm_key_vault" "main" {
   resource_group_name = var.key_vault_resource_group_name
 }
 
-# Function App - Infrastructure (Secret Rotation)
+# Function App - Infrastructure (Secret Rotation) - UNCHANGED FOR NOW
 resource "azurerm_linux_function_app" "infrastructure" {
   count                      = var.enable_infrastructure_function ? 1 : 0
   name                       = "func-${var.workload}-infrastructure-${var.environment}-001"
@@ -178,15 +197,9 @@ resource "azurerm_linux_function_app" "infrastructure" {
   )
 
   # Tags
-  tags = {
-    Environment  = var.environment
-    Workload     = var.workload
+  tags = merge(local.common_tags, {
     FunctionType = "infrastructure"
-    CostCenter   = var.cost_center
-    Owner        = var.owner
-    ManagedBy    = "terraform"
-    CreatedDate  = timestamp()
-  }
+  })
 
   lifecycle {
     ignore_changes = [
@@ -211,7 +224,7 @@ resource "azurerm_role_assignment" "infrastructure_keyvault" {
   principal_id         = azurerm_linux_function_app.infrastructure[0].identity[0].principal_id
 }
 
-# Function App - Advanced
+# Function App - Advanced - UNCHANGED FOR NOW
 resource "azurerm_linux_function_app" "advanced" {
   name                       = "func-${var.workload}-advanced-${var.environment}-001"
   resource_group_name        = data.azurerm_resource_group.main.name
@@ -261,15 +274,9 @@ resource "azurerm_linux_function_app" "advanced" {
   )
 
   # Tags
-  tags = {
-    Environment  = var.environment
-    Workload     = var.workload
+  tags = merge(local.common_tags, {
     FunctionType = "advanced"
-    CostCenter   = var.cost_center
-    Owner        = var.owner
-    ManagedBy    = "terraform"
-    CreatedDate  = timestamp()
-  }
+  })
 
   lifecycle {
     ignore_changes = [
@@ -277,3 +284,62 @@ resource "azurerm_linux_function_app" "advanced" {
     ]
   }
 }
+
+# Diagnostic Settings for Function Apps (Enhanced Logging)
+# Note: Temporarily commented out until Log Analytics Workspace is properly configured
+# The app-service module doesn't provide log_analytics_workspace_id output
+
+# resource "azurerm_monitor_diagnostic_setting" "function_app_basic" {
+#   name               = "diag-func-${var.workload}-${var.environment}-001"
+#   target_resource_id = azurerm_linux_function_app.basic.id
+#
+#   # TODO: Configure Log Analytics Workspace
+#   # log_analytics_workspace_id = var.log_analytics_workspace_id
+#
+#   # Function App Logs
+#   enabled_log {
+#     category = "FunctionAppLogs"
+#   }
+#
+#   # Metrics
+#   enabled_metric {
+#     category = "AllMetrics"
+#   }
+# }
+
+# resource "azurerm_monitor_diagnostic_setting" "function_app_infrastructure" {
+#   count              = var.enable_infrastructure_function ? 1 : 0
+#   name               = "diag-func-${var.workload}-infrastructure-${var.environment}-001"
+#   target_resource_id = azurerm_linux_function_app.infrastructure[0].id
+#
+#   # TODO: Configure Log Analytics Workspace
+#   # log_analytics_workspace_id = var.log_analytics_workspace_id
+#
+#   # Function App Logs
+#   enabled_log {
+#     category = "FunctionAppLogs"
+#   }
+#
+#   # Metrics
+#   enabled_metric {
+#     category = "AllMetrics"
+#   }
+# }
+
+# resource "azurerm_monitor_diagnostic_setting" "function_app_advanced" {
+#   name               = "diag-func-${var.workload}-advanced-${var.environment}-001"
+#   target_resource_id = azurerm_linux_function_app.advanced.id
+#
+#   # TODO: Configure Log Analytics Workspace
+#   # log_analytics_workspace_id = var.log_analytics_workspace_id
+#
+#   # Function App Logs
+#   enabled_log {
+#     category = "FunctionAppLogs"
+#   }
+#
+#   # Metrics
+#   enabled_metric {
+#     category = "AllMetrics"
+#   }
+# }

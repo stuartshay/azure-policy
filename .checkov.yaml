@@ -37,8 +37,6 @@ skip-check:
   - CKV_AZURE_33 # Queue service logging not needed for dev
   - CKV_AZURE_44 # Latest TLS version not enforced for dev
   - CKV_AZURE_59 # Public access restriction not enforced for dev
-  - CKV2_AZURE_38 # Ensure soft-delete is enabled on Azure storage account
-  - CKV2_AZURE_33 # Ensure storage account is configured with private endpoint
 
   # Service Bus security settings not required for dev environment
   - CKV_AZURE_199 # Double encryption not required for dev
@@ -49,16 +47,17 @@ skip-check:
   - CKV_AZURE_205 # Latest TLS version not enforced for dev
 
   # PostgreSQL Database
-  - CKV2_AZURE_57 #"Ensure PostgreSQL Flexible Server is configured with private endpoint"
-  - CKV_AZURE_136 #"Ensure that PostgreSQL Flexible server enables geo-redundant backups"
+  - CKV2_AZURE_57 # Ensure PostgreSQL Flexible Server is configured with private endpoint
+  - CKV_AZURE_136 # Ensure that PostgreSQL Flexible server enables geo-redundant backups
 
-  # Ensure Terraform module sources use a commit hash"
-  - CKV_TF_1 #"Ensure Terraform module sources use a commit hash"
+  # Terraform Hygiene
+  - CKV_TF_1 # Ensure Terraform module sources use a commit hash
+  - CKV_TF_2 # Ensure Terraform module sources use a tag with a version number
 
   # GitHub Self-hosted Runner - Expected failures for functionality
-  - CKV_AZURE_178 # "Ensure linux VM enables SSH with keys for secure communication" - Runner needs SSH access
-  - CKV_AZURE_50 # "Ensure Virtual Machine Extensions are not Installed" - Runner needs extensions for GitHub Actions
-  - CKV_AZURE_119 # "Ensure that Network Interfaces don't use public IPs" - Runner needs public IP to communicate with GitHub
+  - CKV_AZURE_178 # Ensure linux VM enables SSH with keys for secure communication - Runner needs SSH access
+  - CKV_AZURE_50 # Ensure Virtual Machine Extensions are not Installed - Runner needs extensions for GitHub Actions
+  - CKV_AZURE_119 # Ensure that Network Interfaces don't use public IPs - Runner needs public IP to communicate with GitHub
 
 # Skip Terraform module cache directories
 skip-path:

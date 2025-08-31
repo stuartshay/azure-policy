@@ -167,6 +167,12 @@ variable "enable_private_endpoint" {
   default     = false
 }
 
+variable "private_dns_zone_ids" {
+  description = "List of private DNS zone IDs to associate with the Service Bus private endpoint"
+  type        = list(string)
+  default     = null
+}
+
 variable "create_admin_access_rule" {
   description = "Create an admin access authorization rule"
   type        = bool
