@@ -48,7 +48,6 @@ locals {
     CostCenter  = var.cost_center
     Owner       = var.owner
     ManagedBy   = "terraform"
-    CreatedDate = timestamp()
   }
 }
 
