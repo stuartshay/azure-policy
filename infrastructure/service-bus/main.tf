@@ -176,7 +176,7 @@ resource "azurerm_servicebus_subscription" "compliance_reports_all" {
 
 # Private Endpoint for Service Bus (using the private-endpoint module)
 module "service_bus_private_endpoint" {
-  source = "/home/vagrant/git/terraform-azure-modules/modules/private-endpoint"
+  source = "../../modules/private-endpoint"
   count  = var.enable_private_endpoint ? 1 : 0
 
   name                           = "pe-${azurerm_servicebus_namespace.main.name}"
