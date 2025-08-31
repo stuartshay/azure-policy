@@ -174,20 +174,24 @@ resource "azurerm_servicebus_subscription" "compliance_reports_all" {
   default_message_ttl                  = var.default_message_ttl
 }
 
-# Private Endpoint for Service Bus (if enabled)
-resource "azurerm_private_endpoint" "service_bus" {
-  count               = var.enable_private_endpoint ? 1 : 0
-  name                = "pe-${azurerm_servicebus_namespace.main.name}"
-  location            = data.azurerm_resource_group.main.location
-  resource_group_name = data.azurerm_resource_group.main.name
-  subnet_id           = data.azurerm_subnet.private_endpoints[0].id
+# Private Endpoint for Service Bus (using the private-endpoint module)
+module "service_bus_private_endpoint" {
+  source = "../../modules/private-endpoint"
+  count  = var.enable_private_endpoint ? 1 : 0
 
-  private_service_connection {
-    name                           = "psc-${azurerm_servicebus_namespace.main.name}"
-    private_connection_resource_id = azurerm_servicebus_namespace.main.id
-    subresource_names              = ["namespace"]
-    is_manual_connection           = false
-  }
+  name                           = "pe-${azurerm_servicebus_namespace.main.name}"
+  location                       = data.azurerm_resource_group.main.location
+  resource_group_name            = data.azurerm_resource_group.main.name
+  subnet_id                      = data.azurerm_subnet.private_endpoints[0].id
+  private_connection_resource_id = azurerm_servicebus_namespace.main.id
+  subresource_names              = ["namespace"]
+
+  # Optional DNS integration (can be configured via variables)
+  private_dns_zone_ids = var.private_dns_zone_ids
+
+  # Custom naming
+  private_service_connection_name = "psc-${azurerm_servicebus_namespace.main.name}"
+  private_dns_zone_group_name     = var.private_dns_zone_ids != null ? "pdzg-${azurerm_servicebus_namespace.main.name}" : null
 
   tags = local.common_tags
 }

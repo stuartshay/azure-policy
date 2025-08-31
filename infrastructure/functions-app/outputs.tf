@@ -1,7 +1,7 @@
 # Azure Function App Deployment - Outputs
 # This file defines outputs from the Function App deployment
 
-# Basic Function App Outputs
+# Basic Function App Outputs (Enhanced with Logging)
 output "basic_function_app_name" {
   description = "Name of the Basic Function App"
   value       = azurerm_linux_function_app.basic.name

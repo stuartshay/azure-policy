@@ -139,7 +139,9 @@ The Service Bus is configured for seamless Azure Function integration:
 
 ## Modules
 
-No modules.
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_service_bus_private_endpoint"></a> [service\_bus\_private\_endpoint](#module\_service\_bus\_private\_endpoint) | /home/vagrant/git/terraform-azure-modules/modules/private-endpoint | n/a |
 
 ## Resources
 
@@ -149,7 +151,6 @@ No modules.
 | [azurerm_key_vault_secret.function_app_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.namespace_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.read_only_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
-| [azurerm_private_endpoint.service_bus](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
 | [azurerm_servicebus_namespace.main](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/servicebus_namespace) | resource |
 | [azurerm_servicebus_namespace_authorization_rule.admin_access](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/servicebus_namespace_authorization_rule) | resource |
 | [azurerm_servicebus_namespace_authorization_rule.function_app_access](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/servicebus_namespace_authorization_rule) | resource |
@@ -191,6 +192,7 @@ No modules.
 | <a name="input_max_topic_size_mb"></a> [max\_topic\_size\_mb](#input\_max\_topic\_size\_mb) | Maximum size of topics in megabytes | `number` | `1024` | no |
 | <a name="input_owner"></a> [owner](#input\_owner) | Owner of the resources (team name or email) | `string` | `"platform-team"` | no |
 | <a name="input_premium_messaging_units"></a> [premium\_messaging\_units](#input\_premium\_messaging\_units) | Number of premium messaging units (1-8, Premium SKU only) | `number` | `1` | no |
+| <a name="input_private_dns_zone_ids"></a> [private\_dns\_zone\_ids](#input\_private\_dns\_zone\_ids) | List of private DNS zone IDs to associate with the Service Bus private endpoint | `list(string)` | `null` | no |
 | <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name) | Name of the existing resource group | `string` | n/a | yes |
 | <a name="input_service_bus_sku"></a> [service\_bus\_sku](#input\_service\_bus\_sku) | SKU for the Service Bus namespace | `string` | `"Standard"` | no |
 | <a name="input_subscription_id"></a> [subscription\_id](#input\_subscription\_id) | Azure subscription ID | `string` | n/a | yes |
@@ -204,7 +206,10 @@ No modules.
 | <a name="output_function_app_connection_string"></a> [function\_app\_connection\_string](#output\_function\_app\_connection\_string) | Connection string for Function App access to Service Bus |
 | <a name="output_function_app_connection_string_key_name"></a> [function\_app\_connection\_string\_key\_name](#output\_function\_app\_connection\_string\_key\_name) | Key name for Function App Service Bus access |
 | <a name="output_keyvault_integration"></a> [keyvault\_integration](#output\_keyvault\_integration) | Key Vault integration information |
+| <a name="output_private_endpoint_details"></a> [private\_endpoint\_details](#output\_private\_endpoint\_details) | Complete private endpoint details (if enabled) |
 | <a name="output_private_endpoint_enabled"></a> [private\_endpoint\_enabled](#output\_private\_endpoint\_enabled) | Whether private endpoint is enabled |
+| <a name="output_private_endpoint_fqdn"></a> [private\_endpoint\_fqdn](#output\_private\_endpoint\_fqdn) | Private endpoint FQDN (if enabled) |
+| <a name="output_private_endpoint_id"></a> [private\_endpoint\_id](#output\_private\_endpoint\_id) | Private endpoint ID (if enabled) |
 | <a name="output_private_endpoint_ip"></a> [private\_endpoint\_ip](#output\_private\_endpoint\_ip) | Private endpoint IP address (if enabled) |
 | <a name="output_queue_names"></a> [queue\_names](#output\_queue\_names) | List of created queue names |
 | <a name="output_read_only_connection_string"></a> [read\_only\_connection\_string](#output\_read\_only\_connection\_string) | Read-only connection string for monitoring/reporting |

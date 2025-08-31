@@ -64,7 +64,29 @@ output "private_endpoint_enabled" {
 
 output "private_endpoint_ip" {
   description = "Private endpoint IP address (if enabled)"
-  value       = var.enable_private_endpoint ? azurerm_private_endpoint.service_bus[0].private_service_connection[0].private_ip_address : null
+  value       = var.enable_private_endpoint ? module.service_bus_private_endpoint[0].private_ip_address : null
+}
+
+output "private_endpoint_id" {
+  description = "Private endpoint ID (if enabled)"
+  value       = var.enable_private_endpoint ? module.service_bus_private_endpoint[0].id : null
+}
+
+output "private_endpoint_fqdn" {
+  description = "Private endpoint FQDN (if enabled)"
+  value       = var.enable_private_endpoint ? module.service_bus_private_endpoint[0].fqdn : null
+}
+
+output "private_endpoint_details" {
+  description = "Complete private endpoint details (if enabled)"
+  value = var.enable_private_endpoint ? {
+    id                 = module.service_bus_private_endpoint[0].id
+    name               = module.service_bus_private_endpoint[0].name
+    private_ip_address = module.service_bus_private_endpoint[0].private_ip_address
+    fqdn               = module.service_bus_private_endpoint[0].fqdn
+    subnet_id          = module.service_bus_private_endpoint[0].subnet_id
+    dns_configs        = module.service_bus_private_endpoint[0].custom_dns_configs
+  } : null
 }
 
 output "zone_redundancy_enabled" {
