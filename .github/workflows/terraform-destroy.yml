@@ -7,6 +7,7 @@ on:
         description: 'Terraform module to destroy'
         required: true
         type: choice
+        default: functions-app
         options:
           - core
           - policies
