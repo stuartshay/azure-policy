@@ -36,6 +36,7 @@ env:
   TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   TF_VAR_location: ${{ secrets.AZURE_LOCATION || 'East US' }}
   TF_VAR_environment: ${{ github.event.inputs.environment }}
+  TF_VAR_workload: azpolicy
   TF_VAR_owner: platform-team
   TF_VAR_cost_center: development
   TF_VAR_resource_group_name: rg-azpolicy-${{ github.event.inputs.environment }}-eastus
