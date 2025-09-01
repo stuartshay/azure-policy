@@ -10,8 +10,10 @@ on:
         options:
           - core
           - policies
+          - app-service
           - functions-app
           - monitoring
+          - terraform
       environment:
         description: 'Environment to deploy'
         required: true
@@ -29,8 +31,12 @@ on:
 env:
   TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
   # Use existing workspace names that match Terraform configuration
-  # Map functions-app module to azure-policy-functions-app workspace
-  TF_WORKSPACE: ${{ github.event.inputs.module == 'functions-app' && 'azure-policy-functions-app' || format('azure-policy-{0}', github.event.inputs.module) }}
+  # Map modules to their actual Terraform Cloud workspace names
+  TF_WORKSPACE: ${{
+    github.event.inputs.module == 'functions-app' && 'azure-policy-functions-app' ||
+    github.event.inputs.module == 'app-service' && 'app-service-dev' ||
+    github.event.inputs.module == 'terraform' && 'azure-policy-infrastructure' ||
+    format('azure-policy-{0}', github.event.inputs.module) }}
   # Terraform variables
   TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   TF_VAR_location: ${{ secrets.AZURE_LOCATION || 'East US' }}
