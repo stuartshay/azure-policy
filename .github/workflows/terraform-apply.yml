@@ -194,18 +194,10 @@ jobs:
 
       - name: Get Terraform Outputs
         id: outputs
-        if: steps.plan.outputs.exitcode == 0 || (steps.plan.outputs.exitcode == 2 && steps.apply.outputs.applied == 'true')
+        if: steps.plan.outputs.exitcode == 2 && steps.apply.outputs.applied == 'true'
         run: |
-          # Check if outputs exist before trying to read them
-          {
-            echo "outputs_available=false"
-          } >> "$GITHUB_OUTPUT"
-
-          # First check if there are any outputs at all
-          if ! terraform output >/dev/null 2>&1; then
-            echo "No outputs available - state may be empty"
-            exit 0
-          fi
+          # Only run this step if resources were actually deployed
+          echo "outputs_available=false" >> "$GITHUB_OUTPUT"
 
           # Try to get common outputs based on module type
           case "${{ github.event.inputs.module }}" in
