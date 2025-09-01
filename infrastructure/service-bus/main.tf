@@ -176,8 +176,9 @@ resource "azurerm_servicebus_subscription" "compliance_reports_all" {
 
 # Private Endpoint for Service Bus (using the private-endpoint module)
 module "service_bus_private_endpoint" {
-  source = "../../modules/private-endpoint"
-  count  = var.enable_private_endpoint ? 1 : 0
+  source  = "app.terraform.io/azure-policy-cloud/private-endpoint/azurerm"
+  version = "1.1.50"
+  count   = var.enable_private_endpoint ? 1 : 0
 
   name                           = "pe-${azurerm_servicebus_namespace.main.name}"
   location                       = data.azurerm_resource_group.main.location
