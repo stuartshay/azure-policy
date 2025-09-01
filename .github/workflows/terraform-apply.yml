@@ -201,6 +201,12 @@ jobs:
             echo "outputs_available=false"
           } >> "$GITHUB_OUTPUT"
 
+          # First check if there are any outputs at all
+          if ! terraform output >/dev/null 2>&1; then
+            echo "No outputs available - state may be empty"
+            exit 0
+          fi
+
           # Try to get common outputs based on module type
           case "${{ github.event.inputs.module }}" in
             "core")
