@@ -141,7 +141,7 @@ The Service Bus is configured for seamless Azure Function integration:
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_service_bus_private_endpoint"></a> [service\_bus\_private\_endpoint](#module\_service\_bus\_private\_endpoint) | /home/vagrant/git/terraform-azure-modules/modules/private-endpoint | n/a |
+| <a name="module_service_bus_private_endpoint"></a> [service\_bus\_private\_endpoint](#module\_service\_bus\_private\_endpoint) | app.terraform.io/azure-policy-cloud/private-endpoint/azurerm | 1.1.50 |
 
 ## Resources
 

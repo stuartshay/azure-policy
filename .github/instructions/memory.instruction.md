@@ -81,3 +81,9 @@ applyTo: '**'
 
 ### Recommendation:
 - Consider adding a test or CI check to detect if the root README.md was replaced with terraform-docs output and fail the build if so.
+
+## 2025-08-31: Terraform Destroy Bug Fix (Completed)
+- Problem: Destroy workflow failed for 'functions' because the actual directory is 'functions-app'.
+- Solution: Updated `.github/workflows/terraform-destroy.yml` to use 'functions-app' as the module option and mapped workspace logic accordingly.
+- Verified that the Makefile and Terraform config for `functions-app` support destroy, and no errors are present.
+- Next: Test the workflow in CI to confirm full destruction and update documentation if needed.
