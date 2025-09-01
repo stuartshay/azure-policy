@@ -46,6 +46,8 @@ env:
   TF_VAR_environment: ${{ github.event.inputs.environment }}
   TF_VAR_owner: platform-team
   TF_VAR_cost_center: development
+  TF_VAR_resource_group_name: rg-azpolicy-dev-eastus
+  TF_VAR_workload: azpolicy
 
 jobs:
   validate-destroy:
