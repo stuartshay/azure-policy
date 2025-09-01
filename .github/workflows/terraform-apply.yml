@@ -28,6 +28,11 @@ on:
         description: 'Type "apply" to confirm deployment'
         required: true
         type: string
+      force_apply:
+        description: 'Force apply even if no changes detected'
+        required: false
+        default: false
+        type: boolean
 
 env:
   # Terraform Cloud authentication - this is the key fix
@@ -136,11 +141,17 @@ jobs:
 
       - name: Terraform Apply
         id: apply
-        if: steps.plan.outputs.exitcode == 2
+        if: steps.plan.outputs.exitcode == 2 || github.event.inputs.force_apply == 'true'
         run: |
-          echo "🚀 Applying Terraform changes..."
-          terraform apply tfplan -no-color
-          echo "applied=true" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event.inputs.force_apply }}" == "true" ] && [ "${{ steps.plan.outputs.exitcode }}" == "0" ]; then
+            echo "🔄 Force applying - refreshing state even though no changes detected..."
+            terraform apply -refresh-only -auto-approve -no-color
+            echo "applied=force-refresh" >> "$GITHUB_OUTPUT"
+          else
+            echo "🚀 Applying Terraform changes..."
+            terraform apply tfplan -no-color
+            echo "applied=true" >> "$GITHUB_OUTPUT"
+          fi
 
           # Final verification - ensure no local state
           if ls terraform.tfstate* 2>/dev/null; then
