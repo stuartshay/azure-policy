@@ -32,8 +32,8 @@ on:
 env:
   TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
   # Use existing workspace names that match Terraform configuration
-  # Map functions-app module to azure-policy-functions workspace
-  TF_WORKSPACE: ${{ github.event.inputs.module == 'functions-app' && 'azure-policy-functions' || format('azure-policy-{0}', github.event.inputs.module) }}
+  # Map functions-app module to azure-policy-functions-app workspace
+  TF_WORKSPACE: ${{ github.event.inputs.module == 'functions-app' && 'azure-policy-functions-app' || format('azure-policy-{0}', github.event.inputs.module) }}
   # Terraform variables
   TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   TF_VAR_location: ${{ secrets.AZURE_LOCATION || 'East US' }}
