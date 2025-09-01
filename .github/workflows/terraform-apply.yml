@@ -6,6 +6,7 @@ on:
       module:
         description: 'Terraform module to deploy'
         required: true
+        default: app-service
         type: choice
         options:
           - core
