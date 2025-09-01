@@ -30,14 +30,8 @@ on:
         type: string
 
 env:
-  TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
-  # Use existing workspace names that match Terraform configuration
-  # Map modules to their actual Terraform Cloud workspace names
-  TF_WORKSPACE: ${{
-    github.event.inputs.module == 'functions-app' && 'azure-policy-functions-app' ||
-    github.event.inputs.module == 'app-service' && 'app-service-dev' ||
-    github.event.inputs.module == 'terraform' && 'azure-policy-infrastructure' ||
-    format('azure-policy-{0}', github.event.inputs.module) }}
+  # Terraform Cloud authentication - this is the key fix
+  TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
   # Terraform variables
   TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   TF_VAR_location: ${{ secrets.AZURE_LOCATION || 'East US' }}
@@ -74,15 +68,61 @@ jobs:
           terraform_version: 1.12.2
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
+      - name: Verify Terraform Cloud Configuration
+        run: |
+          echo "🔍 Verifying Terraform Cloud setup..."
+          echo "Module: ${{ github.event.inputs.module }}"
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Working directory: $(pwd)"
+
+          # Check if backend configuration exists
+          if grep -q "cloud {" main.tf; then
+            echo "✅ Terraform Cloud backend configuration found"
+            grep -A 10 "cloud {" main.tf
+          else
+            echo "❌ No Terraform Cloud backend configuration found"
+            exit 1
+          fi
+
+          # Verify token is available
+          if [ -n "$TF_TOKEN_app_terraform_io" ]; then
+            echo "✅ Terraform Cloud token is configured"
+            echo "Token: ${TF_TOKEN_app_terraform_io:0:20}..."
+          else
+            echo "❌ Terraform Cloud token is missing"
+            exit 1
+          fi
+        working-directory: infrastructure/${{ github.event.inputs.module }}
+
       - name: Terraform Init
-        run: terraform init
+        run: |
+          echo "🚀 Initializing Terraform with Cloud backend..."
+          terraform init -no-color
+
+          # Verify we're using remote state
+          if terraform show -json 2>/dev/null | grep -q "remote"; then
+            echo "✅ Using Terraform Cloud remote state"
+          else
+            echo "⚠️  State backend verification inconclusive"
+          fi
         working-directory: infrastructure/${{ github.event.inputs.module }}
 
       - name: Terraform Plan
         id: plan
         run: |
-          terraform plan -detailed-exitcode -out=tfplan
-          echo "exitcode=$?" >> "$GITHUB_OUTPUT"
+          echo "📋 Planning Terraform changes..."
+          terraform plan -detailed-exitcode -out=tfplan -no-color
+          PLAN_EXIT_CODE=$?
+          echo "exitcode=$PLAN_EXIT_CODE" >> "$GITHUB_OUTPUT"
+
+          # Verify no local state files are created
+          if ls terraform.tfstate* 2>/dev/null; then
+            echo "❌ ERROR: Local state files detected! This indicates Terraform Cloud backend is not working."
+            ls -la terraform.tfstate*
+            exit 1
+          else
+            echo "✅ No local state files found - using Terraform Cloud backend correctly"
+          fi
         working-directory: infrastructure/${{ github.event.inputs.module }}
 
       - name: Upload Plan Artifact
@@ -96,8 +136,18 @@ jobs:
         id: apply
         if: steps.plan.outputs.exitcode == 2
         run: |
-          terraform apply tfplan
+          echo "🚀 Applying Terraform changes..."
+          terraform apply tfplan -no-color
           echo "applied=true" >> "$GITHUB_OUTPUT"
+
+          # Final verification - ensure no local state
+          if ls terraform.tfstate* 2>/dev/null; then
+            echo "❌ ERROR: Local state files detected after apply!"
+            ls -la terraform.tfstate*
+            exit 1
+          else
+            echo "✅ Apply completed successfully using Terraform Cloud backend"
+          fi
         working-directory: infrastructure/${{ github.event.inputs.module }}
 
       - name: No Changes Detected
@@ -122,8 +172,20 @@ jobs:
           echo "Plan exitcode: ${{ steps.plan.outputs.exitcode }}"
           echo "Apply applied: ${{ steps.apply.outputs.applied }}"
           echo "Working directory: $(pwd)"
-          echo "Terraform state files:"
-          ls -la terraform.tfstate* 2>/dev/null || echo "No state files found"
+
+          # Verify backend configuration
+          echo "Backend configuration:"
+          terraform version
+
+          # Check for local state files (should not exist)
+          echo "Local state files check:"
+          if ls terraform.tfstate* 2>/dev/null; then
+            echo "❌ WARNING: Local state files found (should not exist with Terraform Cloud):"
+            ls -la terraform.tfstate*
+          else
+            echo "✅ No local state files found (correct for Terraform Cloud)"
+          fi
+
           echo "Available outputs:"
           terraform output 2>&1 || echo "No outputs available"
         working-directory: infrastructure/${{ github.event.inputs.module }}
@@ -148,11 +210,11 @@ jobs:
                 } >> "$GITHUB_OUTPUT"
               fi
               ;;
-            "functions")
-              if terraform output function_app_name >/dev/null 2>&1; then
+            "app-service"|"functions-app")
+              if terraform output app_service_plan_name >/dev/null 2>&1; then
                 {
-                  echo "function_app_name=$(terraform output -raw function_app_name)"
                   echo "app_service_plan_name=$(terraform output -raw app_service_plan_name)"
+                  echo "storage_account_name=$(terraform output -raw storage_account_name)"
                   echo "outputs_available=true"
                 } >> "$GITHUB_OUTPUT"
               fi
@@ -205,12 +267,12 @@ jobs:
                   } >> "$GITHUB_STEP_SUMMARY"
                 fi
                 ;;
-              "functions")
-                if terraform output function_app_name >/dev/null 2>&1; then
+              "app-service"|"functions-app")
+                if terraform output app_service_plan_name >/dev/null 2>&1; then
                   {
                     echo "### Deployed Resources"
-                    echo "- **Function App:** $(terraform output -raw function_app_name)"
                     echo "- **App Service Plan:** $(terraform output -raw app_service_plan_name)"
+                    echo "- **Storage Account:** $(terraform output -raw storage_account_name)"
                   } >> "$GITHUB_STEP_SUMMARY"
                 fi
                 ;;

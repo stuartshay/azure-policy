@@ -105,6 +105,7 @@ Key variables for EP1 configuration:
 |------|-------------|
 | <a name="output_always_ready_instances"></a> [always\_ready\_instances](#output\_always\_ready\_instances) | Number of always ready instances for EP1 |
 | <a name="output_app_service_plan_id"></a> [app\_service\_plan\_id](#output\_app\_service\_plan\_id) | ID of the App Service Plan |
+| <a name="output_app_service_plan_name"></a> [app\_service\_plan\_name](#output\_app\_service\_plan\_name) | Name of the App Service Plan |
 | <a name="output_application_insights_connection_string"></a> [application\_insights\_connection\_string](#output\_application\_insights\_connection\_string) | Application Insights connection string |
 | <a name="output_application_insights_instrumentation_key"></a> [application\_insights\_instrumentation\_key](#output\_application\_insights\_instrumentation\_key) | Application Insights instrumentation key |
 | <a name="output_function_app_default_hostname"></a> [function\_app\_default\_hostname](#output\_function\_app\_default\_hostname) | Default hostname of the Function App |
