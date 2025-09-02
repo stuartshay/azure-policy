@@ -101,20 +101,6 @@ module "networking" {
   tags = local.common_tags
 }
 
-# App Service Module - Commented out due to quota limitations on BizSpark subscription
-# module "app_service" {
-#   source = "./modules/app-service"
-#
-#   resource_group_name = azurerm_resource_group.main.name
-#   location            = azurerm_resource_group.main.location
-#   environment         = var.environment
-#   workload            = local.workload
-#   sku_name            = var.app_service_sku
-#
-#   tags = local.common_tags
-#
-#   depends_on = [module.networking]
-# }
 
 # Azure Policies Module
 module "policies" {
