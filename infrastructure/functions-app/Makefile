@@ -16,14 +16,10 @@ help: ## Show this help message
 	@echo
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-# Check if app-service state exists
+# Check if app-service infrastructure is deployed (remote state only)
 check-prerequisites:
-	@if [ ! -f "../app-service/terraform.tfstate" ]; then \
-		echo "❌ Error: App Service infrastructure not found!"; \
-		echo "   Please deploy app-service first: make terraform-app-service-apply"; \
-		exit 1; \
-	fi
-	@echo "✅ App Service infrastructure found"
+	@echo "ℹ️  Skipping local terraform.tfstate check (using remote state backend)"
+	@echo "✅ Assuming App Service infrastructure is deployed via Terraform Cloud"
 
 init: check-prerequisites ## Initialize Terraform
 	@echo "🚀 Initializing Terraform for Function App deployment..."
