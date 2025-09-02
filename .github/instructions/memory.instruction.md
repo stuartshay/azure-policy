@@ -11,7 +11,7 @@ applyTo: '**'
 - Communication style: Concise, step-by-step, prefers robust solutions
 
 ## Project Context
-- Current project type: Azure Functions, multi-folder Python project
+- Current project type: Azure Functions, multi-folder Python project, modular Terraform infrastructure (service-bus, app-service, etc.)
 - Tech stack: Python, Azure Functions, pytest, VS Code
 - Architecture patterns: Modular, per-function subfolders with venvs
 - Key requirements: All function test folders must be available in VS Code Test Explorer
@@ -65,6 +65,42 @@ applyTo: '**'
 - If new function folders are added, ensure they have their own .vscode/settings.json for test discovery
 - Use absolute imports in test files for robust discovery
 - Next step: Analyze Terraform codebase for missing resources required by modules.
+
+## 2025-09-02: Service Bus Terraform Cloud Migration & Clean State Validation (COMPLETED)
+### Steps Completed:
+- Destroyed Service Bus namespace and all related resources in Azure using Azure CLI for a clean slate
+- Removed all local Terraform state files and switched backend to Terraform Cloud in `infrastructure/service-bus`
+- Ran `make apply` in the correct workspace directory to deploy all Service Bus resources via Terraform Cloud
+- Confirmed all resources (namespace, queues, topics, authorization rules, Key Vault secrets) were created and managed by Terraform Cloud
+- Ran `terraform state list` to verify all expected resources are tracked in state
+- Ran `terraform plan` to confirm no drift or pending changes (only in-place tag updates for Key Vault secrets, not blocking)
+### Best Practices:
+- For complex state migrations, destroying and recreating resources can be simpler than importing many resources
+- Always validate state with `terraform state list` and `terraform plan` after migration
+- Use Makefile automation to ensure workspace-specific operations are run in the correct directory
+### Validation Results:
+- All Service Bus resources are now managed by Terraform Cloud with no drift
+- No errors, only minor tag update warnings for Key Vault secrets
+- Workspace is in a clean, drift-free state
+### Next Steps:
+- Continue to use this destroy-and-recreate pattern for future state migrations if import is too complex
+- Periodically validate state and drift after major changes
+
+## 2025-09-02: Service Bus Terraform Workspace Local Apply (COMPLETED)
+### Steps Completed:
+- Verified `infrastructure/service-bus` workspace exists and matches app-service pattern
+- Removed all local state files and `.terraform` directory for a clean state
+- Ran `terraform init` to initialize providers and modules
+- Ran `terraform apply` to deploy service-bus locally (local backend)
+- All resources up-to-date, only Key Vault secret tags updated
+- No errors, only warning for undeclared variable in tfvars (not blocking)
+### Best Practices:
+- Always clean state before local apply to avoid drift
+- Use absolute paths for automation/CI reliability
+- Confirm module structure matches established patterns (app-service, etc.)
+### Next Steps:
+- If moving to Terraform Cloud, update backend config and test remote apply
+- Review Makefile and CI/CD for new workspace integration
 
 ## terraform-docs README.md Overwrite Root Cause
 
