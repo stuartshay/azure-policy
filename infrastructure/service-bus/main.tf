@@ -14,9 +14,12 @@ terraform {
     }
   }
 
-  # Local backend for deployment
-  backend "local" {
-    path = "terraform.tfstate"
+  # Terraform Cloud backend for deployment
+  cloud {
+    organization = "azure-policy-cloud"
+    workspaces {
+      name = "service-bus"
+    }
   }
 }
 
