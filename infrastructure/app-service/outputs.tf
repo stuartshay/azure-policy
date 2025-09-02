@@ -26,6 +26,11 @@ output "app_service_plan_id" {
   value       = module.app_service_plan.app_service_plan_id
 }
 
+output "app_service_plan_name" {
+  description = "Name of the App Service Plan"
+  value       = module.app_service_plan.app_service_plan_name
+}
+
 output "application_insights_connection_string" {
   description = "Application Insights connection string"
   value       = var.enable_application_insights ? azurerm_application_insights.functions[0].connection_string : null

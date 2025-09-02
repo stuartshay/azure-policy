@@ -84,7 +84,7 @@ variable "function_app_settings" {
 variable "enable_application_insights" {
   description = "Enable Application Insights for Functions"
   type        = bool
-  default     = true
+  default     = false
 }
 
 # VNet Integration Configuration
@@ -97,7 +97,7 @@ variable "vnet_integration_subnet_id" {
 variable "enable_vnet_integration" {
   description = "Enable VNet integration for the Function App"
   type        = bool
-  default     = true
+  default     = false
 }
 
 # EP1 Specific Configuration

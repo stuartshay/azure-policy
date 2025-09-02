@@ -7,10 +7,14 @@ on:
         description: 'Terraform module to destroy'
         required: true
         type: choice
+        default: app-service
         options:
           - core
           - policies
+          - app-service
           - functions-app
+          - monitoring
+          - terraform
       environment:
         description: 'Environment to destroy'
         required: true
@@ -26,17 +30,29 @@ on:
         description: 'Type environment name again'
         required: true
         type: string
+      force_destroy:
+        description: 'Force destroy even if no changes detected'
+        required: false
+        type: boolean
+        default: false
 
 env:
   TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
   # Use existing workspace names that match Terraform configuration
-  TF_WORKSPACE: ${{ if(github.event.inputs.module == 'functions-app', 'azure-policy-functions', format('azure-policy-{0}', github.event.inputs.module)) }}
+  # Map modules to their actual Terraform Cloud workspace names
+  TF_WORKSPACE: ${{
+    github.event.inputs.module == 'functions-app' && 'azure-policy-functions-app' ||
+    github.event.inputs.module == 'app-service' && 'app-service-dev' ||
+    github.event.inputs.module == 'terraform' && 'azure-policy-infrastructure' ||
+    format('azure-policy-{0}', github.event.inputs.module) }}
   # Terraform variables
   TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   TF_VAR_location: ${{ secrets.AZURE_LOCATION || 'East US' }}
   TF_VAR_environment: ${{ github.event.inputs.environment }}
   TF_VAR_owner: platform-team
   TF_VAR_cost_center: development
+  TF_VAR_resource_group_name: rg-azpolicy-dev-eastus
+  TF_VAR_workload: azpolicy
 
 jobs:
   validate-destroy:
@@ -97,8 +113,15 @@ jobs:
           retention-days: 7
 
       - name: Terraform Destroy
-        if: steps.plan.outputs.exitcode == 2
-        run: terraform apply destroy-plan
+        if: steps.plan.outputs.exitcode == 2 || github.event.inputs.force_destroy == 'true'
+        run: |
+          if [ "${{ steps.plan.outputs.exitcode }}" == "2" ]; then
+            echo "🗑️ Resources detected for destruction, applying destroy plan..."
+            terraform apply destroy-plan
+          elif [ "${{ github.event.inputs.force_destroy }}" == "true" ]; then
+            echo "🔄 Force destroy enabled, running terraform destroy directly..."
+            terraform destroy -auto-approve
+          fi
         working-directory: infrastructure/${{ github.event.inputs.module }}
 
       - name: Verify Destruction (via Terraform State)
@@ -149,6 +172,13 @@ jobs:
                 echo "- **Azure Policies:** Removed"
                 echo "- **Policy Assignments:** Removed"
                 echo "- **Policy Initiatives:** Removed"
+              } >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            "monitoring")
+              {
+                echo "- **Application Insights:** Removed"
+                echo "- **Log Analytics Workspace:** Removed"
+                echo "- **Monitoring Workbooks:** Removed"
               } >> "$GITHUB_STEP_SUMMARY"
               ;;
           esac

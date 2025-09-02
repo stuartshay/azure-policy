@@ -5,7 +5,7 @@
 -r requirements/dev.txt
 
 # Additional development tools that might be useful
-ipython==9.4.0
+ipython==9.5.0
 jupyter==1.1.1
 
 # Azure management libraries for notebooks

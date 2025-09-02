@@ -11,7 +11,14 @@ terraform {
     }
   }
 
-  backend "local" {}
+  # Terraform Cloud backend for state management
+  cloud {
+    organization = "azure-policy-cloud"
+
+    workspaces {
+      name = "azure-policy-functions-app"
+    }
+  }
 }
 
 provider "azurerm" {
