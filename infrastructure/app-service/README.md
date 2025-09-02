@@ -52,7 +52,7 @@ Key variables for EP1 configuration:
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | ~> 4.40 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | ~> 4.42 |
 
 ## Providers
 
@@ -64,7 +64,7 @@ Key variables for EP1 configuration:
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_app_service_plan"></a> [app\_service\_plan](#module\_app\_service\_plan) | app.terraform.io/azure-policy-cloud/app-service-plan-function/azurerm | 1.1.34 |
+| <a name="module_app_service_plan"></a> [app\_service\_plan](#module\_app\_service\_plan) | app.terraform.io/azure-policy-cloud/app-service-plan-function/azurerm | 1.1.59 |
 
 ## Resources
 
