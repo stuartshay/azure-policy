@@ -59,10 +59,12 @@ applyTo: '**'
 - Problem: Only main tests folder was available in Test Explorer, function-specific test folders were not
 - Solution: Added/updated .vscode/settings.json in each function folder to use its own venv and pytest for test discovery; fixed import in basic function test
 - Result: All function test folders now available in Test Explorer; some test failures remain but are unrelated to discovery
+- 2025-09-01: User reported Terraform Apply step failing in GitHub Actions, suspects missing resources in module. Provided link to failing run and .terraform-version file (1.12.2). Agent to investigate error, analyze Terraform codebase, and resolve missing resources.
 
 ## Notes
 - If new function folders are added, ensure they have their own .vscode/settings.json for test discovery
 - Use absolute imports in test files for robust discovery
+- Next step: Analyze Terraform codebase for missing resources required by modules.
 
 ## terraform-docs README.md Overwrite Root Cause
 
@@ -114,3 +116,20 @@ The functions-app module was using `backend "local" {}` instead of Terraform Clo
 - Both local development and GitHub Actions now use the same Terraform Cloud backend consistently
 - terraform-destroy.yml workflow should now work properly with consistent state management
 - No more complex data source workarounds needed - Terraform Cloud handles the state properly
+
+## 2025-09-01: Terraform Functions-App Remote State Sharing Fix (ROOT CAUSE & SOLUTION)
+### Root Cause:
+- The `functions-app` workspace was not authorized to read the remote state of the `app-service-dev` workspace in Terraform Cloud.
+- This caused the `terraform_remote_state` data source in `functions-app` to fail, breaking the CI/CD pipeline.
+
+### Solution:
+- In Terraform Cloud, go to Organization: `azure-policy-cloud` → Workspace: `app-service-dev` → Settings → General → Remote state sharing.
+- Add `azure-policy-functions-app` as an authorized state consumer.
+- Save changes. This allows the `functions-app` module to read all required outputs from `app-service-dev`.
+
+### CLI Limitations:
+- This permission cannot be set from the CLI or Terraform code; it must be configured in the Terraform Cloud UI (or via their API).
+- All other code/config changes can be made and tested via CLI, but remote state sharing is a UI/Cloud-side setting.
+
+### Best Practice:
+- Always ensure downstream workspaces are authorized to read required remote state before running dependent applies.
