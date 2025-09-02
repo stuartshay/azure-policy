@@ -32,8 +32,11 @@ on:
       region:
         description: 'Azure region (used in resource group and TF_VAR_location)'
         required: true
-        default: 'eastus'
-        type: string
+        default: 'East US'
+        type: choice
+        options:
+          - East US
+          - East US 2
       confirm:
         description: 'Type "apply" to confirm deployment'
         required: true
