@@ -49,12 +49,12 @@ env:
   TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
   # Terraform variables
   TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-  TF_VAR_location: ${{ github.event.inputs.region || secrets.AZURE_LOCATION || 'East US' }}
+  TF_VAR_location: ${{ github.event.inputs.region }}
   TF_VAR_environment: ${{ github.event.inputs.environment }}
-  TF_VAR_workload: ${{ github.event.inputs.workload || 'azpolicy' }}
+  TF_VAR_workload: ${{ github.event.inputs.workload }}
   TF_VAR_owner: platform-team
   TF_VAR_cost_center: development
-  TF_VAR_resource_group_name: rg-${{ github.event.inputs.workload || 'azpolicy' }}-${{ github.event.inputs.environment }}-${{ github.event.inputs.region || 'eastus' }}
+  TF_VAR_resource_group_name: rg-${{ github.event.inputs.workload }}-${{ github.event.inputs.environment }}-${{ github.event.inputs.region }}
 
 jobs:
   validate-input:
