@@ -58,7 +58,7 @@ Key variables for EP1 configuration:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.40.0 |
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.42.0 |
 
 ## Modules
 
@@ -85,8 +85,8 @@ Key variables for EP1 configuration:
 | <a name="input_always_ready_instances"></a> [always\_ready\_instances](#input\_always\_ready\_instances) | Number of always ready instances for EP1 | `number` | `1` | no |
 | <a name="input_cost_center"></a> [cost\_center](#input\_cost\_center) | Cost center for resource billing | `string` | `"development"` | no |
 | <a name="input_deploy_function_app"></a> [deploy\_function\_app](#input\_deploy\_function\_app) | Whether to deploy the Function App resource (set to false for infrastructure-only deployment) | `bool` | `false` | no |
-| <a name="input_enable_application_insights"></a> [enable\_application\_insights](#input\_enable\_application\_insights) | Enable Application Insights for Functions | `bool` | `true` | no |
-| <a name="input_enable_vnet_integration"></a> [enable\_vnet\_integration](#input\_enable\_vnet\_integration) | Enable VNet integration for the Function App | `bool` | `true` | no |
+| <a name="input_enable_application_insights"></a> [enable\_application\_insights](#input\_enable\_application\_insights) | Enable Application Insights for Functions | `bool` | `false` | no |
+| <a name="input_enable_vnet_integration"></a> [enable\_vnet\_integration](#input\_enable\_vnet\_integration) | Enable VNet integration for the Function App | `bool` | `false` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, staging, prod) | `string` | `"dev"` | no |
 | <a name="input_function_app_settings"></a> [function\_app\_settings](#input\_function\_app\_settings) | Additional app settings for the Function App | `map(string)` | `{}` | no |
 | <a name="input_functions_sku_name"></a> [functions\_sku\_name](#input\_functions\_sku\_name) | SKU name for the Functions App Service Plan | `string` | `"EP1"` | no |
