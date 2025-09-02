@@ -126,7 +126,6 @@ extract_provider_versions "infrastructure/terraform/main.tf" "Main Terraform"
 
 # Check terraform modules
 extract_provider_versions "infrastructure/terraform/modules/networking/main.tf" "Networking Module"
-extract_provider_versions "infrastructure/terraform/modules/app-service/main.tf" "App Service Module"
 extract_provider_versions "infrastructure/terraform/modules/policies/main.tf" "Policies Module"
 
 # Summary
