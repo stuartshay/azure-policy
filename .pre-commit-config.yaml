@@ -232,7 +232,12 @@ repos:
     rev: v1.100.0
     hooks:
       - id: terraform_fmt
+        args:
+          - --args=-recursive
       - id: terraform_validate
+        args:
+          - --args=-json
+          - --args=-no-color
       - id: terraform_docs
         args:
           - --hook-config=--path-to-file=README.md
@@ -240,10 +245,38 @@ repos:
           - --hook-config=--create-file-if-not-exist=true
         files: ^infrastructure/.*\.tf$
       - id: terraform_tflint
+        args:
+          - --args=--config=${PWD}/.tflint.hcl
       - id: terraform_checkov
         args:
           - --args=--framework=terraform
           - --args=--config-file=${PWD}/.checkov.yaml
+
+  # Terraform testing and version validation
+  - repo: local
+    hooks:
+      - id: terraform-version-validation
+        name: Terraform Version Validation
+        entry: scripts/validate-terraform-version.sh
+        language: system
+        files: '\.terraform-version$|infrastructure/.*/main\.tf$|\.github/workflows/.*\.yml$'
+        pass_filenames: false
+        description: 'Validate .terraform-version consistency with infrastructure requirements, example files, and provider versions'
+      - id: terraform-test-changed
+        name: Terraform Test (Changed Infrastructure Only)
+        entry: scripts/pre-commit-terraform-test.sh
+        language: system
+        files: '^infrastructure/.*\.(tf|tftest\.hcl)$'
+        pass_filenames: true
+        description: 'Run Terraform tests only for infrastructure directories with changed files'
+
+  # Security scanning
+  - repo: https://github.com/aquasecurity/tfsec
+    rev: v1.28.14
+    hooks:
+      - id: tfsec
+        args:
+          - --soft-fail
 
   # GitHub Actions linting
   - repo: https://github.com/rhysd/actionlint

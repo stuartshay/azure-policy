@@ -2,7 +2,7 @@
 # This file defines the monitoring infrastructure using the monitoring module
 
 terraform {
-  required_version = ">= 1.5"
+  required_version = ">= 1.13.1"
 
   required_providers {
     azurerm = {

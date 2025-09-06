@@ -2,12 +2,12 @@
 # This file defines the Azure App Service deployment infrastructure
 
 terraform {
-  required_version = ">= 1.5"
+  required_version = ">= 1.13.1"
 
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.42"
+      version = "~> 4.42.0"
     }
   }
 
@@ -117,7 +117,7 @@ resource "azurerm_storage_account" "functions" {
 # App Service Plan for Functions using private module
 module "app_service_plan" {
   source  = "app.terraform.io/azure-policy-cloud/app-service-plan-function/azurerm"
-  version = "1.1.59"
+  version = "1.1.65"
 
   workload                     = var.workload
   environment                  = var.environment

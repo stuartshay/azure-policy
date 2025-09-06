@@ -2,7 +2,7 @@
 # This module creates a low-cost PostgreSQL Flexible Server for the Azure Policy project
 
 terraform {
-  required_version = ">= 1.5"
+  required_version = ">= 1.13.1"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"

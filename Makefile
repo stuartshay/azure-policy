@@ -273,6 +273,22 @@ terraform-version: ## Show current Terraform version and tfenv status
 
 terraform-check-versions: terraform-version ## Check Terraform and provider versions (alias)
 
+terraform-validate-versions: ## Validate Terraform version consistency across infrastructure
+	@echo "$(YELLOW)Validating Terraform version consistency...$(RESET)"
+	@./scripts/validate-terraform-version.sh
+
+terraform-test: ## Run Terraform tests for all infrastructure directories
+	@echo "$(YELLOW)Running Terraform tests for all infrastructure...$(RESET)"
+	@./scripts/pre-commit-terraform-test.sh
+
+terraform-test-changed: ## Run Terraform tests for changed infrastructure only
+	@echo "$(YELLOW)Running Terraform tests for changed infrastructure...$(RESET)"
+	@if [ -n "$$(git diff --name-only HEAD~1 HEAD | grep '^infrastructure/')" ]; then \
+		./scripts/pre-commit-terraform-test.sh $$(git diff --name-only HEAD~1 HEAD | grep '^infrastructure/'); \
+	else \
+		echo "$(GREEN)No infrastructure changes detected$(RESET)"; \
+	fi
+
 terraform-update-providers: ## Update provider versions across all modules
 	@echo "$(YELLOW)Updating Terraform providers...$(RESET)"
 	@echo "Usage: make terraform-update-providers OLD_VERSION=4.37 NEW_VERSION=4.39"
@@ -390,9 +406,23 @@ terraform-output: ## Show Terraform outputs (main workspace)
 
 ##@ Terraform Workspaces
 
+
 terraform-core-init: ## Initialize Core workspace
 	@echo "$(YELLOW)Initializing Core workspace...$(RESET)"
 	@cd $(INFRASTRUCTURE_PATH)/core && $(MAKE) init
+
+terraform-core-update: ## Update providers and lock file in Core workspace
+	@echo "$(YELLOW)Updating providers and lock file in Core workspace...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/core && \
+		if [ -f ../../.env ]; then \
+			set -a && . ../../.env && set +a && \
+			export TF_TOKEN_app_terraform_io="$$TF_API_TOKEN" && \
+			terraform init -upgrade; \
+		else \
+			echo "$(RED)Error: .env file not found at ../../.env$(RESET)"; \
+			exit 1; \
+		fi
+	@echo "$(GREEN)If .terraform.lock.hcl was updated, review and commit the changes.$(RESET)"
 
 terraform-core-plan: ## Plan Core workspace changes
 	@echo "$(YELLOW)Planning Core workspace changes...$(RESET)"
@@ -409,6 +439,21 @@ terraform-core-destroy: ## Destroy Core workspace resources
 terraform-app-service-init: ## Initialize App Service workspace
 	@echo "$(YELLOW)Initializing App Service workspace...$(RESET)"
 	@cd $(INFRASTRUCTURE_PATH)/app-service && $(MAKE) init
+terraform-app-service-update: ## Update providers and lock file in App Service workspace
+	@echo "$(YELLOW)Updating providers and lock file in App Service workspace...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/app-service && \
+		if [ -f ../../.env ]; then \
+			set -a && . ../../.env && set +a && \
+			export TF_TOKEN_app_terraform_io="$$TF_API_TOKEN" && \
+			terraform init -upgrade; \
+		else \
+			echo "$(RED)Error: .env file not found at ../../.env$(RESET)"; \
+			exit 1; \
+		fi
+	@echo "$(GREEN)If .terraform.lock.hcl was updated, review and commit the changes.$(RESET)"
+
+
+
 
 terraform-app-service-plan: ## Plan App Service workspace changes
 	@echo "$(YELLOW)Planning App Service workspace changes...$(RESET)"

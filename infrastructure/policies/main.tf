@@ -2,12 +2,12 @@
 # This file defines Azure Policy definitions and assignments
 
 terraform {
-  required_version = ">= 1.5"
+  required_version = ">= 1.13.1"
 
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.40"
+      version = "~> 4.42.0"
     }
   }
 
