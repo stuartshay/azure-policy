@@ -526,6 +526,19 @@ setup-dev-database-access: ## Set up development database access with current pu
 terraform-functions-app-init: ## Initialize Functions App workspace
 	@echo "$(YELLOW)Initializing Functions App workspace...$(RESET)"
 	@cd $(INFRASTRUCTURE_PATH)/functions-app && $(MAKE) init
+terterraform-functions-app-update: ## Update providers and lock file in Functions App workspace
+	@echo "$(YELLOW)Updating providers and lock file in Functions App workspace...$(RESET)"
+	@cd $(INFRASTRUCTURE_PATH)/functions-app && \
+		if [ -f ../../.env ]; then \
+			set -a && . ../../.env && set +a && \
+			export TF_TOKEN_app_terraform_io="$$TF_API_TOKEN" && \
+			terraform init -upgrade; \
+		else \
+			echo "$(RED)Error: .env file not found at ../../.env$(RESET)"; \
+			exit 1; \
+		fi
+	@echo "$(GREEN)If .terraform.lock.hcl was updated, review and commit the changes.$(RESET)"raform-functions-app-update: ## Update providers and lock file in Functions App workspace
+
 
 terraform-functions-app-plan: ## Plan Functions App workspace changes
 	@echo "$(YELLOW)Planning Functions App workspace changes...$(RESET)"

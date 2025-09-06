@@ -62,6 +62,11 @@ applyTo: '**'
 - 2025-09-01: User reported Terraform Apply step failing in GitHub Actions, suspects missing resources in module. Provided link to failing run and .terraform-version file (1.12.2). Agent to investigate error, analyze Terraform codebase, and resolve missing resources.
 
 ## Notes
+- 2025-09-06: Node.js/npm/pyright install order fix in install.sh
+  - Problem: install.sh tried to use npm (for pyright) before Node.js/npm was installed, causing 'sudo: npm: command not found'.
+  - Fix: Moved Node.js install step before Python dev tools and added a check in install_python_dev_tools to call install_nodejs if npm is missing.
+  - Caveat: If nvm is used, 'sudo npm' may not work because nvm is not available in sudo's PATH by default. Recommend using a user-level npm global install or adjusting sudoers config if needed.
+  - Next: Consider using 'npm install -g --prefix "$HOME/.local" pyright' or similar to avoid sudo/nvm path issues, or document that a shell restart is required after nvm install.
 - If new function folders are added, ensure they have their own .vscode/settings.json for test discovery
 - Use absolute imports in test files for robust discovery
 - Next step: Analyze Terraform codebase for missing resources required by modules.

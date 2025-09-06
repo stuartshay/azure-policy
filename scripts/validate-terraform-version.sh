@@ -22,7 +22,7 @@ INFRASTRUCTURE_DIR="$PROJECT_ROOT/infrastructure"
 EXIT_SUCCESS=0
 EXIT_VERSION_MISMATCH=1
 EXIT_FILE_NOT_FOUND=2
-EXIT_VALIDATION_ERROR=3
+# EXIT_VALIDATION_ERROR=3  # Reserved for future use
 
 # Global variables
 ERRORS_FOUND=0
@@ -278,7 +278,7 @@ validate_github_workflows() {
                 fi
             done <<< "$workflow_versions"
         fi
-    done < <(find "$workflows_dir" -name "*.yml" -o -name "*.yaml" -print0)
+    done < <(find "$workflows_dir" \( -name "*.yml" -o -name "*.yaml" \) -print0)
 
     return 0
 }

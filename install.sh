@@ -6,8 +6,49 @@ set -e
 
 OS="$(uname)"
 
+# Helper function to check if a command exists and optionally check version
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+# Helper function to compare versions (returns 0 if version1 >= version2)
+version_ge() {
+  [ "$(printf '%s\n' "$2" "$1" | sort -V | head -n1)" = "$2" ]
+}
+
+# Helper function to extract version number from version string
+extract_version() {
+  echo "$1" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1
+}
+
 # Function to install Python 3.13
 install_python313() {
+  # Check if Python 3.13 is already installed
+  if command_exists python3.13; then
+    current_version=$(python3.13 --version 2>/dev/null | extract_version)
+    echo "✅ Python 3.13 is already installed: $(python3.13 --version)"
+
+    # Check if pip is available for Python 3.13
+    if python3.13 -m pip --version >/dev/null 2>&1; then
+      echo "✅ pip for Python 3.13 is available: $(python3.13 -m pip --version)"
+    else
+      echo "Installing pip for Python 3.13..."
+      curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.13
+    fi
+
+    # Check if setuptools is available
+    if python3.13 -c "import setuptools" >/dev/null 2>&1; then
+      echo "✅ setuptools for Python 3.13 is available"
+    else
+      echo "Installing setuptools for Python 3.13..."
+      sudo python3.13 -m pip install setuptools
+    fi
+
+    return 0
+  fi
+
+  echo "Installing Python 3.13..."
+
   if [[ "$OS" == "Linux" ]]; then
     if command -v apt >/dev/null 2>&1; then
       echo "Installing Python 3.13 using apt..."
@@ -73,6 +114,14 @@ install_python313() {
 }
 # Function to install jq (JSON processor)
 install_jq() {
+  # Check if jq is already installed
+  if command_exists jq; then
+    echo "✅ jq is already installed: $(jq --version)"
+    return 0
+  fi
+
+  echo "Installing jq (JSON processor)..."
+
   if [[ "$OS" == "Linux" ]]; then
     if command -v apt >/dev/null 2>&1; then
       echo "Installing jq using apt..."
@@ -328,6 +377,14 @@ install_terraform() {
 
 # Function to install Terragrunt
 install_terragrunt() {
+  # Check if Terragrunt is already installed
+  if command_exists terragrunt; then
+    echo "✅ Terragrunt is already installed: $(terragrunt --version)"
+    return 0
+  fi
+
+  echo "Installing Terragrunt..."
+
   if [[ "$OS" == "Linux" ]]; then
     echo "Installing Terragrunt..."
     # Get latest version
@@ -396,6 +453,14 @@ install_tflint() {
 
 # Function to install terraform-docs
 install_terraform_docs() {
+  # Check if terraform-docs is already installed
+  if command_exists terraform-docs; then
+    echo "✅ terraform-docs is already installed: $(terraform-docs --version)"
+    return 0
+  fi
+
+  echo "Installing terraform-docs..."
+
   if [[ "$OS" == "Linux" ]]; then
     echo "Installing terraform-docs..."
     # Get latest version
@@ -430,13 +495,22 @@ install_python_dev_tools() {
   echo "Installing mypy (static type checker)..."
   sudo python3.13 -m pip install mypy
 
-  echo "Installing pyright (via npm - requires Node.js)..."
-  # Check if npm is available
-  if command -v npm >/dev/null 2>&1; then
-    sudo npm install -g pyright
-  else
-    echo "WARNING: npm not available - pyright will be installed by pre-commit when needed"
-  fi
+    echo "Installing pyright (via npm - requires Node.js)..."
+    # Check if npm is available
+    if command -v npm >/dev/null 2>&1; then
+      echo "npm found, installing pyright globally..."
+      # Check if we're using nvm (npm will be in user space, don't use sudo)
+      if [[ "$(which npm)" == *"/.nvm/"* ]] || [[ "$(which npm)" == *"/nvm/"* ]]; then
+        echo "Using nvm-managed npm, installing without sudo..."
+        npm install -g pyright
+      else
+        echo "Using system npm, installing with sudo..."
+        sudo npm install -g pyright
+      fi
+    else
+      echo "npm not found. Node.js will be installed separately."
+      echo "pyright will be installed by pre-commit when needed, or manually after Node.js setup."
+    fi
 
   echo "Installing pylint (code analysis tool)..."
   sudo python3.13 -m pip install pylint
@@ -480,9 +554,19 @@ install_additional_dev_tools() {
 
   # Install actionlint for GitHub Actions workflow validation
   echo "Installing actionlint (GitHub Actions linter)..."
-  if [[ "$OS" == "Linux" ]]; then
-    # Get latest version
-    ACTIONLINT_VERSION=$(curl -s https://api.github.com/repos/rhymond/actionlint/releases/latest | grep tag_name | cut -d '"' -f 4)
+
+  # Check if actionlint is already installed
+  if command -v actionlint >/dev/null 2>&1; then
+    echo "actionlint is already installed: $(actionlint --version 2>/dev/null | head -1 || echo 'version unknown')"
+  elif [[ "$OS" == "Linux" ]]; then
+    # Get latest version with better error handling
+    echo "Fetching latest actionlint version..."
+    ACTIONLINT_VERSION=$(curl -s https://api.github.com/repos/rhymond/actionlint/releases/latest | grep '"tag_name"' | cut -d '"' -f 4)
+    if [ -z "$ACTIONLINT_VERSION" ]; then
+      echo "Failed to fetch actionlint version, using v1.6.26 as fallback"
+      ACTIONLINT_VERSION="v1.6.26"
+    fi
+    echo "Installing actionlint $ACTIONLINT_VERSION..."
     wget -O actionlint "https://github.com/rhymond/actionlint/releases/download/${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION#v}_linux_amd64"
     chmod +x actionlint
     sudo mv actionlint /usr/local/bin/
@@ -533,6 +617,14 @@ install_checkov() {
 
 # Function to install GitHub CLI
 install_github_cli() {
+  # Check if GitHub CLI is already installed
+  if command_exists gh; then
+    echo "✅ GitHub CLI is already installed: $(gh --version | head -n1)"
+    return 0
+  fi
+
+  echo "Installing GitHub CLI..."
+
   if [[ "$OS" == "Linux" ]]; then
     if command -v apt >/dev/null 2>&1; then
       echo "Installing GitHub CLI using apt..."
@@ -878,6 +970,12 @@ extract_precommit_hooks() {
 
 # Function to install PostgreSQL client
 install_postgresql_client() {
+  # Check if PostgreSQL client is already installed
+  if command_exists psql; then
+    echo "✅ PostgreSQL client is already installed: $(psql --version)"
+    return 0
+  fi
+
   echo "Installing PostgreSQL client (psql)..."
 
   if [[ "$OS" == "Linux" ]]; then
@@ -906,6 +1004,71 @@ install_postgresql_client() {
   else
     echo "Warning: PostgreSQL client installation may have failed." >&2
   fi
+}
+
+# Function to setup Python virtual environment and install packages
+setup_python_venv() {
+  echo "Setting up Python virtual environment..."
+
+  # Navigate to project root
+  cd "$(dirname "$0")"
+
+  # Check if .venv already exists
+  if [ -d ".venv" ]; then
+    echo "✅ Virtual environment already exists at .venv"
+
+    # Check if requirements are installed by testing a key package
+    if .venv/bin/python -c "import azure.functions" 2>/dev/null; then
+      echo "✅ Python packages appear to be already installed"
+      echo "To activate: source .venv/bin/activate"
+      return 0
+    else
+      echo "Virtual environment exists but packages may be missing, installing..."
+    fi
+  else
+    # Create virtual environment
+    echo "Creating Python 3.13 virtual environment..."
+    python3.13 -m venv .venv
+    echo "✅ Virtual environment created at .venv"
+  fi
+
+  # Install/upgrade pip and install requirements
+  echo "Installing Python packages from requirements.txt..."
+  .venv/bin/python -m pip install --upgrade pip
+
+  # Check if requirements.txt exists
+  if [ -f "requirements.txt" ]; then
+    echo "Installing packages from requirements.txt..."
+    .venv/bin/pip install -r requirements.txt
+    echo "✅ Python packages installed successfully"
+  else
+    echo "Warning: requirements.txt not found, skipping package installation"
+  fi
+
+  echo "✅ Virtual environment setup complete!"
+  echo ""
+
+  # Create a convenient activation script
+  cat > activate-venv.sh << 'EOF'
+#!/bin/bash
+# Convenience script to activate the Python virtual environment
+source .venv/bin/activate
+echo "✅ Python virtual environment activated!"
+echo "Python version: $(python --version)"
+echo "To deactivate when done, run: deactivate"
+EOF
+  chmod +x activate-venv.sh
+
+  echo "Created convenience script: ./activate-venv.sh"
+  echo ""
+  echo "To activate the virtual environment, run:"
+  echo "  source .venv/bin/activate"
+  echo "  OR"
+  echo "  source ./activate-venv.sh"
+  echo ""
+  echo "To deactivate when done, run:"
+  echo "  deactivate"
+  echo ""
 }
 
 # Function to install pre-commit and setup hooks
@@ -1027,40 +1190,66 @@ EOF
   echo ""
 }
 
+echo ""
+echo "=== Installing Python Development Tools ==="
+
 # Install Python 3.13 first
 echo "=== Installing Python 3.13 ==="
 install_python313
 
 echo ""
+echo "=== Installing Node.js ==="
+install_nodejs
+
+echo ""
 echo "=== Installing Python Development Tools ==="
 install_python_dev_tools
 
+# Function to install Azure CLI
+install_azure_cli() {
+  # Check if Azure CLI is already installed
+  if command_exists az; then
+    echo "✅ Azure CLI is already installed: $(az --version | head -n1)"
+    return 0
+  fi
+
+  echo "Installing Azure CLI..."
+
+  if [[ "$OS" == "Linux" ]]; then
+    if command -v apt >/dev/null 2>&1; then
+      echo "Installing Azure CLI using apt..."
+      curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+    elif command -v yum >/dev/null 2>&1; then
+      echo "Installing Azure CLI using yum..."
+      curl -sL https://aka.ms/InstallAzureCLIRpm | sudo bash
+    else
+      echo "Unsupported Linux distribution. Please install Azure CLI manually." >&2
+      exit 1
+    fi
+  elif [[ "$OS" == "Darwin" ]]; then
+    if ! command -v brew >/dev/null 2>&1; then
+      echo "Homebrew is required but not found. Please install Homebrew first:" >&2
+      echo "https://brew.sh/" >&2
+      exit 1
+    fi
+    echo "Installing Azure CLI using Homebrew..."
+    brew update && brew install azure-cli
+  else
+    echo "Unsupported operating system: $OS" >&2
+    exit 1
+  fi
+
+  # Verify installation
+  if command -v az >/dev/null 2>&1; then
+    echo "Azure CLI version: $(az --version | head -n1)"
+  else
+    echo "Warning: Azure CLI installation may have failed." >&2
+  fi
+}
+
 echo ""
 echo "=== Installing Azure CLI ==="
-
-if [[ "$OS" == "Linux" ]]; then
-  if command -v apt >/dev/null 2>&1; then
-    echo "Installing Azure CLI using apt..."
-    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-  elif command -v yum >/dev/null 2>&1; then
-    echo "Installing Azure CLI using yum..."
-    curl -sL https://aka.ms/InstallAzureCLIRpm | sudo bash
-  else
-    echo "Unsupported Linux distribution. Please install Azure CLI manually." >&2
-    exit 1
-  fi
-elif [[ "$OS" == "Darwin" ]]; then
-  if ! command -v brew >/dev/null 2>&1; then
-    echo "Homebrew is required but not found. Please install Homebrew first:" >&2
-    echo "https://brew.sh/" >&2
-    exit 1
-  fi
-  echo "Installing Azure CLI using Homebrew..."
-  brew update && brew install azure-cli
-else
-  echo "Unsupported operating system: $OS" >&2
-  exit 1
-fi
+install_azure_cli
 
 echo ""
 echo "=== Installing jq (JSON processor) ==="
@@ -1069,10 +1258,6 @@ install_jq
 echo ""
 echo "=== Installing zip/unzip utilities ==="
 install_zip_utils
-
-echo ""
-echo "=== Installing Node.js ==="
-install_nodejs
 
 echo ""
 echo "=== Installing Azurite (Azure Storage Emulator) ==="
@@ -1138,6 +1323,10 @@ echo "=== Setting up Azurite Data Directory ==="
 setup_azurite_directory
 
 echo ""
+echo "=== Setting up Python Virtual Environment ==="
+setup_python_venv
+
+echo ""
 echo "=== Installation Summary ==="
 echo "Python version: $(python3.13 --version 2>/dev/null || echo 'Not found')"
 echo "Azure CLI version: $(az --version 2>/dev/null | head -n1 || echo 'Not found')"
@@ -1188,11 +1377,19 @@ echo "3. Install Azurite: npm install -g azurite"
 echo "4. Authenticate with Azure: az login"
 echo "5. Authenticate with GitHub: gh auth login"
 echo "6. Start Azurite: azurite --silent --location ./azurite-data --debug ./azurite-data/debug.log"
-echo "7. Navigate to functions: cd functions/basic"
-echo "8. Setup Python environment: python3.13 -m venv .venv && source .venv/bin/activate"
-echo "9. Install Python dependencies: pip install -r requirements.txt"
-echo "10. Start Azure Functions: func start"
-echo "11. Pre-commit hooks are ready - they'll run automatically on git commits"
+echo ""
+echo ">> Python Virtual Environment (automatically created):"
+echo "7. Activate virtual environment: source .venv/bin/activate"
+echo "8. Verify packages: python -c 'import azure.functions; print(\"✅ Packages installed successfully\")'"
+echo ""
+echo ">> For Azure Functions development:"
+echo "10. Navigate to functions: cd functions/basic"
+echo "11. Create function-specific venv: python3.13 -m venv .venv"
+echo "12. Activate function venv: source .venv/bin/activate"
+echo "13. Install function dependencies: pip install -r requirements.txt"
+echo "14. Start Azure Functions: func start"
+echo ""
+echo "15. Pre-commit hooks are ready - they'll run automatically on git commits"
 echo ""
 echo ">> You're ready for Azure Policy & Functions development!"
 echo ""
@@ -1222,4 +1419,12 @@ echo "   - Azurite Storage: http://localhost:10000 (blob), http://localhost:1000
 echo "   - Azurite data: ./azurite-data/ directory"
 echo "   - Documentation: Check README.md for detailed setup"
 echo "   - Troubleshooting: See TROUBLESHOOTING.md"
+echo ""
+echo "🚀 READY TO START DEVELOPMENT!"
+echo ""
+echo "To activate your Python environment and start coding:"
+echo "   source .venv/bin/activate"
+echo ""
+echo "Or use the convenience script:"
+echo "   source ./activate-venv.sh"
 echo ""

@@ -51,7 +51,7 @@ get_changed_infrastructure_dirs() {
             local full_dir="$INFRASTRUCTURE_DIR/$dir_name"
 
             # Add to array if directory exists and not already added
-            if [[ -d "$full_dir" ]] && [[ ! " ${changed_dirs[*]} " =~ " ${dir_name} " ]]; then
+            if [[ -d "$full_dir" ]] && [[ ! " ${changed_dirs[*]} " =~  ${dir_name}  ]]; then
                 changed_dirs+=("$dir_name")
             fi
         fi
