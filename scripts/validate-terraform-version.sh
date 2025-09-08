@@ -263,10 +263,10 @@ validate_github_workflows() {
         local workflow_name
         workflow_name=$(basename "$workflow_file")
 
-        # Check for terraform-version specifications
-        if grep -q "terraform-version\|terraform_version" "$workflow_file"; then
+        # Check for terraform-version specifications (YAML key: value format only)
+        if grep -q "terraform[-_]version[[:space:]]*:" "$workflow_file"; then
             local workflow_versions
-            workflow_versions=$(grep -E "terraform-version|terraform_version" "$workflow_file" | \
+            workflow_versions=$(grep -E "terraform[-_]version[[:space:]]*:" "$workflow_file" | \
                               sed -E 's/.*terraform[-_]version[[:space:]]*:[[:space:]]*["\047]?([0-9.]+)["\047]?.*/\1/' | \
                               sort -u)
 
@@ -295,7 +295,7 @@ validate_provider_consistency() {
         # Extract the required_providers block
         block=$(awk '/required_providers[[:space:]]*{/,/}/ {print}' "$tf_file")
         # Extract the azurerm version line from the block
-        version=$(echo "$block" | awk '/azurerm[[:space:]]*=/,/{/ {if ($0 ~ /version[[:space:]]*=/) {gsub(/.*version[[:space:]]*=[[:space:]]*\"/, "", $0); gsub(/\".*/, "", $0); print $0}}')
+        version=$(echo "$block" | awk '/azurerm[[:space:]]*=/,/{/ {if ($0 ~ /version[[:space:]]*=/) {gsub(/.*version[[:space:]]*=[[:space:]]*"/, "", $0); gsub(/".*/, "", $0); print $0}}')
         if [[ -n "$version" ]]; then
             echo "$version|$tf_file" >> "$temp_file"
         fi

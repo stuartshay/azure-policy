@@ -18,7 +18,7 @@ version_ge() {
 
 # Helper function to extract version number from version string
 extract_version() {
-  echo "$1" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1
+  grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1
 }
 
 # Function to install Python 3.13
