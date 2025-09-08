@@ -335,7 +335,7 @@ This configuration provides the perfect balance of **security**, **accessibility
 
 | Name | Version |
 |------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.40.0 |
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | ~> 4.40 |
 
 ## Modules
 
