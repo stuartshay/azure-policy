@@ -117,7 +117,7 @@ resource "azurerm_storage_account" "functions" {
 # App Service Plan for Functions using private module
 module "app_service_plan" {
   source  = "app.terraform.io/azure-policy-cloud/app-service-plan-function/azurerm"
-  version = "1.1.59"
+  version = "1.1.82"
 
   workload                     = var.workload
   environment                  = var.environment
