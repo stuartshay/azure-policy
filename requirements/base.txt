@@ -15,7 +15,7 @@ pyOpenSSL==25.1.0
 # Core Azure SDK packages
 azure-functions==1.23.0
 azure-storage-blob==12.26.0
-azure-identity==1.24.0
+azure-identity==1.25.0
 azure-keyvault-secrets==4.10.0
 azure-core==1.35.0
 azure-common==1.1.28
