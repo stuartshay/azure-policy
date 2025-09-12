@@ -14,7 +14,7 @@ azure-servicebus==7.14.2
 # Application Insights and telemetry
 opencensus-ext-azure==1.1.15
 opencensus-ext-logging==0.1.1
-azure-monitor-opentelemetry==1.7.0
+azure-monitor-opentelemetry==1.8.0
 
 # HTTP client for function operations
 aiohttp==3.12.15
